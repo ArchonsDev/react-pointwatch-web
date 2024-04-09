@@ -1,0 +1,19 @@
+.button-style {
+  background-color: #d80085;
+  margin: 0 10px 0 10px;
+  color: #f5e3e0;
+  border: none;
+  border-radius: 200px;
+  font-family: "Poppins-SemiBold";
+}
+
+.button-style:hover {
+  background-color: #474448;
+  color: #f5e3e0;
+}
+
+.button-style:disabled {
+  background-color: #d3d3d3;
+  color: #a9a9a9;
+  cursor: not-allowed;
+}

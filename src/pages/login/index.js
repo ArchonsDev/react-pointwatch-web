@@ -3,8 +3,11 @@ import styles from "./style.module.css";
 
 const Login = () => {
   return (
-    <div>
-      <h1>login page</h1>
+    <div className={`${styles.Login}`}>
+      <div
+        className={`${styles.content} container d-flex flex-column align-items-start`}>
+        <div className="">Login Box</div>
+      </div>
     </div>
   );
 };
