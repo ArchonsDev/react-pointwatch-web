@@ -1,13 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
 import Login from "./pages/login";
 import Register from "./pages/registration";
 
-import styles from "./styles/App.css";
+// import SessionUserContext from "./contexts/SessionUserContext";
+
+import styles from "./styles/App.module.css";
 
 const App = () => {
   const location = useLocation();
+  const [user, setUser] = useState(null);
 
   const tabNames = {
     "/login": "Login",
@@ -17,7 +20,10 @@ const App = () => {
   document.title = tabNames[location.pathname] || "PointWatch";
 
   return (
-    <div className={`${styles.App}`}>
+    <div
+      className={`${styles.App} ${
+        location.pathname === "/login" ? styles.bg : styles["no-bg"]
+      }`}>
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
