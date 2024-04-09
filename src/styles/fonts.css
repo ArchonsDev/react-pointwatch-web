@@ -1,0 +1,32 @@
+@font-face {
+  font-family: "Degradasi";
+  src: url(./fonts/dDegradasi.ttf) format("truetype");
+}
+@font-face {
+  font-family: "Poppins-Regular";
+  src: url(./fonts/POPPINS-REGULAR.TTF) format("truetype");
+}
+
+@font-face {
+  font-family: "Poppins-Medium";
+  src: url(./fonts/POPPINS-MEDIUM.TTF) format("truetype");
+}
+
+@font-face {
+  font-family: "Poppins-SemiBold";
+  src: url(./fonts/POPPINS-SEMIBOLD.TTF) format("truetype");
+}
+
+@font-face {
+  font-family: "Poppins-Bold";
+  src: url(./fonts/POPPINS-BOLD.TTF) format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins-SemiBold";
+  src: url(./fonts/POPPINS-SEMIBOLD.TTF) format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}
