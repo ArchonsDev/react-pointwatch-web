@@ -7,3 +7,30 @@
   z-index: 2;
   position: relative;
 }
+
+.line1 {
+  font-family: "Poppins-SemiBold";
+  font-size: 70px;
+  color: #474448;
+}
+
+.line2 {
+  font-family: "Degradasi";
+  font-size: 70px;
+  color: #d80085;
+  line-height: 1;
+}
+
+.icon {
+  color: #474448;
+}
+
+.formBox {
+  background-color: #e8b4bc !important;
+  border: none !important;
+  font-family: "Poppins-Regular";
+}
+
+.password {
+  font-family: "Poppins-Light";
+}

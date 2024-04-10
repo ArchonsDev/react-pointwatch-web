@@ -31,3 +31,8 @@
   font-weight: bold;
   font-style: normal;
 }
+
+@font-face {
+  font-family: "Poppins-Light";
+  src: url(./fonts/POPPINS-LIGHT.TTF) format("truetype");
+}
