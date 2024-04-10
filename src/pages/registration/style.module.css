@@ -1,44 +1,36 @@
-.container {
-    height: 100vh;
-    background-color: #3A3238;
+.background {
+  height: 100vh;
+  background-color: #3a3238;
 }
 
 .header {
-    background-color: #E8B4BC;
-    padding: 10px;
-    padding-left: 30px;
-    padding-top: 20px;
-    font-family: "Degradasi";
+  background-color: #e8b4bc;
+  padding: 10px;
+  padding-left: 30px;
+  padding-top: 20px;
+  font-family: "Degradasi";
+  margin-bottom: 8rem;
 }
 
-.container2 {
-    background-color: #fff;
-    margin: 8em auto;
-    width: 40em;
-    height: auto;
-    border-radius: 20px;
-
+.icon {
+  color: #3a3238 !important;
 }
 
-.inputGroup{
-    padding-left: 3em;
-    padding-right: 2em;
-    padding-top: 1em;
-    width: 100%; /* Ensure input group does not exceed container width */
-    box-sizing: border-box; /* Include padding in width calculation */
-    color: black;
-    font-family: Poppins-Regular;
-    
+.brand {
+  font-family: "Degradasi";
+  font-size: 2rem;
+  color: #d80085;
+  vertical-align: middle;
 }
 
-.inputMargin {
-    margin-bottom: 20px;
-    border-radius: 6px !important;
+.formIcon {
+  color: #474448;
 }
 
-.regBtnContainer{
-    padding-top: 3em;
-    padding-bottom: 3em;
-    text-align: center;
-    
+.iconBox {
+  background-color: white !important;
+}
+
+.form {
+  font-family: "Poppins-Regular" !important;
 }

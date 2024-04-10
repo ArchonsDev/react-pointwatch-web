@@ -1,112 +1,165 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import styles from "./style.module.css";
-import { Row, Col, Form } from "react-bootstrap";
+import { Container, Card, Row, Col, Form, InputGroup } from "react-bootstrap";
+
 import BtnPrimary from "../../common/buttons/BtnPrimary";
-import Dropdown from "react-bootstrap/Dropdown";
-import DropdownButton from "react-bootstrap/DropdownButton";
+import logo from "../../images/logo1.png";
 
 const Registration = () => {
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <h1>
-          <i className={`${styles.icon} fa-solid fa-caret-left fa-xl`}></i>{" "}
+    <div className={styles.background}>
+      <header className={`${styles.header}`}>
+        <h2>
+          <Link to="/login">
+            <i className={`${styles.icon} fa-solid fa-caret-left fa-xl`}></i>
+          </Link>{" "}
           Create Account
-        </h1>
+        </h2>
       </header>
-
-      <div className={styles.container2}>
-        <div className={styles.inputGroup}>
-          <div>
-            <div className="row pt-3">
-              <div className="col">
-                <div className={`${styles.inputContainer}`}>
-                  <input
-                    type="text"
-                    className={`form-control ${styles.inputMargin}`}
-                    placeholder="ID number"
-                    id="inputIDnum"
-                    name="idnum"
-                  />
-                </div>
-              </div>
-              <div className="col">
-                <div className={`${styles.inputContainer}`}>
-                  <input
-                    type="text"
-                    className={`form-control ${styles.inputMargin}`}
-                    placeholder="Email"
-                    id="inputEmail"
-                    name="email"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="row pt-3">
-              <div className="col">
-                <div className={`${styles.inputContainer}`}>
-                  <input
-                    type="text"
-                    className={`form-control ${styles.inputMargin}`}
-                    placeholder="Firstname"
-                    id="inputFirstname"
-                    name="firstname"
-                  />
-                </div>
-              </div>
-              <div className="col">
-                <div className={`${styles.inputContainer}`}>
-                  <input
-                    type="text"
-                    className={`form-control ${styles.inputMargin}`}
-                    placeholder="Lastname"
-                    id="inputLastname"
-                    name="lastname"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="form-group">
-              <div className={`${styles.inputContainer}`}>
-                <input
-                  type="password"
-                  className={`form-control ${styles.inputMargin}`}
-                  id="inputPassword"
-                  placeholder="Password"
-                  name="password"
+      <Container className="d-flex justify-content-center align-items-center">
+        <Card className="p-4" style={{ width: "60rem" }}>
+          <Card.Body>
+            <Row className="mb-4">
+              <Col className="text-center align-items-center justify-content-center">
+                <img
+                  src={logo}
+                  className="logo"
+                  height="80px"
+                  alt="PointWatch logo"
                 />
-              </div>
-            </div>
-            <div className="form-group">
-              <div className={`${styles.inputContainer}`}>
-                <input
-                  type="password"
-                  className={`form-control ${styles.inputMargin}`}
-                  id="inputConfirmPassword"
-                  placeholder="Confirm Password"
-                  name="confirmPassword"
-                />
-              </div>
-            </div>
-          </div>
+                <span className={styles.brand}>PointWatch</span>
+              </Col>
+            </Row>
+            <Form className={styles.form}>
+              {/* Row 1: Email & ID Number */}
+              <Row>
+                <Col>
+                  <Form.Group
+                    className="mb-3"
+                    controlId="exampleForm.ControlInput1">
+                    <InputGroup>
+                      <InputGroup.Text className={styles.iconBox}>
+                        <i
+                          className={`${styles.formIcon} fa-solid fa-at fa-lg`}></i>
+                      </InputGroup.Text>
+                      <Form.Control type="email" placeholder="E-mail" />
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+                <Col>
+                  <Form.Group
+                    className="mb-3"
+                    controlId="exampleForm.ControlInput1">
+                    <InputGroup>
+                      <InputGroup.Text className={styles.iconBox}>
+                        <i
+                          className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}></i>
+                      </InputGroup.Text>
+                      <Form.Control type="number" placeholder="ID Number" />
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+              </Row>
 
-          <DropdownButton
-            id="dptdrop"
-            title="Departments"
-            className={styles.DropdownButton}
-          >
-            <Dropdown.Item href="#/action-1">Action</Dropdown.Item>
-            <Dropdown.Item href="#/action-2">Another action</Dropdown.Item>
-            <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
-          </DropdownButton>
-        </div>
-        {/* Register button */}
-        <div className={styles.regBtnContainer}>
-          <BtnPrimary className={styles.regBtn}>Register</BtnPrimary>
-        </div>
-      </div>
+              {/* Row 2: First name & last name  */}
+              <Row>
+                <Col>
+                  <Form.Group
+                    className="mb-3"
+                    controlId="exampleForm.ControlInput1">
+                    <InputGroup>
+                      <InputGroup.Text className={styles.iconBox}>
+                        <i
+                          className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
+                      </InputGroup.Text>
+                      <Form.Control type="text" placeholder="First name" />
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+                <Col>
+                  <Form.Group
+                    className="mb-3"
+                    controlId="exampleForm.ControlInput1">
+                    <InputGroup>
+                      <InputGroup.Text className={styles.iconBox}>
+                        <i
+                          className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
+                      </InputGroup.Text>
+                      <Form.Control type="text" placeholder="Last name" />
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+              </Row>
 
-      <div className={styles.content}></div>
+              {/* Row 3: Department */}
+              <Row>
+                <Col>
+                  <Form.Group
+                    className="mb-3"
+                    controlId="exampleForm.ControlInput1">
+                    <InputGroup>
+                      <InputGroup.Text className={styles.iconBox}>
+                        <i
+                          className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
+                      </InputGroup.Text>
+                      <Form.Select defaultValue="Department">
+                        <option disabled>Department</option>
+                        <option>Elementary Department</option>
+                        <option>Junior High School Department</option>
+                        <option>Senior High School Department</option>
+                        <option>College Department</option>
+                        <option>Administrative Department</option>
+                      </Form.Select>
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              {/* Row 4 & 5: Password */}
+              <Row>
+                <Col>
+                  <Form.Group
+                    className="mb-3"
+                    controlId="exampleForm.ControlInput1">
+                    <InputGroup>
+                      <InputGroup.Text className={styles.iconBox}>
+                        <i
+                          className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
+                      </InputGroup.Text>
+                      <Form.Control type="password" placeholder="Password" />
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <Form.Group
+                    className="mb-3"
+                    controlId="exampleForm.ControlInput1">
+                    <InputGroup>
+                      <InputGroup.Text className={styles.iconBox}>
+                        <i
+                          className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
+                      </InputGroup.Text>
+                      <Form.Control
+                        type="password"
+                        placeholder="Confirm Password"
+                      />
+                    </InputGroup>
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row>
+                <Col className="text-center">
+                  <BtnPrimary>Register</BtnPrimary>
+                </Col>
+              </Row>
+            </Form>
+          </Card.Body>
+        </Card>
+      </Container>
     </div>
   );
 };
