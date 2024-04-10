@@ -8,6 +8,10 @@ import BtnSecondary from "../../common/buttons/BtnSecondary";
 import logo from "../../images/logo.png";
 
 const Login = () => {
+  const openRegister = () => {
+    window.open("/register", "_blank");
+  };
+
   return (
     <div className={`${styles.Login} d-flex`}>
       <div
@@ -64,12 +68,14 @@ const Login = () => {
                 </InputGroup>
               </Form.Group>
               <Row className="mb-4">
-                <Col className="text-end">
-                  <span className={styles.password}>Forgot password?</span>
+                <Col className={`${styles.password} text-end`}>
+                  <span>Forgot password?</span>
                 </Col>
               </Row>
               <BtnPrimary className={styles.button}>Login</BtnPrimary>
-              <BtnSecondary className={styles.button}>Register</BtnSecondary>
+              <BtnSecondary onClick={openRegister} className={styles.button}>
+                Register
+              </BtnSecondary>
             </Form>
           </Row>
         </Container>

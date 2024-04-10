@@ -1,0 +1,36 @@
+.background {
+  height: 100vh;
+  background-color: #3a3238;
+}
+
+.header {
+  background-color: #e8b4bc;
+  padding: 10px;
+  padding-left: 30px;
+  padding-top: 20px;
+  font-family: "Degradasi";
+  margin-bottom: 8rem;
+}
+
+.icon {
+  color: #3a3238 !important;
+}
+
+.brand {
+  font-family: "Degradasi";
+  font-size: 2rem;
+  color: #d80085;
+  vertical-align: middle;
+}
+
+.formIcon {
+  color: #474448;
+}
+
+.iconBox {
+  background-color: white !important;
+}
+
+.form {
+  font-family: "Poppins-Regular" !important;
+}
