@@ -33,4 +33,17 @@
 
 .password {
   font-family: "Poppins-Light";
+  cursor: pointer;
+}
+
+.modalTitle {
+  font-family: "Degradasi";
+  color: #d80085 !important;
+  vertical-align: middle;
+}
+
+.modalBody {
+  font-family: "Poppins-Medium";
+  text-align: center;
+  color: #474448;
 }
