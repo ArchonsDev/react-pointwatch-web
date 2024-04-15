@@ -6,11 +6,11 @@ This is the Frontend application of the PointWatch project, bootstrapped with [C
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [Support]
+- [Support](#support)
 
 ## Installation
 
-Ensure to have [NodeJS](https://nodejs.org/en/download) installed before running the project.
+Make sure to have [NodeJS](https://nodejs.org/en/download) installed before running the project.
 
 ## Usage
 
