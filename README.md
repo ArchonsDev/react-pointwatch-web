@@ -1,39 +1,40 @@
-# Getting Started with Create React App
+# PointWatch Frontend Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the Frontend application of the PointWatch project, bootstrapped with [Create React App](https://github.com/facebook/create-react-app). To work properly, have the [backend API](https://github.com/ArchonsDev/flask-pointwatch-api) of the project running.
 
-### Install Node js first before doing anything
+## Table of Contents
 
-https://nodejs.org/en/download
+- [Installation](#installation)
+- [Usage](#usage)
+- [Support]
 
-### Code Cloning for the react pointwatch web
+## Installation
 
+Ensure to have [NodeJS](https://nodejs.org/en/download) installed before running the project.
+
+## Usage
+
+Open Git bash and run the following commands:
+
+Clone the project:
+```sh
 git clone https://github.com/ArchonsDev/react-pointwatch-web.git
+```
 
-## Available Scripts
+Install the necessary modules:
+```sh
+npm install
+```
 
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
+Run the project:
+```sh
+npm start
+```
+It should run the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
 
-## Learn More
+## Support
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### The main should always be working!! no errors!!!
-
-# To work on whatever part of the code make a branch of that part so the main is not going to be affected
-
-git checkout -b (name of the branch)
-
-# If branch has already been created
-
-git checkout (name of the branch)
+For any concerns, open an issue [here](https://github.com/ArchonsDev/react-pointwatch-web/issues).
