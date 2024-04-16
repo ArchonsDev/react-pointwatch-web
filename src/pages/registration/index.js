@@ -100,16 +100,6 @@ const Registration = () => {
 
     try {
       console.log(form);
-<<<<<<< HEAD
-      const response = await axios.post("http://localhost:5000/auth/register", {
-        employee_id: form.idNum,
-        email: form.email,
-        firstname: form.firstname,
-        lastname: form.lastname,
-        password: form.password,
-        department: form.department,
-      });
-=======
       const response = await axios.post(
         "http://localhost:5000/auth/register",
         {
@@ -126,7 +116,6 @@ const Registration = () => {
           },
         }
       );
->>>>>>> 2eca615e2f3e4fa979a51478321236383b7d16fc
 
       if (response.status === 200) {
         setIsRegistrationComplete(true);
@@ -176,7 +165,8 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-at fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-at fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="email"
@@ -193,18 +183,13 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
-<<<<<<< HEAD
-                          type="number"
-                          value={form.idNum}
-                          name="idNum"
-=======
                           type="text"
                           value={form.employee_id}
                           name="employee_id"
->>>>>>> 2eca615e2f3e4fa979a51478321236383b7d16fc
                           onChange={handleChange}
                           placeholder="ID Number"
                         />
@@ -220,7 +205,8 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
@@ -237,7 +223,8 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
@@ -258,13 +245,15 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Select
                           aria-label="Example"
                           value={form.department}
                           name="department"
-                          onChange={handleChange}>
+                          onChange={handleChange}
+                        >
                           <option value="" disabled>
                             Departments
                           </option>
@@ -286,7 +275,8 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="password"
@@ -303,11 +293,13 @@ const Registration = () => {
                   <Col>
                     <Form.Group
                       className="mb-3"
-                      controlId="inputConfirmPassword">
+                      controlId="inputConfirmPassword"
+                    >
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="password"
