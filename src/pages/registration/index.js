@@ -100,6 +100,7 @@ const Registration = () => {
 
     try {
       console.log(form);
+<<<<<<< HEAD
       const response = await axios.post("http://localhost:5000/auth/register", {
         employee_id: form.idNum,
         email: form.email,
@@ -108,6 +109,24 @@ const Registration = () => {
         password: form.password,
         department: form.department,
       });
+=======
+      const response = await axios.post(
+        "http://localhost:5000/auth/register",
+        {
+          employee_id: form.employee_id,
+          email: form.email,
+          firstname: form.firstname,
+          lastname: form.lastname,
+          password: form.password,
+          department: form.department,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+>>>>>>> 2eca615e2f3e4fa979a51478321236383b7d16fc
 
       if (response.status === 200) {
         setIsRegistrationComplete(true);
@@ -177,9 +196,15 @@ const Registration = () => {
                             className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
+<<<<<<< HEAD
                           type="number"
                           value={form.idNum}
                           name="idNum"
+=======
+                          type="text"
+                          value={form.employee_id}
+                          name="employee_id"
+>>>>>>> 2eca615e2f3e4fa979a51478321236383b7d16fc
                           onChange={handleChange}
                           placeholder="ID Number"
                         />
