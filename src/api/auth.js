@@ -28,3 +28,28 @@ export const register = async (data, onSuccess, onFail, onCleanup) => {
     onCleanup && onCleanup();
   }
 };
+
+export const login = async (data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.post(
+      "http://localhost:5000/auth/login",
+      {
+        email: data.email,
+        password: data.password,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};
