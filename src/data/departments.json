@@ -1,0 +1,9 @@
+{
+    "departments" : [
+        "Elementary",
+        "Junior High School",
+        "Senior High School",
+        "College",
+        "Administrative"
+    ]
+}

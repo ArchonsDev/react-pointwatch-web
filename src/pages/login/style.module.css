@@ -33,6 +33,7 @@
 
 .password {
   font-family: "Poppins-Light";
+  border: none;
   cursor: pointer;
 }
 

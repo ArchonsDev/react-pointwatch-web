@@ -104,8 +104,10 @@ const Login = () => {
                 </InputGroup>
               </Form.Group>
               <Row className="mb-4">
-                <Col className={`${styles.password} text-end`}>
-                  <span onClick={handleOpen}>Forgot password?</span>
+                <Col className="text-end">
+                  <span className={styles.password} onClick={handleOpen}>
+                    Forgot password?
+                  </span>
                 </Col>
               </Row>
               <BtnPrimary className={styles.button}>Login</BtnPrimary>
