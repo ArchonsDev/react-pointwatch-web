@@ -90,7 +90,7 @@ const Registration = () => {
       hasError = true;
     }
 
-    if (!(form.department === "Departments")) {
+    if (form.department === "Departments") {
       errorMessages.push(
         <>
           <b>Please select a department.</b>
@@ -343,7 +343,11 @@ const Registration = () => {
             </Card.Body>
           ) : (
             <Card.Body>
-              <span>Registration successful!</span>
+              <Row>
+                <Col className="text-center mb-3">
+                  <span className={styles.brand}>Registration successful!</span>{" "}
+                </Col>
+              </Row>
               <Row>
                 <Col className="text-center">
                   <BtnPrimary onClick={(e) => window.close()}>
