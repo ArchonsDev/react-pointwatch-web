@@ -1,10 +1,18 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
-
-import { Container, Card, Row, Col, Form, InputGroup } from "react-bootstrap";
+import {
+  Container,
+  Card,
+  Row,
+  Col,
+  Form,
+  InputGroup,
+  Toast,
+  ToastContainer,
+} from "react-bootstrap";
 
 import departments from "../../data/departments.json";
+import { register } from "../../api/auth";
 import { isValidEmail, isValidPassword } from "./utils";
 
 import styles from "./style.module.css";
@@ -13,12 +21,14 @@ import logo from "../../images/logo1.png";
 
 const Registration = () => {
   const [errorMessage, setErrorMessage] = useState(null);
-  const showErrorMessage = errorMessage !== null;
+  const [showToast, setShowToast] = useState(false);
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
+
+  const toggleShow = () => setShowToast(!showToast);
 
   const [form, setForm] = useState({
     email: "",
-    idNum: "",
+    employee_id: "",
     firstname: "",
     lastname: "",
     department: "",
@@ -41,7 +51,26 @@ const Registration = () => {
     let hasError = false;
     let errorMessages = [];
 
-    if (!(form.firstname.length > 2)) {
+    if (!(form.email.length > 2 && isValidEmail(form.email))) {
+      errorMessages.push(
+        <>
+          <b>Email</b> must be valid.
+          <br />
+        </>
+      );
+      hasError = true;
+    }
+
+    if (!(form.employee_id.length > 1)) {
+      errorMessages.push(
+        <>
+          <b>Employee ID</b> must be valid.
+          <br />
+        </>
+      );
+    }
+
+    if (!(form.firstname.length > 1)) {
       errorMessages.push(
         <>
           <b>Firstname</b> is too short.
@@ -51,7 +80,7 @@ const Registration = () => {
       hasError = true;
     }
 
-    if (!(form.lastname.length > 2)) {
+    if (!(form.lastname.length > 1)) {
       errorMessages.push(
         <>
           <b>Lastname</b> is too short.
@@ -61,10 +90,10 @@ const Registration = () => {
       hasError = true;
     }
 
-    if (!(form.email.length > 2 && isValidEmail(form.email))) {
+    if (!(form.department === "Departments")) {
       errorMessages.push(
         <>
-          <b>Email</b> must be valid.
+          <b>Please select a department.</b>
           <br />
         </>
       );
@@ -95,48 +124,55 @@ const Registration = () => {
 
     if (hasError) {
       setErrorMessage(errorMessages);
+      setShowToast(true);
       return;
     }
 
-    try {
-      console.log(form);
-      const response = await axios.post(
-        "http://localhost:5000/auth/register",
-        {
-          employee_id: form.employee_id,
-          email: form.email,
-          firstname: form.firstname,
-          lastname: form.lastname,
-          password: form.password,
-          department: form.department,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
+    await register(
+      form,
+      (response) => {
+        setTimeout(() => {
+          setIsRegistrationComplete(true);
+        });
+      },
+      (error) => {
+        if (error.response && error.response.status === 409) {
         }
-      );
-
-      if (response.status === 200) {
-        setIsRegistrationComplete(true);
-      } else if (response.status === 409) {
       }
-    } catch (error) {
-      if (error.response && error.response.status === 403) {
-      }
-    }
+    );
   };
 
   return (
     <div className={styles.background}>
+      {/* Fake Navbar */}
       <header className={`${styles.header}`}>
-        <h2>
+        <h3>
           <Link to="/login">
             <i className={`${styles.icon} fa-solid fa-caret-left fa-xl`}></i>
           </Link>{" "}
           Create Account
-        </h2>
+        </h3>
       </header>
+
+      {/* Error Toast */}
+      <ToastContainer className="p-3" position="top-end">
+        <Toast
+          className={styles.toast}
+          show={showToast}
+          delay={5000}
+          onClose={toggleShow}
+          autohide>
+          <Toast.Header>
+            <img src={logo} height="20px" alt="PointWatch logo" />{" "}
+            <strong className={`${styles.errorHeader} me-auto`}>
+              Registration Error
+            </strong>
+          </Toast.Header>
+          <Toast.Body className={styles.errorMsg}>{errorMessage}</Toast.Body>
+        </Toast>
+      </ToastContainer>
+
+      {/* Registration Form */}
       <Container className="d-flex justify-content-center align-items-center">
         <Card className="p-4" style={{ width: "60rem" }}>
           {!isRegistrationComplete ? (
@@ -154,19 +190,13 @@ const Registration = () => {
               </Row>
               <Form className={styles.form}>
                 {/* Row 1: Email & ID Number */}
-                {showErrorMessage && (
-                  <div className="alert alert-danger mt-3" role="alert">
-                    {errorMessage}
-                  </div>
-                )}
                 <Row>
                   <Col>
                     <Form.Group className="mb-3" controlId="inputEmail">
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-at fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-at fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="email"
@@ -183,15 +213,14 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
                           value={form.employee_id}
                           name="employee_id"
                           onChange={handleChange}
-                          placeholder="ID Number"
+                          placeholder="Employee ID"
                         />
                       </InputGroup>
                     </Form.Group>
@@ -205,8 +234,7 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
@@ -223,8 +251,7 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
@@ -245,15 +272,13 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Select
                           aria-label="Example"
                           value={form.department}
                           name="department"
-                          onChange={handleChange}
-                        >
+                          onChange={handleChange}>
                           <option value="" disabled>
                             Departments
                           </option>
@@ -275,8 +300,7 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="password"
@@ -293,13 +317,11 @@ const Registration = () => {
                   <Col>
                     <Form.Group
                       className="mb-3"
-                      controlId="inputConfirmPassword"
-                    >
+                      controlId="inputConfirmPassword">
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="password"
