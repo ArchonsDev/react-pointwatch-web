@@ -12,6 +12,9 @@ const Login = () => {
   const openRegister = () => {
     window.open("/register", "_blank");
   };
+  const openDashboard = () => {
+    window.open("/dashboard");
+  };
 
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -20,7 +23,8 @@ const Login = () => {
   return (
     <div className={`${styles.Login} d-flex`}>
       <div
-        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}>
+        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}
+      >
         <Container>
           {show && (
             <Modal show={show} onHide={handleClose} centered>
@@ -37,7 +41,8 @@ const Login = () => {
                 <InputGroup className="mt-3">
                   <InputGroup.Text>
                     <i
-                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
+                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}
+                    ></i>
                   </InputGroup.Text>
                   <Form.Control type="email" placeholder="Email" />
                 </InputGroup>
@@ -73,11 +78,13 @@ const Login = () => {
             <Form>
               <Form.Group
                 className="mb-3"
-                controlId="exampleForm.ControlInput1">
+                controlId="exampleForm.ControlInput1"
+              >
                 <InputGroup>
                   <InputGroup.Text className={styles.formBox}>
                     <i
-                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
+                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}
+                    ></i>
                   </InputGroup.Text>
                   <Form.Control
                     type="email"
@@ -90,7 +97,8 @@ const Login = () => {
 
               <Form.Group
                 className="mb-3"
-                controlId="exampleForm.ControlInput1">
+                controlId="exampleForm.ControlInput1"
+              >
                 <InputGroup>
                   <InputGroup.Text className={styles.formBox}>
                     <i className={`${styles.icon} fa-solid fa-lock fa-lg`}></i>
@@ -110,7 +118,9 @@ const Login = () => {
                   </span>
                 </Col>
               </Row>
-              <BtnPrimary className={styles.button}>Login</BtnPrimary>
+              <BtnPrimary onClick={openDashboard} className={styles.button}>
+                Login
+              </BtnPrimary>
               <BtnSecondary onClick={openRegister} className={styles.button}>
                 Register
               </BtnSecondary>
