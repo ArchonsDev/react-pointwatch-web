@@ -13,7 +13,7 @@ import {
 
 import departments from "../../data/departments.json";
 import { register } from "../../api/auth";
-import { isValidEmail, isValidPassword } from "./utils";
+import { isValidEmail, isValidPassword } from "../../common/validation/utils";
 
 import styles from "./style.module.css";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -137,6 +137,10 @@ const Registration = () => {
       },
       (error) => {
         if (error.response && error.response.status === 409) {
+          setErrorMessage(
+            "An error has occurred. Please check the entered details again."
+          );
+          setShowToast(true);
         }
       }
     );
@@ -162,13 +166,18 @@ const Registration = () => {
           delay={5000}
           onClose={toggleShow}
           autohide>
-          <Toast.Header>
-            <img src={logo} height="20px" alt="PointWatch logo" />{" "}
+          <Toast.Header className={styles.toastHeader}>
+            <img
+              src={logo}
+              className={styles.image}
+              height="20px"
+              alt="PointWatch logo"
+            />
             <strong className={`${styles.errorHeader} me-auto`}>
               Registration Error
             </strong>
           </Toast.Header>
-          <Toast.Body className={styles.errorMsg}>{errorMessage}</Toast.Body>
+          <Toast.Body>{errorMessage}</Toast.Body>
         </Toast>
       </ToastContainer>
 
@@ -209,7 +218,7 @@ const Registration = () => {
                     </Form.Group>
                   </Col>
                   <Col>
-                    <Form.Group className="mb-3" controlId="inputIDNum">
+                    <Form.Group className="mb-3" controlId="inputEmployeeID">
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i

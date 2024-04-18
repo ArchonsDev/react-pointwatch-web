@@ -48,3 +48,26 @@
   text-align: center;
   color: #474448;
 }
+
+.image {
+  margin-right: 10px;
+}
+
+.toastHeader {
+  font-family: "Poppins-Medium" !important;
+  color: white !important;
+  background-color: #b22222 !important;
+}
+
+.toast {
+  font-family: "Poppins-Regular" !important;
+  color: #b22222 !important;
+}
+
+.msButton {
+  background-color: #00a4ef !important;
+  border: none !important;
+  border-radius: 200px !important;
+  font-family: "Poppins-SemiBold" !important;
+  font-size: 15px !important;
+}
