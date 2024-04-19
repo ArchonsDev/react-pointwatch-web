@@ -12,6 +12,11 @@
   margin-bottom: 2rem;
 }
 
+.triangle {
+  color: #3a3238 !important;
+  cursor: pointer;
+}
+
 .icon {
   color: #3a3238 !important;
 }

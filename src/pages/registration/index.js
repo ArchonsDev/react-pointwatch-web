@@ -149,10 +149,13 @@ const Registration = () => {
   return (
     <div className={styles.background}>
       {/* Fake Navbar */}
-      <header className={`${styles.header}`}>
+      <header className={styles.header}>
+        {" "}
         <h3>
           <Link to="/login">
-            <i className={`${styles.icon} fa-solid fa-caret-left fa-xl`}></i>
+            <i
+              className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
+            ></i>
           </Link>{" "}
           Create Account
         </h3>
@@ -165,7 +168,8 @@ const Registration = () => {
           show={showToast}
           delay={5000}
           onClose={toggleShow}
-          autohide>
+          autohide
+        >
           <Toast.Header className={styles.toastHeader}>
             <img
               src={logo}
@@ -205,7 +209,8 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-at fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-at fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="email"
@@ -222,7 +227,8 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
@@ -243,7 +249,8 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
@@ -260,7 +267,8 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
@@ -281,13 +289,15 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Select
                           aria-label="Example"
                           value={form.department}
                           name="department"
-                          onChange={handleChange}>
+                          onChange={handleChange}
+                        >
                           <option value="" disabled>
                             Departments
                           </option>
@@ -309,7 +319,8 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="password"
@@ -326,11 +337,13 @@ const Registration = () => {
                   <Col>
                     <Form.Group
                       className="mb-3"
-                      controlId="inputConfirmPassword">
+                      controlId="inputConfirmPassword"
+                    >
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
+                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}
+                          ></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="password"
@@ -358,11 +371,11 @@ const Registration = () => {
                 </Col>
               </Row>
               <Row>
-                <Col className="text-center">
-                  <BtnPrimary onClick={(e) => window.close()}>
-                    Proceed to Login
-                  </BtnPrimary>
-                </Col>
+                <Link to="/login">
+                  <Col className="text-center">
+                    <BtnPrimary>Proceed to Login</BtnPrimary>
+                  </Col>
+                </Link>
               </Row>
             </Card.Body>
           )}

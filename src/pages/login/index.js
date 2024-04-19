@@ -10,6 +10,7 @@ import {
   Modal,
   ToastContainer,
   Toast,
+  Spinner,
 } from "react-bootstrap";
 import styles from "./style.module.css";
 
@@ -28,6 +29,7 @@ const Login = () => {
 
   const [errorMessage, setErrorMessage] = useState(null);
   const [showToast, setShowToast] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const toggleShow = () => setShowToast(!showToast);
 
   const [emailSent, setEmailSent] = useState(false);
@@ -58,6 +60,8 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
     await login(
       form,
       (response) => {
@@ -67,17 +71,25 @@ const Login = () => {
           setUser(accessToken);
           navigate("/dashboard");
           clearForm();
+          setIsLoading(false);
         }, 2000);
       },
       (error) => {
-        if (error.response && error.response.status === 404) {
-          setErrorMessage(
-            <>
-              Incorrect <b>username</b> or <b>password</b>.
-            </>
-          );
+        if (error.response && error.response.status === 401) {
+          console.log(error);
+          setIsLoading(false);
+          setErrorMessage(<b>{error.response.data.error}</b>);
+          setShowToast(true);
+        } else if (error.response && error.response.status === 404) {
+          setIsLoading(false);
+          setErrorMessage(<b>{error.response.data.error}</b>);
+          setShowToast(true);
+        } else if (error.response && error.response.status === 403) {
+          setIsLoading(false);
+          setErrorMessage(<b>{error.response.data.error}</b>);
           setShowToast(true);
         } else {
+          setIsLoading(false);
           setErrorMessage(<>An error occurred.</>);
           setShowToast(true);
         }
@@ -132,7 +144,8 @@ const Login = () => {
   return (
     <div className={`${styles.Login} d-flex`}>
       <div
-        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}>
+        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}
+      >
         <Container>
           {/* Error Toast */}
           <ToastContainer className="p-3" position="top-start">
@@ -141,7 +154,8 @@ const Login = () => {
               show={showToast}
               delay={5000}
               onClose={toggleShow}
-              autohide>
+              autohide
+            >
               <Toast.Header className={styles.toastHeader}>
                 <img
                   src={logo1}
@@ -175,7 +189,8 @@ const Login = () => {
                       <Link
                         to="https://security.microsoft.com/quarantine"
                         target="_blank"
-                        rel="noopener noreferrer">
+                        rel="noopener noreferrer"
+                      >
                         here
                       </Link>
                     }{" "}
@@ -192,7 +207,8 @@ const Login = () => {
                     <InputGroup className="mt-3">
                       <InputGroup.Text>
                         <i
-                          className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
+                          className={`${styles.icon} fa-solid fa-envelope fa-lg`}
+                        ></i>
                       </InputGroup.Text>
                       <Form.Control
                         type="email"
@@ -244,7 +260,8 @@ const Login = () => {
                 <InputGroup>
                   <InputGroup.Text className={styles.formBox}>
                     <i
-                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
+                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}
+                    ></i>
                   </InputGroup.Text>
                   <Form.Control
                     type="email"
@@ -253,6 +270,7 @@ const Login = () => {
                     name="email"
                     onChange={handleChange}
                     className={styles.formBox}
+                    disabled={isLoading}
                     placeholder="Email"
                   />
                 </InputGroup>
@@ -270,6 +288,7 @@ const Login = () => {
                     name="password"
                     onChange={handleChange}
                     className={styles.formBox}
+                    disabled={isLoading}
                     placeholder="Password"
                   />
                 </InputGroup>
@@ -283,27 +302,41 @@ const Login = () => {
               </Row>
               <Row>
                 <Col md="auto">
-                  <BtnPrimary onClick={handleSubmit} className={styles.button}>
+                  <BtnPrimary
+                    onClick={handleSubmit}
+                    className={styles.button}
+                    disabled={isLoading}
+                  >
                     Login
                   </BtnPrimary>
                 </Col>
                 <Col>
                   <BtnSecondary
                     onClick={openRegister}
-                    className={styles.button}>
+                    className={styles.button}
+                    disabled={isLoading}
+                  >
                     Register
                   </BtnSecondary>
                 </Col>
                 <Col className="text-end" md="auto">
                   <Button
                     className={styles.msButton}
-                    onClick={handleMicrosoftLogin}>
+                    onClick={handleMicrosoftLogin}
+                    disabled={isLoading}
+                  >
                     Sign in with <i className="fa-brands fa-microsoft"></i>
                   </Button>
                 </Col>
               </Row>
             </Form>
-            <Row className="mt-3"></Row>
+            {/* {isLoading && (
+              <Row className="mt-3">
+                <Col className="text-center">
+                  <Spinner animation="border" /> Loading...
+                </Col>
+              </Row>
+            )} */}
           </Row>
         </Container>
       </div>
