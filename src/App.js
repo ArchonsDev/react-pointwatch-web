@@ -23,6 +23,9 @@ const App = () => {
 
   document.title = tabNames[location.pathname] || "PointWatch";
 
+  const urlParams = new URLSearchParams(location.search);
+  const token = urlParams.get("token");
+
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
@@ -46,7 +49,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/reset" element={<ResetPassword />} />
+          <Route path="/reset" element={<ResetPassword token={token} />} />
         </Routes>
       </SessionUserContext.Provider>
     </div>

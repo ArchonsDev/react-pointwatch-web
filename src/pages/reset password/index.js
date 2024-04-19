@@ -12,12 +12,13 @@ import {
 } from "react-bootstrap";
 
 import { isValidPassword } from "../../common/validation/utils";
+import { reset } from "../../api/auth";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
-const ResetPassword = () => {
+const ResetPassword = ({ token }) => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [isResetComplete, setIsResetComplete] = useState(false);
@@ -25,6 +26,7 @@ const ResetPassword = () => {
   const toggleShow = () => setShowToast(!showToast);
 
   const [form, setForm] = useState({
+    token: token,
     password: "",
     confirmPassword: "",
   });
@@ -36,7 +38,7 @@ const ResetPassword = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setErrorMessage(null);
@@ -71,6 +73,21 @@ const ResetPassword = () => {
       setShowToast(true);
       return;
     }
+
+    await reset(
+      form,
+      (response) => {
+        setTimeout(() => {
+          setIsResetComplete(true);
+        });
+      },
+      (error) => {
+        if (error.response && error.response.status === 400) {
+          setErrorMessage(<>{error.response.data.error}</>);
+          setShowToast(true);
+        }
+      }
+    );
   };
 
   return (
@@ -175,7 +192,9 @@ const ResetPassword = () => {
             <Card.Body>
               <Row>
                 <Col className="text-center mb-3">
-                  <span className={styles.brand}>Reset successful!</span>{" "}
+                  <span className={styles.brand}>
+                    Reset password successful!
+                  </span>{" "}
                 </Col>
               </Row>
               <Row>

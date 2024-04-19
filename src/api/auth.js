@@ -78,6 +78,30 @@ export const recovery = async (data, onSuccess, onFail, onCleanup) => {
   }
 };
 
+export const reset = async (data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.post(
+      `http://localhost:5000/auth/resetpassword?token=${data.token}`,
+      {
+        password: data.password,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};
+
 // export const getAccount = async (onSuccess) => {
 //   axios
 //     .get("http://localhost:5000/auth/microsoft", { maxRedirects: 0 })
