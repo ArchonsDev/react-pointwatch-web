@@ -5,6 +5,7 @@ import Login from "./pages/login";
 import Register from "./pages/registration";
 import Dashboard from "./pages/swtd dashboard";
 import ResetPassword from "./pages/reset password";
+import General from "./pages/settings/general";
 
 import SessionUserContext from "./contexts/SessionUserContext";
 
@@ -19,6 +20,7 @@ const App = () => {
     "/register": "Register",
     "/dashboard": "Dashboard",
     "/reset": "Reset Password",
+    "/settings/general": "General",
   };
 
   document.title = tabNames[location.pathname] || "PointWatch";
@@ -37,7 +39,8 @@ const App = () => {
     <div
       className={`${styles.App} ${
         location.pathname === "/login" ? styles.bg : styles["no-bg"]
-      }`}>
+      }`}
+    >
       <SessionUserContext.Provider value={{ user, setUser }}>
         <Routes>
           <Route
@@ -50,6 +53,7 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/reset" element={<ResetPassword token={token} />} />
+          <Route path="/settings/general" element={<General />} />
         </Routes>
       </SessionUserContext.Provider>
     </div>
