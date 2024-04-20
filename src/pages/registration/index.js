@@ -13,7 +13,12 @@ import {
 
 import departments from "../../data/departments.json";
 import { register } from "../../api/auth";
-import { isValidEmail, isValidPassword } from "./utils";
+import {
+  isEmpty,
+  isValidLength,
+  isValidEmail,
+  isValidPassword,
+} from "../../common/validation/utils";
 
 import styles from "./style.module.css";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -51,7 +56,16 @@ const Registration = () => {
     let hasError = false;
     let errorMessages = [];
 
-    if (!(form.email.length > 2 && isValidEmail(form.email))) {
+    // Email Validation
+    if (isEmpty(form.email)) {
+      errorMessages.push(
+        <>
+          <b>Email</b> is required.
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!(isValidLength(form.email, 2) && isValidEmail(form.email))) {
       errorMessages.push(
         <>
           <b>Email</b> must be valid.
@@ -61,35 +75,64 @@ const Registration = () => {
       hasError = true;
     }
 
-    if (!(form.employee_id.length > 1)) {
+    //Employee ID Validation
+    if (isEmpty(form.employee_id)) {
+      errorMessages.push(
+        <>
+          <b>Employee ID</b> is required.
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!isValidLength(form.employee_id, 1)) {
       errorMessages.push(
         <>
           <b>Employee ID</b> must be valid.
           <br />
         </>
       );
+      hasError = true;
     }
 
-    if (!(form.firstname.length > 1)) {
+    // Firstname Validation
+    if (isEmpty(form.firstname)) {
       errorMessages.push(
         <>
-          <b>Firstname</b> is too short.
+          <b>First name</b> is required.
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!isValidLength(form.firstname, 1)) {
+      errorMessages.push(
+        <>
+          <b>First name</b> is too short.
           <br />
         </>
       );
       hasError = true;
     }
 
-    if (!(form.lastname.length > 1)) {
+    // Lastname Validation
+    if (isEmpty(form.lastname)) {
       errorMessages.push(
         <>
-          <b>Lastname</b> is too short.
+          <b>Last name</b> is required.
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!isValidLength(form.lastname, 1)) {
+      errorMessages.push(
+        <>
+          <b>Last name</b> is too short.
           <br />
         </>
       );
       hasError = true;
     }
 
+    //Departments Validation
     if (form.department === "Departments") {
       errorMessages.push(
         <>
@@ -100,7 +143,16 @@ const Registration = () => {
       hasError = true;
     }
 
-    if (!isValidPassword(form.password)) {
+    // Password Validation
+    if (isEmpty(form.password)) {
+      errorMessages.push(
+        <>
+          <b>Password</b> is required.
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!isValidPassword(form.password)) {
       errorMessages.push(
         <>
           <b>Password</b> must contain <b>at least one special character</b>.
@@ -137,6 +189,10 @@ const Registration = () => {
       },
       (error) => {
         if (error.response && error.response.status === 409) {
+          setErrorMessage(
+            "An error has occurred. Please check the entered details again."
+          );
+          setShowToast(true);
         }
       }
     );
@@ -145,10 +201,12 @@ const Registration = () => {
   return (
     <div className={styles.background}>
       {/* Fake Navbar */}
-      <header className={`${styles.header}`}>
+      <header className={styles.header}>
+        {" "}
         <h3>
           <Link to="/login">
-            <i className={`${styles.icon} fa-solid fa-caret-left fa-xl`}></i>
+            <i
+              className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}></i>
           </Link>{" "}
           Create Account
         </h3>
@@ -162,13 +220,18 @@ const Registration = () => {
           delay={5000}
           onClose={toggleShow}
           autohide>
-          <Toast.Header>
-            <img src={logo} height="20px" alt="PointWatch logo" />{" "}
+          <Toast.Header className={styles.toastHeader}>
+            <img
+              src={logo}
+              className={styles.image}
+              height="20px"
+              alt="PointWatch logo"
+            />
             <strong className={`${styles.errorHeader} me-auto`}>
               Registration Error
             </strong>
           </Toast.Header>
-          <Toast.Body className={styles.errorMsg}>{errorMessage}</Toast.Body>
+          <Toast.Body>{errorMessage}</Toast.Body>
         </Toast>
       </ToastContainer>
 
@@ -209,7 +272,7 @@ const Registration = () => {
                     </Form.Group>
                   </Col>
                   <Col>
-                    <Form.Group className="mb-3" controlId="inputIDNum">
+                    <Form.Group className="mb-3" controlId="inputEmployeeID">
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
@@ -349,11 +412,11 @@ const Registration = () => {
                 </Col>
               </Row>
               <Row>
-                <Col className="text-center">
-                  <BtnPrimary onClick={(e) => window.close()}>
-                    Proceed to Login
-                  </BtnPrimary>
-                </Col>
+                <Link to="/login">
+                  <Col className="text-center">
+                    <BtnPrimary>Proceed to Login</BtnPrimary>
+                  </Col>
+                </Link>
               </Row>
             </Card.Body>
           )}

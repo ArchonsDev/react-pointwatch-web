@@ -1,5 +1,13 @@
 const MINIMUM_PASSWORD_LENGTH = 8;
 
+export const isEmpty = (value) => {
+  return value.trim() === "";
+};
+
+export const isValidLength = (value, minLength) => {
+  return value.length > minLength;
+};
+
 export const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
