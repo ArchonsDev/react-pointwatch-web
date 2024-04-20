@@ -149,21 +149,9 @@ const Login = () => {
     };
   };
 
-  // TIMECHECK: 1AM - TO DO!!!!! DOES NOT WORK!!!!!!!!!!!!!!!!
-  const handleMicrosoftLogin = () => {
-    const authWindow = window.open(
-      "http://localhost:5000/auth/microsoft",
-      "_blank"
-    );
-
-    window.addEventListener("message", (event) => {
-      if (event.data && event.data.code) {
-        const accessToken = event.data.code;
-        authWindow.close();
-        console.log("Access token:", accessToken);
-        setUser(accessToken);
-      }
-    });
+  // I modified this function to set the current tab URL to the backend endpopint for MS auth. THis initiates the sign in process
+  const handleMicrosoftLogin = async () => {
+    window.location.href = 'http://localhost:5000/auth/microsoft'
   };
 
   const handleSendEmail = async (e) => {
