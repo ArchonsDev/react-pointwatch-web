@@ -18,6 +18,7 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 import { login, recovery } from "../../api/auth";
+import { isEmpty, isValidEmail } from "../../common/validation/utils";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import logo from "../../images/logo.png";
@@ -36,7 +37,12 @@ const Login = () => {
   const [emailError, setEmailError] = useState(false);
 
   const [show, setShow] = useState(false);
-  const handleClose = () => setShow(false);
+  const handleClose = () => {
+    setShow(false);
+    setEmail("");
+    setEmailSent(false);
+    setEmailError(false);
+  };
   const handleOpen = () => setShow(true);
 
   const [email, setEmail] = useState("");
@@ -61,6 +67,45 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage(null);
+
+    let hasError = false;
+    let errorMessages = [];
+
+    if (isEmpty(form.email)) {
+      errorMessages.push(
+        <>
+          <b>Please enter an email.</b>
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!(form.email.length > 2 && isValidEmail(form.email))) {
+      errorMessages.push(
+        <>
+          <b>Email</b> must be valid.
+          <br />
+        </>
+      );
+      hasError = true;
+    }
+
+    if (isEmpty(form.password)) {
+      errorMessages.push(
+        <>
+          <b>Please enter a password.</b>
+          <br />
+        </>
+      );
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrorMessage(errorMessages);
+      setShowToast(true);
+      setIsLoading(false);
+      return;
+    }
 
     await login(
       form,
@@ -72,29 +117,36 @@ const Login = () => {
           navigate("/dashboard");
           clearForm();
           setIsLoading(false);
-        }, 2000);
+        }, 4500);
       },
       (error) => {
-        if (error.response && error.response.status === 401) {
-          console.log(error);
-          setIsLoading(false);
-          setErrorMessage(<b>{error.response.data.error}</b>);
-          setShowToast(true);
-        } else if (error.response && error.response.status === 404) {
-          setIsLoading(false);
-          setErrorMessage(<b>{error.response.data.error}</b>);
-          setShowToast(true);
-        } else if (error.response && error.response.status === 403) {
-          setIsLoading(false);
-          setErrorMessage(<b>{error.response.data.error}</b>);
-          setShowToast(true);
+        if (error.response) {
+          let errorMessage = <b>{error.response.data.error}</b>;
+          let statusCode = error.response.status;
+
+          switch (statusCode) {
+            case 401:
+            case 404:
+            case 403:
+              setIsLoading(false);
+              setErrorMessage(errorMessage);
+              setShowToast(true);
+              break;
+            default:
+              handleDefaultError();
+              break;
+          }
         } else {
-          setIsLoading(false);
-          setErrorMessage(<>An error occurred.</>);
-          setShowToast(true);
+          handleDefaultError();
         }
       }
     );
+
+    const handleDefaultError = () => {
+      setIsLoading(false);
+      setErrorMessage(<>An error occurred.</>);
+      setShowToast(true);
+    };
   };
 
   // TIMECHECK: 1AM - TO DO!!!!! DOES NOT WORK!!!!!!!!!!!!!!!!
@@ -144,8 +196,7 @@ const Login = () => {
   return (
     <div className={`${styles.Login} d-flex`}>
       <div
-        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}
-      >
+        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}>
         <Container>
           {/* Error Toast */}
           <ToastContainer className="p-3" position="top-start">
@@ -154,8 +205,7 @@ const Login = () => {
               show={showToast}
               delay={5000}
               onClose={toggleShow}
-              autohide
-            >
+              autohide>
               <Toast.Header className={styles.toastHeader}>
                 <img
                   src={logo1}
@@ -189,8 +239,7 @@ const Login = () => {
                       <Link
                         to="https://security.microsoft.com/quarantine"
                         target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                        rel="noopener noreferrer">
                         here
                       </Link>
                     }{" "}
@@ -207,8 +256,7 @@ const Login = () => {
                     <InputGroup className="mt-3">
                       <InputGroup.Text>
                         <i
-                          className={`${styles.icon} fa-solid fa-envelope fa-lg`}
-                        ></i>
+                          className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
                       </InputGroup.Text>
                       <Form.Control
                         type="email"
@@ -260,8 +308,7 @@ const Login = () => {
                 <InputGroup>
                   <InputGroup.Text className={styles.formBox}>
                     <i
-                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}
-                    ></i>
+                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
                   </InputGroup.Text>
                   <Form.Control
                     type="email"
@@ -270,8 +317,8 @@ const Login = () => {
                     name="email"
                     onChange={handleChange}
                     className={styles.formBox}
-                    disabled={isLoading}
                     placeholder="Email"
+                    required
                   />
                 </InputGroup>
               </Form.Group>
@@ -288,55 +335,55 @@ const Login = () => {
                     name="password"
                     onChange={handleChange}
                     className={styles.formBox}
-                    disabled={isLoading}
                     placeholder="Password"
+                    required
                   />
                 </InputGroup>
               </Form.Group>
-              <Row className="mb-4">
-                <Col className="text-end">
-                  <span className={styles.password} onClick={handleOpen}>
-                    Forgot password?
-                  </span>
-                </Col>
-              </Row>
-              <Row>
-                <Col md="auto">
-                  <BtnPrimary
-                    onClick={handleSubmit}
-                    className={styles.button}
-                    disabled={isLoading}
-                  >
-                    Login
-                  </BtnPrimary>
-                </Col>
-                <Col>
-                  <BtnSecondary
-                    onClick={openRegister}
-                    className={styles.button}
-                    disabled={isLoading}
-                  >
-                    Register
-                  </BtnSecondary>
-                </Col>
-                <Col className="text-end" md="auto">
-                  <Button
-                    className={styles.msButton}
-                    onClick={handleMicrosoftLogin}
-                    disabled={isLoading}
-                  >
-                    Sign in with <i className="fa-brands fa-microsoft"></i>
-                  </Button>
-                </Col>
-              </Row>
+
+              {isLoading ? (
+                <Row className="mt-3">
+                  <Col className={`${styles.spinner} text-center`}>
+                    <Spinner animation="border" /> Signing in...
+                  </Col>
+                </Row>
+              ) : (
+                <>
+                  <Row className="mb-4">
+                    <Col className="text-end">
+                      <span className={styles.password} onClick={handleOpen}>
+                        Forgot password?
+                      </span>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    <Col md="auto">
+                      <BtnPrimary
+                        type="submit"
+                        onClick={handleSubmit}
+                        className={styles.button}>
+                        Login
+                      </BtnPrimary>
+                    </Col>
+                    <Col>
+                      <BtnSecondary
+                        onClick={openRegister}
+                        className={styles.button}>
+                        Register
+                      </BtnSecondary>
+                    </Col>
+                    <Col className="text-end" md="auto">
+                      <Button
+                        className={styles.msButton}
+                        onClick={handleMicrosoftLogin}>
+                        Sign in with <i className="fa-brands fa-microsoft"></i>
+                      </Button>
+                    </Col>
+                  </Row>
+                </>
+              )}
             </Form>
-            {/* {isLoading && (
-              <Row className="mt-3">
-                <Col className="text-center">
-                  <Spinner animation="border" /> Loading...
-                </Col>
-              </Row>
-            )} */}
           </Row>
         </Container>
       </div>

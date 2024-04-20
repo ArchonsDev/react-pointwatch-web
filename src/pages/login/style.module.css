@@ -71,3 +71,9 @@
   font-family: "Poppins-SemiBold" !important;
   font-size: 15px !important;
 }
+
+.spinner {
+  color: #d80085;
+  font-family: "Poppins-Medium";
+  vertical-align: middle;
+}

@@ -13,7 +13,12 @@ import {
 
 import departments from "../../data/departments.json";
 import { register } from "../../api/auth";
-import { isValidEmail, isValidPassword } from "../../common/validation/utils";
+import {
+  isEmpty,
+  isValidLength,
+  isValidEmail,
+  isValidPassword,
+} from "../../common/validation/utils";
 
 import styles from "./style.module.css";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -51,7 +56,16 @@ const Registration = () => {
     let hasError = false;
     let errorMessages = [];
 
-    if (!(form.email.length > 2 && isValidEmail(form.email))) {
+    // Email Validation
+    if (isEmpty(form.email)) {
+      errorMessages.push(
+        <>
+          <b>Email</b> is required.
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!(isValidLength(form.email, 2) && isValidEmail(form.email))) {
       errorMessages.push(
         <>
           <b>Email</b> must be valid.
@@ -61,35 +75,64 @@ const Registration = () => {
       hasError = true;
     }
 
-    if (!(form.employee_id.length > 1)) {
+    //Employee ID Validation
+    if (isEmpty(form.employee_id)) {
+      errorMessages.push(
+        <>
+          <b>Employee ID</b> is required.
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!isValidLength(form.employee_id, 1)) {
       errorMessages.push(
         <>
           <b>Employee ID</b> must be valid.
           <br />
         </>
       );
+      hasError = true;
     }
 
-    if (!(form.firstname.length > 1)) {
+    // Firstname Validation
+    if (isEmpty(form.firstname)) {
       errorMessages.push(
         <>
-          <b>Firstname</b> is too short.
+          <b>First name</b> is required.
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!isValidLength(form.firstname, 1)) {
+      errorMessages.push(
+        <>
+          <b>First name</b> is too short.
           <br />
         </>
       );
       hasError = true;
     }
 
-    if (!(form.lastname.length > 1)) {
+    // Lastname Validation
+    if (isEmpty(form.lastname)) {
       errorMessages.push(
         <>
-          <b>Lastname</b> is too short.
+          <b>Last name</b> is required.
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!isValidLength(form.lastname, 1)) {
+      errorMessages.push(
+        <>
+          <b>Last name</b> is too short.
           <br />
         </>
       );
       hasError = true;
     }
 
+    //Departments Validation
     if (form.department === "Departments") {
       errorMessages.push(
         <>
@@ -100,7 +143,16 @@ const Registration = () => {
       hasError = true;
     }
 
-    if (!isValidPassword(form.password)) {
+    // Password Validation
+    if (isEmpty(form.password)) {
+      errorMessages.push(
+        <>
+          <b>Password</b> is required.
+          <br />
+        </>
+      );
+      hasError = true;
+    } else if (!isValidPassword(form.password)) {
       errorMessages.push(
         <>
           <b>Password</b> must contain <b>at least one special character</b>.
@@ -154,8 +206,7 @@ const Registration = () => {
         <h3>
           <Link to="/login">
             <i
-              className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
-            ></i>
+              className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}></i>
           </Link>{" "}
           Create Account
         </h3>
@@ -168,8 +219,7 @@ const Registration = () => {
           show={showToast}
           delay={5000}
           onClose={toggleShow}
-          autohide
-        >
+          autohide>
           <Toast.Header className={styles.toastHeader}>
             <img
               src={logo}
@@ -209,8 +259,7 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-at fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-at fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="email"
@@ -227,8 +276,7 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
@@ -249,8 +297,7 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
@@ -267,8 +314,7 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="text"
@@ -289,15 +335,13 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Select
                           aria-label="Example"
                           value={form.department}
                           name="department"
-                          onChange={handleChange}
-                        >
+                          onChange={handleChange}>
                           <option value="" disabled>
                             Departments
                           </option>
@@ -319,8 +363,7 @@ const Registration = () => {
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="password"
@@ -337,13 +380,11 @@ const Registration = () => {
                   <Col>
                     <Form.Group
                       className="mb-3"
-                      controlId="inputConfirmPassword"
-                    >
+                      controlId="inputConfirmPassword">
                       <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
-                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}
-                          ></i>
+                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
                           type="password"

@@ -85,6 +85,9 @@ const ResetPassword = ({ token }) => {
         if (error.response && error.response.status === 400) {
           setErrorMessage(<>{error.response.data.error}</>);
           setShowToast(true);
+        } else if (error.response && error.response.status === 422) {
+          setErrorMessage(<b>Token is null.</b>);
+          setShowToast(true);
         }
       }
     );
