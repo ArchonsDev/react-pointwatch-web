@@ -4,13 +4,14 @@ import { Form, Row, Col } from "react-bootstrap";
 import departments from "../../data/departments.json";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
+import styles from "./style.module.css";
 
 const General = () => {
   return (
-    <Form>
+    <Form className={styles.form}>
       <Row>
         <Form.Group as={Row} className="mb-3" controlId="inputEmployeeID">
-          <Form.Label column sm="2">
+          <Form.Label className={styles.formLabel} column sm="2">
             Employee ID
           </Form.Label>
           <Col sm="10">
@@ -21,7 +22,7 @@ const General = () => {
 
       <Row>
         <Form.Group as={Row} className="mb-3" controlId="inputEmail">
-          <Form.Label column sm="2">
+          <Form.Label className={styles.formLabel} column sm="2">
             Email
           </Form.Label>
           <Col sm="10">
@@ -31,7 +32,7 @@ const General = () => {
       </Row>
       <Row>
         <Form.Group as={Row} className="mb-3" controlId="inputFirstname">
-          <Form.Label column sm="2">
+          <Form.Label className={styles.formLabel} column sm="2">
             First name
           </Form.Label>
           <Col sm="10">
@@ -42,7 +43,7 @@ const General = () => {
 
       <Row>
         <Form.Group as={Row} className="mb-3" controlId="inputLastname">
-          <Form.Label column sm="2">
+          <Form.Label className={styles.formLabel} column sm="2">
             Last name
           </Form.Label>
           <Col sm="10">
@@ -53,7 +54,7 @@ const General = () => {
 
       <Row>
         <Form.Group as={Row} className="mb-3" controlId="inputDepartments">
-          <Form.Label column sm="2">
+          <Form.Label className={styles.formLabel} column sm="2">
             Department
           </Form.Label>
           <Col sm="10">

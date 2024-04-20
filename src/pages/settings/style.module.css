@@ -35,3 +35,11 @@
   color: #f5e3e0 !important;
   background-color: #3a3238 !important;
 }
+
+.form {
+  font-family: "Poppins-Regular";
+}
+
+.formLabel {
+  font-family: "Poppins-Medium";
+}
