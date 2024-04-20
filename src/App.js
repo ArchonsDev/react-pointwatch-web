@@ -5,6 +5,7 @@ import Login from "./pages/login";
 import Register from "./pages/registration";
 import Dashboard from "./pages/swtd dashboard";
 import ResetPassword from "./pages/reset password";
+import Authorized from "./pages/authorized";
 
 import SessionUserContext from "./contexts/SessionUserContext";
 
@@ -50,6 +51,7 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/reset" element={<ResetPassword token={token} />} />
+          <Route path="/authorized" element={<Authorized />} />
         </Routes>
       </SessionUserContext.Provider>
     </div>
