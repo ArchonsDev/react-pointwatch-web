@@ -1,26 +1,55 @@
-import React from "react";
+import React, { useState } from "react";
 import { Form, Row, Col } from "react-bootstrap";
 
 import departments from "../../data/departments.json";
+import { isValidLength, isEmpty } from "../../common/validation/utils";
+import { useSwitch } from "../../hooks/useSwitch";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
+import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import styles from "./style.module.css";
 
 const General = () => {
-  return (
-    <Form className={styles.form}>
-      <Row>
-        <Col sm="3" className="mb-3">
-          <div className={styles.pfpIcon}>
-            <div className={`${styles.squareBox} mb-3`}>
-              <i className="fa-solid fa-user fa-5x"></i>
-            </div>
-          </div>
+  const [showModal, openModal, closeModal] = useSwitch();
+  const [isClicked, setIsClicked] = useState(false);
+  const [form, setForm] = useState({
+    firstname: "",
+    lastname: "",
+    department: "",
+  });
 
-          <div className={styles.buttonsContainer}>
-            <BtnPrimary variant="primary" className="mb-2">Change</BtnPrimary>
-            <BtnSecondary variant="outline-secondary">Delete</BtnSecondary>
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const isFirstnameValid = () => {
+    if (!isClicked) return false;
+    return isEmpty(form.firstname) || !isValidLength(form.firstname, 1);
+  };
+
+  const isLastnameValid = () => {
+    if (!isClicked) return false;
+    return isEmpty(form.lastname) || !isValidLength(form.lastname, 1);
+  };
+
+  const handleSubmit = async () => {
+    setIsClicked(true);
+  };
+
+  return (
+    <Form className={styles.form} noValidate>
+      <Row>
+        <Col sm="3" className="text-center flex-column">
+          <div className="d-flex justify-content-center align-items-center">
+            <div className={`${styles.circle} mb-3`}></div>
+          </div>
+          <BtnPrimary>Change</BtnPrimary>
+          <div className="mt-2">
+            <BtnSecondary>Remove</BtnSecondary>
           </div>
         </Col>
 
@@ -31,7 +60,12 @@ const General = () => {
                 Employee ID
               </Form.Label>
               <Col sm="9">
-                <Form.Control type="text" name="employee_d" disabled />
+                <Form.Control
+                  className={styles.formBox}
+                  type="text"
+                  name="employee_id"
+                  disabled
+                />
               </Col>
             </Form.Group>
           </Row>
@@ -42,7 +76,12 @@ const General = () => {
                 Email
               </Form.Label>
               <Col sm="9">
-                <Form.Control type="email" name="email" disabled />
+                <Form.Control
+                  className={styles.formBox}
+                  type="email"
+                  name="email"
+                  disabled
+                />
               </Col>
             </Form.Group>
           </Row>
@@ -53,7 +92,23 @@ const General = () => {
                 First name
               </Form.Label>
               <Col sm="9">
-                <Form.Control type="text" name="firstname" />
+                <Form.Control
+                  className={styles.formBox}
+                  type="text"
+                  name="firstname"
+                  onChange={handleChange}
+                  value={form.firstname}
+                  isInvalid={isFirstnameValid()}
+                />
+                {isClicked && (
+                  <Form.Control.Feedback type="invalid">
+                    {isEmpty(form.firstname) ? (
+                      <>First name is required.</>
+                    ) : (
+                      <>First name is too short.</>
+                    )}
+                  </Form.Control.Feedback>
+                )}
               </Col>
             </Form.Group>
           </Row>
@@ -64,7 +119,23 @@ const General = () => {
                 Last name
               </Form.Label>
               <Col sm="9">
-                <Form.Control type="text" name="lastname" />
+                <Form.Control
+                  className={styles.formBox}
+                  type="text"
+                  name="lastname"
+                  onChange={handleChange}
+                  value={form.lastname}
+                  isInvalid={isLastnameValid()}
+                />
+                {isClicked && (
+                  <Form.Control.Feedback type="invalid">
+                    {isEmpty(form.lastname) ? (
+                      <>Last name is required.</>
+                    ) : (
+                      <>Last name is too short.</>
+                    )}
+                  </Form.Control.Feedback>
+                )}
               </Col>
             </Form.Group>
           </Row>
@@ -75,10 +146,12 @@ const General = () => {
                 Department
               </Form.Label>
               <Col sm="9">
-                <Form.Select aria-label="Example" name="department">
-                  <option value="" disabled>
-                    Departments
-                  </option>
+                <Form.Select
+                  aria-label="Example"
+                  name="department"
+                  className={styles.formBox}
+                  onChange={handleChange}
+                  value={form.department}>
                   {departments.departments.map((department, index) => (
                     <option key={index} value={department}>
                       {department}
@@ -90,10 +163,17 @@ const General = () => {
           </Row>
         </Col>
       </Row>
-      
+
       <Row>
         <Col className="text-end">
-          <BtnPrimary>Save Changes</BtnPrimary>
+          <BtnPrimary onClick={openModal}>Save Changes</BtnPrimary>
+          <ConfirmationModal
+            show={showModal}
+            onHide={closeModal}
+            onConfirm={handleSubmit}
+            header={"Update Password"}
+            message={"Do you wish to save these changes?"}
+          />
         </Col>
       </Row>
     </Form>

@@ -1,15 +1,21 @@
-.dashboard {
-  display: flex;
+.background {
   height: 100vh;
 }
 
-.sidebar {
-  width: 200px;
-  background-color: #333;
-  color: white;
+.header {
+  background-color: #d80085 !important;
+  padding: 10px;
+  font-family: "Degradasi";
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+  color: #f5e3e0 !important;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.main-content {
-  flex: 1;
-  padding: 20px;
+.label {
+  font-family: "Degradasi";
+  color: #3a3238;
 }

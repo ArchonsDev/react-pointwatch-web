@@ -1,0 +1,61 @@
+.navbar {
+  position: fixed !important;
+}
+
+.sidebar {
+  background-color: #3a3238 !important;
+}
+
+.toggle {
+  color: #e8b4bc !important;
+  background-color: #3a3238 !important;
+  box-shadow: -5px 0 10px rgba(0, 0, 0, 1);
+  margin-right: 20px !important;
+}
+
+.active {
+  color: #3a3238 !important;
+  background-color: #e8b4bc !important;
+  font-family: "Poppins-SemiBold";
+  font-size: 1.3em !important;
+  border-radius: 10px;
+}
+
+.navItem {
+  color: #e8b4bc !important;
+  font-family: "Poppins-SemiBold";
+  font-size: 1.3em !important;
+  border-radius: 10px;
+}
+
+.navItem:hover {
+  color: #3a3238 !important;
+  background-color: #e8b4bc !important;
+}
+
+@media screen and (min-width: 1200px) {
+  .sidebar {
+    width: 20% !important;
+  }
+}
+
+.logout {
+  margin-top: auto !important;
+}
+
+.circle {
+  width: 10em;
+  height: 10em;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
+
+.name {
+  font-family: "Poppins-SemiBold";
+  color: #e8b4bc;
+}
+
+.title {
+  font-family: "Poppins-Medium";
+  color: #e8b4bc;
+}

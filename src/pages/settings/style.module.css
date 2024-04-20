@@ -18,6 +18,7 @@
 
 .label {
   font-family: "Degradasi";
+  color: #3a3238;
 }
 
 .navHeader {
@@ -44,13 +45,13 @@
   font-family: "Poppins-Medium";
 }
 
-.squareBox {
-  width: 10em; 
-  height: 10em; 
-  background-color: #f0f0f0; 
-  border-radius: 50%; 
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.formBox {
+  border: grey 1px solid !important;
 }
 
+.circle {
+  width: 10em;
+  height: 10em;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+}
