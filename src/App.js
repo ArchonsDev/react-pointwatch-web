@@ -5,7 +5,7 @@ import Login from "./pages/login";
 import Register from "./pages/registration";
 import Dashboard from "./pages/swtd dashboard";
 import ResetPassword from "./pages/reset password";
-import General from "./pages/settings/general";
+import Settings from "./pages/settings";
 
 import SessionUserContext from "./contexts/SessionUserContext";
 
@@ -39,8 +39,7 @@ const App = () => {
     <div
       className={`${styles.App} ${
         location.pathname === "/login" ? styles.bg : styles["no-bg"]
-      }`}
-    >
+      }`}>
       <SessionUserContext.Provider value={{ user, setUser }}>
         <Routes>
           <Route
@@ -53,7 +52,7 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/reset" element={<ResetPassword token={token} />} />
-          <Route path="/settings/general" element={<General />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </SessionUserContext.Provider>
     </div>

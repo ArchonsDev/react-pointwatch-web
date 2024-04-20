@@ -1,0 +1,37 @@
+.background {
+  height: 100vh;
+  background-color: #f5e3e0;
+}
+
+.header {
+  background-color: #d80085 !important;
+  padding: 10px;
+  font-family: "Degradasi";
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+  color: #f5e3e0 !important;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label {
+  font-family: "Degradasi";
+}
+
+.navHeader {
+  font-family: "Poppins-Medium";
+  margin-right: 5px;
+}
+
+.activeTab {
+  font-family: "Poppins-SemiBold";
+  color: #3a3238 !important;
+  background-color: #e8b4bc !important;
+}
+
+.inactiveTab {
+  color: #f5e3e0 !important;
+  background-color: #3a3238 !important;
+}
