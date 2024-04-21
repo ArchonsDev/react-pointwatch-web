@@ -9,7 +9,7 @@ import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
 const Dashboard = () => {
-  const { user } = useContext(SessionUserContext);
+  const { user, setUser } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
   return (

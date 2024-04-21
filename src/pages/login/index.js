@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Button,
@@ -18,14 +19,14 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 import { login, recovery } from "../../api/auth";
-import { isEmpty, isValidEmail } from "../../common/validation/utils";
+import { isEmpty } from "../../common/validation/utils";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import logo from "../../images/logo.png";
 import logo1 from "../../images/logo1.png";
 
 const Login = () => {
-  const { setUser } = useContext(SessionUserContext);
+  const { user, setUser } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
   const [errorMessage, setErrorMessage] = useState(null);
@@ -36,6 +37,7 @@ const Login = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [emailError, setEmailError] = useState(false);
 
+  const [isClicked, setIsClicked] = useState(false);
   const [show, setShow] = useState(false);
   const handleClose = () => {
     setShow(false);
@@ -64,56 +66,25 @@ const Login = () => {
     setEmail(e.target.value);
   };
 
+  const handleDefaultError = () => {
+    setIsLoading(false);
+    setErrorMessage(<>An error occurred.</>);
+    setShowToast(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrorMessage(null);
-
-    let hasError = false;
-    let errorMessages = [];
-
-    if (isEmpty(form.email)) {
-      errorMessages.push(
-        <>
-          <b>Please enter an email.</b>
-          <br />
-        </>
-      );
-      hasError = true;
-    } else if (!(form.email.length > 2 && isValidEmail(form.email))) {
-      errorMessages.push(
-        <>
-          <b>Email</b> must be valid.
-          <br />
-        </>
-      );
-      hasError = true;
-    }
-
-    if (isEmpty(form.password)) {
-      errorMessages.push(
-        <>
-          <b>Please enter a password.</b>
-          <br />
-        </>
-      );
-      hasError = true;
-    }
-
-    if (hasError) {
-      setErrorMessage(errorMessages);
-      setShowToast(true);
-      setIsLoading(false);
-      return;
-    }
+    setIsClicked(true);
 
     await login(
       form,
       (response) => {
         setTimeout(() => {
           const accessToken = response?.data?.access_token;
-          localStorage.setItem("accessToken", accessToken);
-          setUser(accessToken);
+          const decodedToken = jwtDecode(accessToken);
+          localStorage.setItem("accessToken", accessToken); //Website does not lose token upon refresh
+          setUser({ token: accessToken, email: decodedToken.sub });
           navigate("/dashboard");
           clearForm();
           setIsLoading(false);
@@ -141,17 +112,11 @@ const Login = () => {
         }
       }
     );
-
-    const handleDefaultError = () => {
-      setIsLoading(false);
-      setErrorMessage(<>An error occurred.</>);
-      setShowToast(true);
-    };
   };
 
   // I modified this function to set the current tab URL to the backend endpopint for MS auth. THis initiates the sign in process
   const handleMicrosoftLogin = async () => {
-    window.location.href = 'http://localhost:5000/auth/microsoft'
+    window.location.href = "http://localhost:5000/auth/microsoft";
   };
 
   const handleSendEmail = async (e) => {
@@ -293,7 +258,7 @@ const Login = () => {
           <Row className="mt-3 mb-3">
             <Form>
               <Form.Group className="mb-3" controlId="inputEmail">
-                <InputGroup>
+                <InputGroup hasValidation>
                   <InputGroup.Text className={styles.formBox}>
                     <i
                       className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
@@ -307,12 +272,13 @@ const Login = () => {
                     className={styles.formBox}
                     placeholder="Email"
                     required
+                    isInvalid={isClicked && isEmpty(form.email)}
                   />
                 </InputGroup>
               </Form.Group>
 
               <Form.Group className="mb-3" controlId="inputPassword">
-                <InputGroup>
+                <InputGroup hasValidation>
                   <InputGroup.Text className={styles.formBox}>
                     <i className={`${styles.icon} fa-solid fa-lock fa-lg`}></i>
                   </InputGroup.Text>
@@ -325,6 +291,7 @@ const Login = () => {
                     className={styles.formBox}
                     placeholder="Password"
                     required
+                    isInvalid={isClicked && isEmpty(form.password)}
                   />
                 </InputGroup>
               </Form.Group>

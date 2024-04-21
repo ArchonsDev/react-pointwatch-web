@@ -44,7 +44,7 @@ export const getAllUsers = async (data, onSuccess, onFail, onCleanup) => {
 export const updateUser = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.put(
-      `http://localhost:5000/users/2`,
+      `http://localhost:5000/users/${data.id}`,
       {
         firstname: data.firstname,
         lastname: data.lastname,

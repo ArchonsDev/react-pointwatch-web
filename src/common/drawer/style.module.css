@@ -17,14 +17,14 @@
   color: #3a3238 !important;
   background-color: #e8b4bc !important;
   font-family: "Poppins-SemiBold";
-  font-size: 1.3em !important;
+  font-size: 1.1em !important;
   border-radius: 10px;
 }
 
 .navItem {
   color: #e8b4bc !important;
   font-family: "Poppins-SemiBold";
-  font-size: 1.3em !important;
+  font-size: 1.1em !important;
   border-radius: 10px;
 }
 
@@ -44,8 +44,8 @@
 }
 
 .circle {
-  width: 10em;
-  height: 10em;
+  width: 7em;
+  height: 7em;
   background-color: #f0f0f0;
   border-radius: 50%;
 }
