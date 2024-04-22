@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container } from "react-bootstrap";
 
@@ -8,12 +8,12 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
-const SWTDDashboard = () => {
+const SWTDForm = () => {
   const { user, setUser } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
-  const handleAddRecordClick = () => {
-    navigate("/swtd/form");
+  const handleBackClick = () => {
+    navigate("/swtd");
   };
 
   return (
@@ -30,16 +30,19 @@ const SWTDDashboard = () => {
 
       <Container className="d-flex flex-column justify-content-start align-items-start">
         <Row className="mb-3">
-          <h3 className={styles.label}>SWTD Points Overview</h3>
+          <h3 className={styles.label}>
+            <i
+              className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
+              onClick={handleBackClick}></i>{" "}
+            Add a new Record
+          </h3>
         </Row>
 
         <Row className="w-100">
           <Col sm="4">Search bar goes here D:</Col>
           <Col sm="4">Filter bar goes here D:</Col>
           <Col className="text-end" sm="4">
-            <BtnPrimary onClick={handleAddRecordClick}>
-              Add a New Record
-            </BtnPrimary>
+            <BtnPrimary>Export Report</BtnPrimary>
           </Col>
         </Row>
       </Container>
@@ -47,4 +50,4 @@ const SWTDDashboard = () => {
   );
 };
 
-export default SWTDDashboard;
+export default SWTDForm;

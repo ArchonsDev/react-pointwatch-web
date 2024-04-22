@@ -6,6 +6,7 @@ import Login from "./pages/login";
 import Register from "./pages/registration";
 import Dashboard from "./pages/dashboard";
 import SWTDDashboard from "./pages/employee dashboard";
+import SWTDForm from "./pages/employee dashboard/SWTDForm";
 import AdminDashboard from "./pages/admin dashboard";
 import ResetPassword from "./pages/reset password";
 import Authorized from "./pages/authorized";
@@ -31,6 +32,10 @@ const App = () => {
     "/dashboard": "Dashboard",
     "/reset": "Reset Password",
     "/settings": "Settings",
+    "/swtd": "SWTD Points Overview",
+    "/swtd/form": "Add a New Record",
+    "/dashboard": "Dashboard",
+    "/admin": "Admin",
   };
 
   document.title = tabNames[location.pathname] || "PointWatch";
@@ -79,6 +84,7 @@ const App = () => {
           <Route path="/reset" element={<ResetPassword token={token} />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/swtd" element={<SWTDDashboard />} />
+          <Route path="/swtd/form" element={<SWTDForm />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/authorized" element={<Authorized />} />
         </Routes>
