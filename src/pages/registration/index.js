@@ -25,6 +25,7 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
 
 const Registration = () => {
+  const [isClicked, setIsClicked] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
@@ -48,135 +49,54 @@ const Registration = () => {
     });
   };
 
+  const isEmailValid = () => {
+    if (!isClicked) return false;
+    return isEmpty(form.email) || !isValidEmail(form.email);
+  };
+
+  const isEmployeeIDValid = () => {
+    if (!isClicked) return false;
+    return isEmpty(form.employee_id) || !isValidLength(form.employee_id, 1);
+  };
+
+  const isFirstnameValid = () => {
+    if (!isClicked) return false;
+    return isEmpty(form.firstname) || !isValidLength(form.firstname, 1);
+  };
+
+  const isLastnameValid = () => {
+    if (!isClicked) return false;
+    return isEmpty(form.lastname) || !isValidLength(form.lastname, 1);
+  };
+
+  const isDepartmentsValid = () => {
+    if (!isClicked) return false;
+    return form.department === "";
+  };
+
+  const isPasswordValid = () => {
+    if (!isClicked) return false;
+    return isEmpty(form.password) || !isValidPassword(form.password);
+  };
+
+  const passwordsMatch = () => {
+    return form.password === form.confirmPassword;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsClicked(true);
 
-    setErrorMessage(null);
-
-    let hasError = false;
-    let errorMessages = [];
-
-    // Email Validation
-    if (isEmpty(form.email)) {
-      errorMessages.push(
-        <>
-          <b>Email</b> is required.
-          <br />
-        </>
-      );
-      hasError = true;
-    } else if (!(isValidLength(form.email, 2) && isValidEmail(form.email))) {
-      errorMessages.push(
-        <>
-          <b>Email</b> must be valid.
-          <br />
-        </>
-      );
-      hasError = true;
-    }
-
-    //Employee ID Validation
-    if (isEmpty(form.employee_id)) {
-      errorMessages.push(
-        <>
-          <b>Employee ID</b> is required.
-          <br />
-        </>
-      );
-      hasError = true;
-    } else if (!isValidLength(form.employee_id, 1)) {
-      errorMessages.push(
-        <>
-          <b>Employee ID</b> must be valid.
-          <br />
-        </>
-      );
-      hasError = true;
-    }
-
-    // Firstname Validation
-    if (isEmpty(form.firstname)) {
-      errorMessages.push(
-        <>
-          <b>First name</b> is required.
-          <br />
-        </>
-      );
-      hasError = true;
-    } else if (!isValidLength(form.firstname, 1)) {
-      errorMessages.push(
-        <>
-          <b>First name</b> is too short.
-          <br />
-        </>
-      );
-      hasError = true;
-    }
-
-    // Lastname Validation
-    if (isEmpty(form.lastname)) {
-      errorMessages.push(
-        <>
-          <b>Last name</b> is required.
-          <br />
-        </>
-      );
-      hasError = true;
-    } else if (!isValidLength(form.lastname, 1)) {
-      errorMessages.push(
-        <>
-          <b>Last name</b> is too short.
-          <br />
-        </>
-      );
-      hasError = true;
-    }
-
-    //Departments Validation
-    if (form.department === "Departments") {
-      errorMessages.push(
-        <>
-          <b>Please select a department.</b>
-          <br />
-        </>
-      );
-      hasError = true;
-    }
-
-    // Password Validation
-    if (isEmpty(form.password)) {
-      errorMessages.push(
-        <>
-          <b>Password</b> is required.
-          <br />
-        </>
-      );
-      hasError = true;
-    } else if (!isValidPassword(form.password)) {
-      errorMessages.push(
-        <>
-          <b>Password</b> must contain <b>at least one special character</b>.
-          <br />
-          <b>Password</b> be <b>at least 8 characters long</b>.<br />
-          <b>Password</b> must contain <b>at least one number</b>.<br />
-        </>
-      );
-      hasError = true;
-    }
-
-    if (form.password !== form.confirmPassword) {
-      errorMessages.push(
-        <>
-          <b>Passwords</b> do not match.
-          <br />
-        </>
-      );
-      hasError = true;
-    }
-
-    if (hasError) {
-      setErrorMessage(errorMessages);
-      setShowToast(true);
+    if (
+      isEmailValid() ||
+      isEmployeeIDValid() ||
+      isFirstnameValid() ||
+      isLastnameValid() ||
+      isDepartmentsValid() ||
+      isPasswordValid() ||
+      !passwordsMatch()
+    ) {
+      setIsClicked(false);
       return;
     }
 
@@ -185,13 +105,12 @@ const Registration = () => {
       (response) => {
         setTimeout(() => {
           setIsRegistrationComplete(true);
+          setIsClicked(false);
         });
       },
       (error) => {
         if (error.response && error.response.status === 409) {
-          setErrorMessage(
-            "An error has occurred. Please check the entered details again."
-          );
+          setErrorMessage(<b>{error.response.data.error}</b>);
           setShowToast(true);
         }
       }
@@ -245,18 +164,18 @@ const Registration = () => {
                   <img
                     src={logo}
                     className="logo"
-                    height="80px"
+                    height="70px"
                     alt="PointWatch logo"
                   />
                   <span className={styles.brand}>PointWatch</span>
                 </Col>
               </Row>
-              <Form className={styles.form}>
+              <Form className={styles.form} noValidate>
                 {/* Row 1: Email & ID Number */}
                 <Row>
                   <Col>
                     <Form.Group className="mb-3" controlId="inputEmail">
-                      <InputGroup>
+                      <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
                             className={`${styles.formIcon} fa-solid fa-at fa-lg`}></i>
@@ -267,13 +186,23 @@ const Registration = () => {
                           name="email"
                           onChange={handleChange}
                           placeholder="E-mail"
+                          isInvalid={isEmailValid()}
                         />
+                        {isClicked && (
+                          <Form.Control.Feedback type="invalid">
+                            {isEmpty(form.email) ? (
+                              <>E-mail is required.</>
+                            ) : (
+                              <>E-mail must be valid.</>
+                            )}
+                          </Form.Control.Feedback>
+                        )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
                   <Col>
                     <Form.Group className="mb-3" controlId="inputEmployeeID">
-                      <InputGroup>
+                      <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
                             className={`${styles.formIcon} fa-solid fa-id-badge fa-lg`}></i>
@@ -284,7 +213,17 @@ const Registration = () => {
                           name="employee_id"
                           onChange={handleChange}
                           placeholder="Employee ID"
+                          isInvalid={isEmployeeIDValid()}
                         />
+                        {isClicked && (
+                          <Form.Control.Feedback type="invalid">
+                            {isEmpty(form.employee_id) ? (
+                              <>Employee ID is required.</>
+                            ) : (
+                              <>Employee ID must be valid.</>
+                            )}
+                          </Form.Control.Feedback>
+                        )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -294,7 +233,7 @@ const Registration = () => {
                 <Row>
                   <Col>
                     <Form.Group className="mb-3" controlId="inputFirstname">
-                      <InputGroup>
+                      <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
                             className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
@@ -305,13 +244,23 @@ const Registration = () => {
                           name="firstname"
                           onChange={handleChange}
                           placeholder="First name"
+                          isInvalid={isFirstnameValid()}
                         />
+                        {isClicked && (
+                          <Form.Control.Feedback type="invalid">
+                            {isEmpty(form.firstname) ? (
+                              <>First name is required.</>
+                            ) : (
+                              <>First name is too short.</>
+                            )}
+                          </Form.Control.Feedback>
+                        )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
                   <Col>
                     <Form.Group className="mb-3" controlId="inputLastname">
-                      <InputGroup>
+                      <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
                             className={`${styles.formIcon} fa-solid fa-user fa-lg`}></i>
@@ -322,7 +271,17 @@ const Registration = () => {
                           name="lastname"
                           onChange={handleChange}
                           placeholder="Last name"
+                          isInvalid={isLastnameValid()}
                         />
+                        {isClicked && (
+                          <Form.Control.Feedback type="invalid">
+                            {isEmpty(form.lastname) ? (
+                              <>Last name is required.</>
+                            ) : (
+                              <>Last name is too short.</>
+                            )}
+                          </Form.Control.Feedback>
+                        )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -332,7 +291,7 @@ const Registration = () => {
                 <Row>
                   <Col>
                     <Form.Group className="mb-3" controlId="inputDepartment">
-                      <InputGroup>
+                      <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
                             className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
@@ -341,7 +300,8 @@ const Registration = () => {
                           aria-label="Example"
                           value={form.department}
                           name="department"
-                          onChange={handleChange}>
+                          onChange={handleChange}
+                          isInvalid={isDepartmentsValid()}>
                           <option value="" disabled>
                             Departments
                           </option>
@@ -351,6 +311,11 @@ const Registration = () => {
                             </option>
                           ))}
                         </Form.Select>
+                        {isClicked && (
+                          <Form.Control.Feedback type="invalid">
+                            Please select a department.
+                          </Form.Control.Feedback>
+                        )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -360,7 +325,7 @@ const Registration = () => {
                 <Row>
                   <Col>
                     <Form.Group className="mb-3" controlId="inputPassword">
-                      <InputGroup>
+                      <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
                             className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
@@ -371,7 +336,20 @@ const Registration = () => {
                           name="password"
                           onChange={handleChange}
                           placeholder="Password"
+                          isInvalid={isPasswordValid()}
                         />
+                        {isClicked && (
+                          <Form.Control.Feedback type="invalid">
+                            {isEmpty(form.password) ? (
+                              <>Password is required.</>
+                            ) : (
+                              <>
+                                Must have at least 8 characters, one special
+                                character, and one number.
+                              </>
+                            )}
+                          </Form.Control.Feedback>
+                        )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -381,7 +359,7 @@ const Registration = () => {
                     <Form.Group
                       className="mb-3"
                       controlId="inputConfirmPassword">
-                      <InputGroup>
+                      <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
                             className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
@@ -391,7 +369,20 @@ const Registration = () => {
                           placeholder="Confirm Password"
                           name="confirmPassword"
                           onChange={handleChange}
+                          isInvalid={
+                            (isClicked && isEmpty(form.confirmPassword)) ||
+                            !passwordsMatch()
+                          }
                         />
+                        {isClicked && (
+                          <Form.Control.Feedback type="invalid">
+                            {isEmpty(form.confirmPassword) ? (
+                              <>Confirm password is required.</>
+                            ) : (
+                              <>Passwords do not match.</>
+                            )}
+                          </Form.Control.Feedback>
+                        )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
