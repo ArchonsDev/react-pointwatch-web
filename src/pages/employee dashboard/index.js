@@ -1,6 +1,15 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container } from "react-bootstrap";
+import {
+  Row,
+  Col,
+  Container,
+  Dropdown,
+  DropdownButton,
+  InputGroup,
+  Form,
+  Table,
+} from "react-bootstrap";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -15,6 +24,10 @@ const SWTDDashboard = () => {
   const handleAddRecordClick = () => {
     navigate("/swtd/form");
   };
+
+  const swtdData = [
+    { id: 1, title: "SWTD Title 1", points: 100, status: "Pending" },
+  ];
 
   return (
     <div className={styles.background}>
@@ -33,15 +46,70 @@ const SWTDDashboard = () => {
           <h3 className={styles.label}>SWTD Points Overview</h3>
         </Row>
 
+        <Row className="mb-3">
+          <Col xs="auto">
+            <i className="fa-regular fa-calendar"></i> Term
+          </Col>
+          <Col xs="auto">
+            <i className="fa-solid fa-building"></i> Department
+          </Col>
+          <Col xs="auto">
+            <i class="fa-solid fa-circle-plus"></i> Total Points
+          </Col>
+          <Col xs="auto">
+            <i class="fa-solid fa-plus-minus"></i> Excess/Lacking Points
+          </Col>
+        </Row>
+
         <Row className="w-100">
-          <Col sm="4">Search bar goes here D:</Col>
-          <Col sm="4">Filter bar goes here D:</Col>
+          <Col>
+            <InputGroup className={`${styles.searchBar} mb-3`}>
+              <InputGroup.Text id="basic-addon1">
+                <i className="fa-solid fa-magnifying-glass"></i>
+              </InputGroup.Text>
+              <Form.Control
+                placeholder="Search"
+                aria-label="Search"
+                aria-describedby="basic-addon1"
+              />
+            </InputGroup>
+          </Col>
+
+          <Col sm="4" className="d-flex align-items-center">
+            <span className={styles.filterText}>Filter</span>
+            <DropdownButton id="dropdown-basic-button" title="Dropdown button">
+              <Dropdown.Item href="#/action-1">Action</Dropdown.Item>
+              <Dropdown.Item href="#/action-2">Another action</Dropdown.Item>
+              <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
+            </DropdownButton>
+          </Col>
           <Col className="text-end" sm="4">
             <BtnPrimary onClick={handleAddRecordClick}>
               Add a New Record
             </BtnPrimary>
           </Col>
         </Row>
+
+        <Table striped="columns">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Title of Swtd</th>
+              <th>Points</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {swtdData.map((item) => (
+              <tr key={item.id}>
+                <td>{item.id}</td>
+                <td>{item.title}</td>
+                <td>{item.points}</td>
+                <td>{item.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       </Container>
     </div>
   );

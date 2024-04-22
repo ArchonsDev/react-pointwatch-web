@@ -19,3 +19,13 @@
   font-family: "Degradasi";
   color: #3a3238;
 }
+
+.searchBar {
+  border-radius: 7px;
+  border: none;
+}
+
+.filterText {
+  margin-right: 10px; 
+}
+
