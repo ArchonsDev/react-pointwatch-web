@@ -1,5 +1,4 @@
 import React, { useContext, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Button,
@@ -19,6 +18,7 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 import { login, recovery } from "../../api/auth";
+import { getUser } from "../../api/user";
 import { isEmpty } from "../../common/validation/utils";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
@@ -82,12 +82,10 @@ const Login = () => {
       (response) => {
         setTimeout(() => {
           const accessToken = response?.data?.access_token;
-          const decodedToken = jwtDecode(accessToken);
           localStorage.setItem("accessToken", accessToken); //Website does not lose token upon refresh
-          setUser({ token: accessToken, email: decodedToken.sub });
           navigate("/dashboard");
-          clearForm();
           setIsLoading(false);
+          clearForm();
         }, 4500);
       },
       (error) => {

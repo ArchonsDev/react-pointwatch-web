@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 
 import Login from "./pages/login";
@@ -10,6 +11,7 @@ import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
 
 import SessionUserContext from "./contexts/SessionUserContext";
+import { getUser } from "./api/user";
 
 import styles from "./styles/App.module.css";
 
@@ -34,13 +36,27 @@ const App = () => {
   const urlParams = new URLSearchParams(location.search);
   const token = urlParams.get("token");
 
-  useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      setUser(accessToken);
-    }
-  }, []);
+  const accessToken = localStorage.getItem("accessToken");
 
+  const getSessionUser = (token, email) => {
+    getUser(
+      { token: token, email: email },
+      (response) => {
+        console.log(response.data[0]);
+        setUser(response.data[0]);
+      },
+      (error) => {
+        console.log("Error fetching user data: ", error);
+      }
+    );
+  };
+
+  useEffect(() => {
+    if (accessToken !== null) {
+      const decodedToken = jwtDecode(accessToken);
+      getSessionUser(accessToken, decodedToken.sub);
+    }
+  }, [accessToken]);
   return (
     <div
       className={`${styles.App} ${

@@ -1,8 +1,5 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, Nav, Col, Row, Container } from "react-bootstrap";
-
-import SessionUserContext from "../../contexts/SessionUserContext";
-import { getUser } from "../../api/user";
 
 import General from "./General";
 import Password from "./Password";
@@ -12,8 +9,6 @@ import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
 const Settings = () => {
-  const { user } = useContext(SessionUserContext);
-  const [userData, setUserData] = useState(null);
   const [activeTab, setActiveTab] = useState("general");
 
   const handleSelectTab = (selectedTab) => {
@@ -31,31 +26,6 @@ const Settings = () => {
       default:
     }
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await getUser(
-        user,
-        (response) => {
-          console.log(response);
-        },
-        (error) => {
-          if (error.response) {
-            let statusCode = error.response.status;
-            switch (statusCode) {
-              case 404:
-              case 403:
-                console.log(error.response.data.error);
-                break;
-              default:
-                break;
-            }
-          }
-        }
-      );
-    };
-    fetchData();
-  }, []);
 
   return (
     <div className={styles.background}>

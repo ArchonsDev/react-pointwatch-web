@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from "react";
+import React, { useContext } from "react";
 import { Nav, Navbar, Offcanvas, Row, Col } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router";
 
@@ -18,14 +18,8 @@ const Drawer = () => {
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     setUser(null);
+    navigate("/");
   };
-
-  // Comment this to access pages w/o logging in lol
-  useEffect(() => {
-    if (user === null) {
-      navigate("/");
-    }
-  }, [navigate, user]);
 
   return (
     <div>
@@ -57,9 +51,11 @@ const Drawer = () => {
               <div className={`${styles.circle} mb-3`}></div>
               <Row className="flex-column">
                 <Col className={`${styles.name} text-center`}>
-                  0001 John Doe
+                  {user?.firstname} {user?.lastname}
                 </Col>
-                <Col className={`${styles.title} text-center`}>Admin</Col>
+                <Col className={`${styles.empId} text-center`}>
+                  {user?.employee_id}
+                </Col>
               </Row>
             </Offcanvas.Title>
           </Offcanvas.Header>

@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Row, Col, Form, Container } from "react-bootstrap";
 
-import { updateUser } from "../../api/user";
+import SessionUserContext from "../../contexts/SessionUserContext";
+import { updatePassword } from "../../api/user";
 import { useTrigger } from "../../hooks/useTrigger";
 import { useSwitch } from "../../hooks/useSwitch";
 import { isEmpty, isValidPassword } from "../../common/validation/utils";
@@ -11,15 +12,15 @@ import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import styles from "./style.module.css";
 
 const Password = () => {
+  const { user, setUser } = useContext(SessionUserContext);
+  const accessToken = localStorage.getItem("accessToken");
+
   const [showModal, openModal, closeModal] = useSwitch();
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
+  const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [isClicked, setIsClicked] = useState(false);
-
-  const showErrorMessage = errorMessage !== null;
 
   const [form, setForm] = useState({
-    token: localStorage.getItem("accessToken"),
     password: "",
     confirmPassword: "",
   });
@@ -39,8 +40,8 @@ const Password = () => {
   };
 
   const isPasswordValid = () => {
-    if (!isClicked) return false;
-    return isEmpty(form.password) || !isValidPassword(form.password);
+    if (isEmpty(form.password)) return false;
+    return !isValidPassword(form.password);
   };
 
   const passwordsMatch = () => {
@@ -48,21 +49,27 @@ const Password = () => {
   };
 
   const handleSubmit = async () => {
-    setIsClicked(true);
     setErrorMessage(null);
-    await updateUser(
-      form,
+    await updatePassword(
+      {
+        id: user.id,
+        token: accessToken,
+        ...form,
+      },
       (response) => {
-        setIsClicked(false);
+        setUser({
+          ...user,
+          password: form.password,
+        });
         triggerShowSuccess(4500);
       },
       (error) => {
         if (error.response && error.response.data) {
           setErrorMessage(<>{error.response.data.error}</>);
-          setIsClicked(false);
+          triggerShowError(4500);
         } else {
           setErrorMessage(<>An error occurred.</>);
-          setIsClicked(false);
+          triggerShowError(4500);
         }
       }
     );
@@ -71,7 +78,7 @@ const Password = () => {
 
   return (
     <Container>
-      {showErrorMessage && (
+      {showError && (
         <div className="alert alert-danger mb-3" role="alert">
           {errorMessage}
         </div>
@@ -96,18 +103,16 @@ const Password = () => {
                 onChange={handleChange}
                 isInvalid={isPasswordValid()}
               />
-              {isClicked && (
-                <Form.Control.Feedback type="invalid">
-                  {isEmpty(form.password) ? (
-                    <>Password is required.</>
-                  ) : (
-                    <>
-                      Must have at least 8 characters, one special character,
-                      and one number.
-                    </>
-                  )}
-                </Form.Control.Feedback>
-              )}
+              <Form.Control.Feedback type="invalid">
+                {isEmpty(form.password) ? (
+                  <>Password is required.</>
+                ) : (
+                  <>
+                    Must have at least 8 characters, one special character, and
+                    one number.
+                  </>
+                )}
+              </Form.Control.Feedback>
             </Col>
           </Form.Group>
         </Row>
@@ -129,18 +134,26 @@ const Password = () => {
                 onChange={handleChange}
                 isInvalid={!passwordsMatch()}
               />
-              {isClicked && (
-                <Form.Control.Feedback type="invalid">
-                  Passwords do not match.
-                </Form.Control.Feedback>
-              )}
+
+              <Form.Control.Feedback type="invalid">
+                Passwords do not match.
+              </Form.Control.Feedback>
             </Col>
           </Form.Group>
         </Row>
 
         <Row>
           <Col className="text-end">
-            <BtnPrimary onClick={openModal}>Save Changes</BtnPrimary>
+            <BtnPrimary
+              onClick={openModal}
+              disabled={
+                !isValidPassword(form.password) ||
+                !passwordsMatch() ||
+                isEmpty(form.password) ||
+                isEmpty(form.confirmPassword)
+              }>
+              Save Changes
+            </BtnPrimary>
             <ConfirmationModal
               show={showModal}
               onHide={closeModal}
