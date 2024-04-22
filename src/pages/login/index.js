@@ -18,15 +18,13 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 import { login, recovery } from "../../api/auth";
-import { getUser } from "../../api/user";
 import { isEmpty } from "../../common/validation/utils";
-import SessionUserContext from "../../contexts/SessionUserContext";
 
 import logo from "../../images/logo.png";
 import logo1 from "../../images/logo1.png";
+import { clear } from "@testing-library/user-event/dist/clear";
 
 const Login = () => {
-  const { user, setUser } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
   const [errorMessage, setErrorMessage] = useState(null);
@@ -70,6 +68,7 @@ const Login = () => {
     setIsLoading(false);
     setErrorMessage(<>An error occurred.</>);
     setShowToast(true);
+    clearForm();
   };
 
   const handleSubmit = async (e) => {
@@ -100,6 +99,7 @@ const Login = () => {
               setIsLoading(false);
               setErrorMessage(errorMessage);
               setShowToast(true);
+              clearForm();
               break;
             default:
               handleDefaultError();
@@ -315,7 +315,10 @@ const Login = () => {
                       <BtnPrimary
                         type="submit"
                         onClick={handleSubmit}
-                        className={styles.button}>
+                        className={styles.button}
+                        disabled={
+                          isEmpty(form.email) || isEmpty(form.password)
+                        }>
                         Login
                       </BtnPrimary>
                     </Col>
