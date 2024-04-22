@@ -75,7 +75,7 @@ const SWTDDashboard = () => {
             </InputGroup>
           </Col>
 
-          <Col sm="4" className="d-flex align-items-center">
+          <Col className="d-flex align-items-center mb-3">
             <span className={styles.filterText}>Filter</span>
             <DropdownButton id="dropdown-basic-button" title="Dropdown button">
               <Dropdown.Item href="#/action-1">Action</Dropdown.Item>
@@ -83,33 +83,35 @@ const SWTDDashboard = () => {
               <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
             </DropdownButton>
           </Col>
-          <Col className="text-end" sm="4">
+          <Col className="text-end">
             <BtnPrimary onClick={handleAddRecordClick}>
               Add a New Record
             </BtnPrimary>
           </Col>
         </Row>
 
-        <Table striped="columns">
-          <thead>
-            <tr>
-              <th>No.</th>
-              <th>Title of Swtd</th>
-              <th>Points</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {swtdData.map((item) => (
-              <tr key={item.id}>
-                <td>{item.id}</td>
-                <td>{item.title}</td>
-                <td>{item.points}</td>
-                <td>{item.status}</td>
+        <Row className="w-100">
+          <Table striped="columns" responsive>
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>Title of SWTD</th>
+                <th>Points</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {swtdData.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.id}</td>
+                  <td>{item.title}</td>
+                  <td>{item.points}</td>
+                  <td>{item.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Row>
       </Container>
     </div>
   );

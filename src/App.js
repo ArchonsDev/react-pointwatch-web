@@ -34,7 +34,6 @@ const App = () => {
     "/settings": "Settings",
     "/swtd": "SWTD Points Overview",
     "/swtd/form": "Add a New Record",
-    "/dashboard": "Dashboard",
     "/admin": "Admin",
   };
 
@@ -64,6 +63,7 @@ const App = () => {
       getSessionUser(accessToken, decodedToken.sub);
     }
   }, [accessToken]);
+
   return (
     <div
       className={`${styles.App} ${
@@ -75,18 +75,42 @@ const App = () => {
           <Route
             path="/"
             element={
-              user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+              accessToken ? (
+                <Navigate to="/dashboard" />
+              ) : (
+                <Navigate to="/login" />
+              )
             }
           />
-          <Route path="/login" element={<Login />} />
+          <Route
+            path="/dashboard"
+            element={accessToken ? <Dashboard /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/login"
+            element={accessToken ? <Navigate to="/dashboard" /> : <Login />}
+          />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/reset" element={<ResetPassword token={token} />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/swtd" element={<SWTDDashboard />} />
-          <Route path="/swtd/form" element={<SWTDForm />} />
-          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/authorized" element={<Authorized />} />
+          <Route
+            path="/settings"
+            element={accessToken ? <Settings /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/swtd"
+            element={accessToken ? <SWTDDashboard /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/swtd/form"
+            element={accessToken ? <SWTDForm /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/admin"
+            element={
+              accessToken ? <AdminDashboard /> : <Navigate to="/login" />
+            }
+          />
         </Routes>
       </SessionUserContext.Provider>
     </div>
