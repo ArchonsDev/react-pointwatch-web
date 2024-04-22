@@ -4,7 +4,9 @@ import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 
 import Login from "./pages/login";
 import Register from "./pages/registration";
-import Dashboard from "./pages/swtd dashboard";
+import Dashboard from "./pages/dashboard";
+import SWTDDashboard from "./pages/employee dashboard";
+import AdminDashboard from "./pages/admin dashboard";
 import ResetPassword from "./pages/reset password";
 import Authorized from "./pages/authorized";
 import Settings from "./pages/settings";
@@ -19,8 +21,8 @@ const App = () => {
   const location = useLocation();
   const [user, setUser] = useState(null);
 
-  const showDrawer = ["/dashboard", "/settings"].some((path) =>
-    location.pathname.startsWith(path)
+  const showDrawer = ["/dashboard", "/swtd", "/admin", "/settings"].some(
+    (path) => location.pathname.startsWith(path)
   );
 
   const tabNames = {
@@ -76,6 +78,8 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/reset" element={<ResetPassword token={token} />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/swtd" element={<SWTDDashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/authorized" element={<Authorized />} />
         </Routes>
       </SessionUserContext.Provider>

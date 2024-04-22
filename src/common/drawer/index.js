@@ -59,6 +59,7 @@ const Drawer = () => {
               </Row>
             </Offcanvas.Title>
           </Offcanvas.Header>
+
           {/* Navigate Pages */}
           <Offcanvas.Body className="d-flex flex-column p-0">
             <div className="flex-grow-1">
@@ -73,6 +74,7 @@ const Drawer = () => {
                     className={`fa-solid fa-bell fa-lg ${styles.drawerIcon}`}></i>
                   <span className="px-2">Notifications</span>
                 </Nav.Link>
+
                 <Nav.Link
                   className={`mx-3 my-1 p-3 ${
                     location.pathname === "/dashboard"
@@ -90,10 +92,23 @@ const Drawer = () => {
                     location.pathname === "/swtd"
                       ? styles.active
                       : styles.navItem
-                  }`}>
+                  }`}
+                  onClick={(e) => navigate("/swtd")}>
                   <i
                     className={`fa-solid fa-table-list fa-lg ${styles.drawerIcon}`}></i>
                   <span className="px-2">SWTDs</span>
+                </Nav.Link>
+
+                <Nav.Link
+                  className={`mx-3 my-1 p-3 ${
+                    location.pathname === "/admin"
+                      ? styles.active
+                      : styles.navItem
+                  }`}
+                  onClick={(e) => navigate("/admin")}>
+                  <i
+                    className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}></i>
+                  <span className="px-2">Admin</span>
                 </Nav.Link>
 
                 <Nav.Link

@@ -8,7 +8,7 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
-const Dashboard = () => {
+const SWTDDashboard = () => {
   const { user, setUser } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
@@ -26,7 +26,7 @@ const Dashboard = () => {
 
       <Container className="d-flex flex-column justify-content-start align-items-start">
         <Row className="mb-3">
-          <h3 className={styles.label}>Dashboard</h3>
+          <h3 className={styles.label}>SWTD Points Overview</h3>
         </Row>
 
         <Row className="w-100">
@@ -41,4 +41,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default SWTDDashboard;
