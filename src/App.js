@@ -58,6 +58,16 @@ const App = () => {
   };
 
   useEffect(() => {
+    const isTokenExpired = (token) => {
+      const decodedToken = jwtDecode(token);
+      return decodedToken.exp * 1000 <= Date.now();
+    };
+
+    if (accessToken && isTokenExpired(accessToken)) {
+      localStorage.removeItem("accessToken");
+      setUser(null);
+    }
+
     if (accessToken !== null) {
       const decodedToken = jwtDecode(accessToken);
       getSessionUser(accessToken, decodedToken.sub);

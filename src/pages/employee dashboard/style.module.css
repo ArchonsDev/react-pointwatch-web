@@ -20,12 +20,45 @@
   color: #3a3238;
 }
 
+.employeeDetails {
+  font-family: "Poppins-Medium";
+}
+
 .searchBar {
+  font-family: "Poppins-Regular";
   border-radius: 7px;
   border: none;
 }
 
 .filterText {
-  margin-right: 10px; 
+  font-family: "Poppins-Medium";
 }
 
+.tableHeader {
+  background-color: #e8b4bc !important;
+  font-family: "Poppins-Medium";
+  border-radius: 10px 10px 0 0 !important;
+}
+
+.tableBody {
+  font-family: "Poppins-Regular";
+  border-radius: 0 0 10px 10px !important;
+}
+
+.cardHeader {
+  background-color: #e8b4bc !important;
+  font-family: "Poppins-SemiBold";
+  font-size: 1.2rem;
+}
+
+.cardBody {
+  font-family: "Poppins-Regular";
+}
+
+.formLabel {
+  font-family: "Poppins-SemiBold";
+}
+
+.formBox {
+  border: grey 1px solid !important;
+}
