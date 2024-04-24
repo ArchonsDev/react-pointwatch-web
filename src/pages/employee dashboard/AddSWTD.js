@@ -19,7 +19,7 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
-const SWTDForm = () => {
+const AddSWTD = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
@@ -88,8 +88,8 @@ const SWTDForm = () => {
         <Card style={{ width: "80rem" }}>
           <Card.Header className={styles.cardHeader}>SWTD Details</Card.Header>
           <Card.Body className={`${styles.cardBody} p-4`}>
-            {/* Title */}
             <Form noValidate>
+              {/* Title */}
               <Row>
                 <Form.Group as={Row} className="mb-3" controlId="inputTitle">
                   <Form.Label className={styles.formLabel} column sm="1">
@@ -319,6 +319,30 @@ const SWTDForm = () => {
                   </Form.Group>
                 </Col>
               </Row>
+
+              {/* Benefits */}
+              <Row>
+                <Form.Group as={Row} className="mb-3" controlId="inputBenefits">
+                  <Form.Label className={styles.formLabel} column sm="1">
+                    Benefits
+                  </Form.Label>
+                  <Col sm="11">
+                    <Form.Control
+                      as="textarea"
+                      className={styles.formBox}
+                      name="benefits"
+                      onChange={handleChange}
+                      value={form.benefits}
+                      isInvalid={isClicked && isEmpty(form.benefits)}
+                    />
+                    {isClicked && (
+                      <Form.Control.Feedback type="invalid">
+                        Benefits is required.
+                      </Form.Control.Feedback>
+                    )}
+                  </Col>
+                </Form.Group>
+              </Row>
               <Row>
                 <Col className="text-end">
                   <BtnPrimary onClick={handleSubmit}>Submit</BtnPrimary>
@@ -332,4 +356,4 @@ const SWTDForm = () => {
   );
 };
 
-export default SWTDForm;
+export default AddSWTD;

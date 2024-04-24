@@ -42,7 +42,12 @@
 
 .tableBody {
   font-family: "Poppins-Regular";
-  border-radius: 0 0 10px 10px !important;
+  border-radius: 0 0 0 0 !important;
+  cursor: pointer;
+}
+
+.tableBody:hover {
+  background-color: rgb(232, 232, 232);
 }
 
 .cardHeader {

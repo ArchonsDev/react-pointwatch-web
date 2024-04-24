@@ -4,12 +4,15 @@ import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 
 import Login from "./pages/login";
 import Register from "./pages/registration";
-import Dashboard from "./pages/dashboard";
-import SWTDDashboard from "./pages/employee dashboard";
-import SWTDForm from "./pages/employee dashboard/SWTDForm";
-import AdminDashboard from "./pages/admin dashboard";
 import ResetPassword from "./pages/reset password";
 import Authorized from "./pages/authorized";
+
+import Dashboard from "./pages/dashboard";
+import SWTDDashboard from "./pages/employee dashboard";
+import AddSWTD from "./pages/employee dashboard/AddSWTD";
+import EditSWTD from "./pages/employee dashboard/EditSWTD";
+import AdminDashboard from "./pages/admin dashboard";
+
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
 
@@ -37,7 +40,11 @@ const App = () => {
     "/admin": "Admin",
   };
 
-  document.title = tabNames[location.pathname] || "PointWatch";
+  document.title =
+    location.pathname.startsWith("/swtd/") &&
+    !location.pathname.startsWith("/swtd/form")
+      ? "Training Information"
+      : tabNames[location.pathname] || "WildPark";
 
   const urlParams = new URLSearchParams(location.search);
   const token = urlParams.get("token");
@@ -113,7 +120,11 @@ const App = () => {
           />
           <Route
             path="/swtd/form"
-            element={accessToken ? <SWTDForm /> : <Navigate to="/login" />}
+            element={accessToken ? <AddSWTD /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/swtd/:id"
+            element={accessToken ? <EditSWTD /> : <Navigate to="/login" />}
           />
           <Route
             path="/admin"

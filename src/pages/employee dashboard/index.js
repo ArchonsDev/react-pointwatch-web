@@ -23,8 +23,13 @@ const SWTDDashboard = () => {
     navigate("/swtd/form");
   };
 
+  const handleEditRecordClick = (id) => {
+    navigate(`/swtd/${id}`);
+  };
+
   const swtdData = [
     { id: 1, title: "SWTD Title 1", points: 2, status: "Pending" },
+    { id: 2, title: "SWTD Title 2", points: 5, status: "Rejected" },
   ];
 
   return (
@@ -103,7 +108,10 @@ const SWTDDashboard = () => {
           </ListGroup>
           <ListGroup>
             {swtdData.map((item) => (
-              <ListGroup.Item key={item.id} className={styles.tableBody}>
+              <ListGroup.Item
+                key={item.id}
+                className={styles.tableBody}
+                onClick={() => handleEditRecordClick(item.id)}>
                 <Row>
                   <Col xs={1}>{item.id}</Col>
                   <Col xs={7}>{item.title}</Col>
