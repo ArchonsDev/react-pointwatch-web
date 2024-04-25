@@ -1,18 +1,12 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Row,
-  Col,
-  Container,
-  Card,
-  Form,
-  FloatingLabel,
-} from "react-bootstrap";
+import { Row, Col, Container, Card, Form, FloatingLabel } from "react-bootstrap"; /* prettier-ignore */
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
-
+import { addSWTD } from "../../api/swtd";
+import { useTrigger } from "../../hooks/useTrigger";
 import { isEmpty } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -21,11 +15,17 @@ import styles from "./style.module.css";
 
 const AddSWTD = () => {
   const { user } = useContext(SessionUserContext);
+  const accessToken = localStorage.getItem("accessToken");
   const navigate = useNavigate();
+
+  const [showSuccess, triggerShowSuccess] = useTrigger(false);
+  const [showError, triggerShowError] = useTrigger(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const [isClicked, setIsClicked] = useState(false);
 
   const [form, setForm] = useState({
+    token: accessToken,
     author_id: user?.id,
     title: "",
     venue: "",
@@ -34,9 +34,23 @@ const AddSWTD = () => {
     date: "",
     time_started: "",
     time_finished: "",
-    points: 0,
+    points: 50,
     benefits: "",
   });
+
+  const clearForm = () => {
+    setForm({
+      ...form,
+      title: "",
+      venue: "",
+      category: "",
+      role: "",
+      date: "",
+      time_started: "",
+      time_finished: "",
+      benefits: "",
+    });
+  };
 
   const handleChange = (e) => {
     setForm({
@@ -49,7 +63,7 @@ const AddSWTD = () => {
     navigate("/swtd");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsClicked(true);
 
@@ -57,10 +71,40 @@ const AddSWTD = () => {
       isEmpty(form.title) ||
       isEmpty(form.venue) ||
       isEmpty(form.category) ||
-      isEmpty(form.role)
+      isEmpty(form.role) ||
+      isEmpty(form.date) ||
+      isEmpty(form.time_started) ||
+      isEmpty(form.time_finished)
     ) {
       return;
     }
+
+    if (!isEmpty(form.date)) {
+      const [year, month, day] = form.date.split("-");
+      form.date = `${month}-${day}-${year}`;
+    }
+
+    await addSWTD(
+      form,
+      (response) => {
+        setTimeout(() => {
+          triggerShowSuccess(4500);
+          setIsClicked(false);
+          clearForm();
+        });
+      },
+      (error) => {
+        if (error.response && error.response.data) {
+          console.log(form);
+          console.log(error.response.data.error);
+          setErrorMessage(<>{error.response.data.error}</>);
+          triggerShowError(4500);
+        } else {
+          setErrorMessage(<>An error occurred.</>);
+          triggerShowError(4500);
+        }
+      }
+    );
   };
 
   return (
@@ -75,7 +119,8 @@ const AddSWTD = () => {
         </Row>
       </header>
 
-      <Container className="d-flex flex-column justify-content-start align-items-start">
+      <Container
+        className={`${styles.container} d-flex flex-column justify-content-center align-items-start`}>
         <Row className="mb-3">
           <h3 className={styles.label}>
             <i
@@ -88,6 +133,16 @@ const AddSWTD = () => {
         <Card style={{ width: "80rem" }}>
           <Card.Header className={styles.cardHeader}>SWTD Details</Card.Header>
           <Card.Body className={`${styles.cardBody} p-4`}>
+            {showError && (
+              <div className="alert alert-danger mb-3" role="alert">
+                {errorMessage}
+              </div>
+            )}
+            {showSuccess && (
+              <div className="alert alert-success mb-3" role="alert">
+                Entry submitted!
+              </div>
+            )}
             <Form noValidate>
               {/* Title */}
               <Row>
@@ -257,7 +312,7 @@ const AddSWTD = () => {
                     <Form.Label className={styles.formLabel} column sm="2">
                       Time
                     </Form.Label>
-                    <Col className="text-start" sm="3">
+                    <Col className="text-start" sm="4">
                       <FloatingLabel
                         controlId="floatingInputStart"
                         label="Time Start">
@@ -281,7 +336,7 @@ const AddSWTD = () => {
                       sm="1">
                       <span>to</span>
                     </Col>
-                    <Col sm="3">
+                    <Col sm="4">
                       <FloatingLabel
                         controlId="floatingInputFinish"
                         label="Time End">

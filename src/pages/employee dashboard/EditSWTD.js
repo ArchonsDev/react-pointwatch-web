@@ -1,13 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Row,
-  Col,
-  Container,
-  Card,
-  Form,
-  FloatingLabel,
-} from "react-bootstrap";
+import { Row, Col, Container, Card, Form, FloatingLabel } from "react-bootstrap"; /* prettier-ignore */
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import categories from "../../data/categories.json";

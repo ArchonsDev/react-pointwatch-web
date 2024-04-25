@@ -1,13 +1,6 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Row,
-  Col,
-  Container,
-  InputGroup,
-  Form,
-  ListGroup,
-} from "react-bootstrap";
+import { Row, Col, Container, InputGroup, Form, ListGroup } from "react-bootstrap"; /* prettier-ignore */
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -27,6 +20,8 @@ const SWTDDashboard = () => {
     navigate(`/swtd/${id}`);
   };
 
+  // this shouldn't exist for the rendering of data, pls remove
+  // when testing
   const swtdData = [
     { id: 1, title: "SWTD Title 1", points: 2, status: "Pending" },
     { id: 2, title: "SWTD Title 2", points: 5, status: "Rejected" },
