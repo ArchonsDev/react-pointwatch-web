@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import Cookies from "js-cookie";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 
 import Login from "./pages/login";
@@ -25,6 +26,31 @@ const App = () => {
   const location = useLocation();
   const [user, setUser] = useState(null);
 
+  const token = Cookies.get("userToken");
+  const cookieID = Cookies.get("userID");
+
+  let id = null;
+  if (cookieID !== undefined) {
+    id = JSON.parse(cookieID);
+  }
+
+  const data = {
+    token: token,
+    id: id,
+  };
+
+  const getSessionUser = () => {
+    getUser(
+      {
+        token: data.token,
+        id: data.id,
+      },
+      (response) => {
+        setUser(response?.data);
+      }
+    );
+  };
+
   const showDrawer = ["/dashboard", "/swtd", "/admin", "/settings"].some(
     (path) => location.pathname.startsWith(path)
   );
@@ -46,40 +72,23 @@ const App = () => {
       ? "Training Information"
       : tabNames[location.pathname] || "WildPark";
 
-  const urlParams = new URLSearchParams(location.search);
-  const token = urlParams.get("token");
-
-  const accessToken = localStorage.getItem("accessToken");
-
-  const getSessionUser = (token, email) => {
-    getUser(
-      { token: token, email: email },
-      (response) => {
-        console.log(response.data[0]);
-        setUser(response.data[0]);
-      },
-      (error) => {
-        console.log("Error fetching user data: ", error);
-      }
-    );
-  };
-
   useEffect(() => {
     const isTokenExpired = (token) => {
       const decodedToken = jwtDecode(token);
       return decodedToken.exp * 1000 <= Date.now();
     };
 
-    if (accessToken && isTokenExpired(accessToken)) {
-      localStorage.removeItem("accessToken");
+    // Handling expired tokens
+    if (token && isTokenExpired(token)) {
+      Cookies.remove("userToken");
+      Cookies.remove("userID");
       setUser(null);
     }
 
-    if (accessToken !== null) {
-      const decodedToken = jwtDecode(accessToken);
-      getSessionUser(accessToken, decodedToken.sub);
+    if (data.token !== null && data.id !== null) {
+      getSessionUser();
     }
-  }, [accessToken]);
+  }, [data.token, data.id]);
 
   return (
     <div
@@ -91,47 +100,18 @@ const App = () => {
         <Routes>
           <Route
             path="/"
-            element={
-              accessToken ? (
-                <Navigate to="/dashboard" />
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
+            element={token ? <Navigate to="/swtd" /> : <Navigate to="/login" />}
           />
-          <Route
-            path="/dashboard"
-            element={accessToken ? <Dashboard /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/login"
-            element={accessToken ? <Navigate to="/dashboard" /> : <Login />}
-          />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/reset" element={<ResetPassword token={token} />} />
           <Route path="/authorized" element={<Authorized />} />
-          <Route
-            path="/settings"
-            element={accessToken ? <Settings /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/swtd"
-            element={accessToken ? <SWTDDashboard /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/swtd/form"
-            element={accessToken ? <AddSWTD /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/swtd/:id"
-            element={accessToken ? <EditSWTD /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/admin"
-            element={
-              accessToken ? <AdminDashboard /> : <Navigate to="/login" />
-            }
-          />
+          <Route path="/swtd" element={<SWTDDashboard />} />
+          <Route path="/swtd/form" element={<AddSWTD />} />
+          <Route path="/swtd/:id" element={<EditSWTD />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </SessionUserContext.Provider>
     </div>

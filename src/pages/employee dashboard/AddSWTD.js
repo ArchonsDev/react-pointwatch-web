@@ -63,6 +63,19 @@ const AddSWTD = () => {
     navigate("/swtd");
   };
 
+  const isDateInvalid = () => {
+    const selectedDate = new Date(form.date);
+    const today = new Date();
+    if (selectedDate > today) return true;
+  };
+
+  const isTimeInvalid = () => {
+    const timeStart = form.time_started;
+    const timeFinish = form.time_finished;
+
+    if (timeStart > timeFinish) return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsClicked(true);
@@ -73,6 +86,7 @@ const AddSWTD = () => {
       isEmpty(form.category) ||
       isEmpty(form.role) ||
       isEmpty(form.date) ||
+      isDateInvalid() ||
       isEmpty(form.time_started) ||
       isEmpty(form.time_finished)
     ) {
@@ -130,7 +144,7 @@ const AddSWTD = () => {
           </h3>
         </Row>
 
-        <Card style={{ width: "80rem" }}>
+        <Card className="mb-3" style={{ width: "80rem" }}>
           <Card.Header className={styles.cardHeader}>SWTD Details</Card.Header>
           <Card.Body className={`${styles.cardBody} p-4`}>
             {showError && (
@@ -276,11 +290,17 @@ const AddSWTD = () => {
                         name="date"
                         onChange={handleChange}
                         value={form.date}
-                        isInvalid={isClicked && isEmpty(form.date)}
+                        isInvalid={
+                          (isClicked && isEmpty(form.date)) || isDateInvalid()
+                        }
                       />
                       {isClicked && (
                         <Form.Control.Feedback type="invalid">
-                          Date of SWTD is required.
+                          {isEmpty(form.date) ? (
+                            <>Date of SWTD is required.</>
+                          ) : (
+                            <>Date of SWTD must be valid.</>
+                          )}
                         </Form.Control.Feedback>
                       )}
                     </Col>
@@ -322,14 +342,21 @@ const AddSWTD = () => {
                           name="time_started"
                           onChange={handleChange}
                           value={form.time_started}
-                          isInvalid={isClicked && isEmpty(form.time_started)}
+                          isInvalid={
+                            (isClicked && isEmpty(form.time_started)) ||
+                            isTimeInvalid()
+                          }
                         />
+                        {isClicked && (
+                          <Form.Control.Feedback type="invalid">
+                            {isEmpty(form.time_started) ? (
+                              <>Time is required.</>
+                            ) : (
+                              <>Time must be valid.</>
+                            )}
+                          </Form.Control.Feedback>
+                        )}
                       </FloatingLabel>
-                      {isClicked && (
-                        <Form.Control.Feedback type="invalid">
-                          Time of SWTD is required.
-                        </Form.Control.Feedback>
-                      )}
                     </Col>
                     <Col
                       className="d-flex align-items-center justify-content-center text-center"
@@ -349,11 +376,6 @@ const AddSWTD = () => {
                           isInvalid={isClicked && isEmpty(form.time_finished)}
                         />
                       </FloatingLabel>
-                      {isClicked && (
-                        <Form.Control.Feedback type="invalid">
-                          Time of SWTD is required.
-                        </Form.Control.Feedback>
-                      )}
                     </Col>
                   </Form.Group>
                 </Col>

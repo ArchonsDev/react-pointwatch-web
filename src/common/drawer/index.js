@@ -1,4 +1,5 @@
 import React, { useContext } from "react";
+import Cookies from "js-cookie";
 import { Nav, Navbar, Offcanvas, Row, Col } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router";
 
@@ -16,8 +17,8 @@ const Drawer = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    setUser(null);
+    Cookies.remove("userToken");
+    Cookies.remove("userID");
     navigate("/");
   };
 
@@ -75,17 +76,19 @@ const Drawer = () => {
                   <span className="px-2">Notifications</span>
                 </Nav.Link>
 
-                <Nav.Link
-                  className={`mx-3 my-1 p-3 ${
-                    location.pathname === "/dashboard"
-                      ? styles.active
-                      : styles.navItem
-                  }`}
-                  onClick={(e) => navigate("/dashboard")}>
-                  <i
-                    className={`fa-solid fa-house fa-lg ${styles.drawerIcon}`}></i>
-                  <span className="px-2">Dashboard</span>
-                </Nav.Link>
+                {(user?.is_admin || user?.is_staff) && (
+                  <Nav.Link
+                    className={`mx-3 my-1 p-3 ${
+                      location.pathname === "/dashboard"
+                        ? styles.active
+                        : styles.navItem
+                    }`}
+                    onClick={(e) => navigate("/dashboard")}>
+                    <i
+                      className={`fa-solid fa-house fa-lg ${styles.drawerIcon}`}></i>
+                    <span className="px-2">Dashboard</span>
+                  </Nav.Link>
+                )}
 
                 <Nav.Link
                   className={`mx-3 my-1 p-3 ${
@@ -99,17 +102,19 @@ const Drawer = () => {
                   <span className="px-2">SWTDs</span>
                 </Nav.Link>
 
-                <Nav.Link
-                  className={`mx-3 my-1 p-3 ${
-                    location.pathname === "/admin"
-                      ? styles.active
-                      : styles.navItem
-                  }`}
-                  onClick={(e) => navigate("/admin")}>
-                  <i
-                    className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}></i>
-                  <span className="px-2">Admin</span>
-                </Nav.Link>
+                {user?.is_admin && (
+                  <Nav.Link
+                    className={`mx-3 my-1 p-3 ${
+                      location.pathname === "/admin"
+                        ? styles.active
+                        : styles.navItem
+                    }`}
+                    onClick={(e) => navigate("/admin")}>
+                    <i
+                      className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}></i>
+                    <span className="px-2">Admin</span>
+                  </Nav.Link>
+                )}
 
                 <Nav.Link
                   className={`mx-3 my-1 p-3 ${

@@ -2,15 +2,12 @@ import axios from "axios";
 
 export const getUser = async (data, onSuccess, onFail, onCleanup) => {
   try {
-    const response = await axios.get(
-      `http://localhost:5000/users/?email=${data.email}`,
-      {
-        headers: {
-          Authorization: `Bearer ${data.token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.get(`http://localhost:5000/users/${data.id}`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (response.status === 200) {
       onSuccess && onSuccess(response);

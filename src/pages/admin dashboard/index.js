@@ -9,8 +9,13 @@ import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
 const AdminDashboard = () => {
-  const { user, setUser } = useContext(SessionUserContext);
+  const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
+  // useEffect(() => {
+  //   if (!user?.is_admin || !user?.is_staff) {
+  //     navigate("/swtd");
+  //   }
+  // }, []);
 
   return (
     <div className={styles.background}>

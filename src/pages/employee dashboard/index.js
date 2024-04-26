@@ -49,7 +49,7 @@ const SWTDDashboard = () => {
             <i className="fa-regular fa-calendar"></i> Term
           </Col>
           <Col xs="auto">
-            <i className="fa-solid fa-building"></i> {user.department}
+            <i className="fa-solid fa-building"></i> {user?.department}
           </Col>
           <Col xs="auto">
             <i className="fa-solid fa-circle-plus"></i> Total Points

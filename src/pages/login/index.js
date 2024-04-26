@@ -1,29 +1,20 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  Button,
-  Container,
-  Row,
-  Col,
-  Form,
-  InputGroup,
-  Modal,
-  ToastContainer,
-  Toast,
-  Spinner,
-} from "react-bootstrap";
+import { Button, Container,Row, Col, Form, InputGroup, Modal, ToastContainer, Toast, Spinner } from "react-bootstrap"; /* prettier-ignore */
 import styles from "./style.module.css";
+
+import SessionUserContext from "../../contexts/SessionUserContext";
+import { login, recovery } from "../../api/auth";
+import { isEmpty } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
-
-import { login, recovery } from "../../api/auth";
-import { isEmpty } from "../../common/validation/utils";
 
 import logo1 from "../../images/logo1.png";
 import { clear } from "@testing-library/user-event/dist/clear";
 
 const Login = () => {
+  const { user, setUser } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
   const [errorMessage, setErrorMessage] = useState(null);
@@ -79,9 +70,9 @@ const Login = () => {
       form,
       (response) => {
         setTimeout(() => {
-          const accessToken = response?.data?.access_token;
-          localStorage.setItem("accessToken", accessToken); //Website does not lose token upon refresh
-          navigate("/dashboard");
+          setUser(response.data.user);
+          if (user?.is_admin || user?.is_staff) navigate("/dashboard");
+          else navigate("/swtd");
           setIsLoading(false);
           clearForm();
         }, 4500);
