@@ -1,9 +1,26 @@
 import axios from "axios";
 
-// hello! do the GET request here to get the logged in user's SWTDs :D
-// insert a record through the Add a Record Page (it works now! <3)
+export const getSWTDs = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/swtds/?author_id=${data.author_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};
 
 // this is mine. add your call before or after mine. DO NOT modify this. ty
+
 export const addSWTD = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(

@@ -1,16 +1,49 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup } from "react-bootstrap"; /* prettier-ignore */
-
+import {
+  Row,
+  Col,
+  Container,
+  InputGroup,
+  Form,
+  ListGroup,
+} from "react-bootstrap";
+import { getSWTDs } from "../../api/swtd";
 import SessionUserContext from "../../contexts/SessionUserContext";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
-
 import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
 const SWTDDashboard = () => {
   const { user, setUser } = useContext(SessionUserContext);
   const navigate = useNavigate();
+  const [userSWTDs, setUserSWTDs] = useState([]);
+  const token = Cookies.get("userToken");
+  const id = Cookies.get("userID");
+
+  const fetchSWTD = async () => {
+    await getSWTDs(
+      {
+        author_id: id,
+        token: token,
+      },
+      (response) => {
+        setTimeout(() => {
+          setUserSWTDs(response.swtds);
+        });
+      },
+      (error) => {
+        if (error.response && error.response.data) {
+          console.log(error.response.data.error);
+        }
+      }
+    );
+  };
+
+  useEffect(() => {
+    fetchSWTD();
+  }, []);
 
   const handleAddRecordClick = () => {
     navigate("/swtd/form");
@@ -19,13 +52,6 @@ const SWTDDashboard = () => {
   const handleEditRecordClick = (id) => {
     navigate(`/swtd/${id}`);
   };
-
-  // this shouldn't exist for the rendering of data, pls remove
-  // when testing
-  const swtdData = [
-    { id: 1, title: "SWTD Title 1", points: 2, status: "Pending" },
-    { id: 2, title: "SWTD Title 2", points: 5, status: "Rejected" },
-  ];
 
   return (
     <div className={styles.background}>
@@ -102,19 +128,21 @@ const SWTDDashboard = () => {
             </ListGroup.Item>
           </ListGroup>
           <ListGroup>
-            {swtdData.map((item) => (
-              <ListGroup.Item
-                key={item.id}
-                className={styles.tableBody}
-                onClick={() => handleEditRecordClick(item.id)}>
-                <Row>
-                  <Col xs={1}>{item.id}</Col>
-                  <Col xs={7}>{item.title}</Col>
-                  <Col xs={2}>{item.points}</Col>
-                  <Col xs={2}>{item.status}</Col>
-                </Row>
-              </ListGroup.Item>
-            ))}
+            {userSWTDs &&
+              userSWTDs.map((item) => (
+                <ListGroup.Item
+                  key={item.id}
+                  className={styles.tableBody}
+                  onClick={() => handleEditRecordClick(item.id)}
+                >
+                  <Row>
+                    <Col xs={1}>{item.id}</Col>
+                    <Col xs={7}>{item.title}</Col>
+                    <Col xs={2}>{item.points}</Col>
+                    <Col xs={2}>Pending</Col>
+                  </Row>
+                </ListGroup.Item>
+              ))}
           </ListGroup>
         </Row>
       </Container>
