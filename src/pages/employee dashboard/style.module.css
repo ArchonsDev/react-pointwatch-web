@@ -68,3 +68,7 @@
 .formBox {
   border: grey 1px solid !important;
 }
+
+.triangle {
+  cursor: pointer;
+}

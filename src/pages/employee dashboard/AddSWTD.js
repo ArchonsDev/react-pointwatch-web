@@ -1,4 +1,5 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
+import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, Card, Form, FloatingLabel } from "react-bootstrap"; /* prettier-ignore */
 
@@ -15,17 +16,19 @@ import styles from "./style.module.css";
 
 const AddSWTD = () => {
   const { user } = useContext(SessionUserContext);
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = Cookies.get("userToken");
   const navigate = useNavigate();
 
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
-
   const [isClicked, setIsClicked] = useState(false);
 
+  const handleBackClick = () => {
+    navigate("/swtd");
+  };
+
   const [form, setForm] = useState({
-    token: accessToken,
     author_id: user?.id,
     title: "",
     venue: "",
@@ -57,10 +60,6 @@ const AddSWTD = () => {
       ...form,
       [e.target.name]: e.target.value,
     });
-  };
-
-  const handleBackClick = () => {
-    navigate("/swtd");
   };
 
   const isDateInvalid = () => {
@@ -99,7 +98,7 @@ const AddSWTD = () => {
     }
 
     await addSWTD(
-      form,
+      { ...form, token: accessToken },
       (response) => {
         setTimeout(() => {
           triggerShowSuccess(4500);
@@ -109,10 +108,13 @@ const AddSWTD = () => {
       },
       (error) => {
         if (error.response && error.response.data) {
-          console.log(form);
           console.log(error.response.data.error);
           setErrorMessage(<>{error.response.data.error}</>);
           triggerShowError(4500);
+          setForm({
+            ...form,
+            date: "",
+          });
         } else {
           setErrorMessage(<>An error occurred.</>);
           triggerShowError(4500);
@@ -120,6 +122,13 @@ const AddSWTD = () => {
       }
     );
   };
+
+  useEffect(() => {
+    setForm((prevForm) => ({
+      ...prevForm,
+      author_id: user?.id,
+    }));
+  }, [user]);
 
   return (
     <div className={styles.background}>
