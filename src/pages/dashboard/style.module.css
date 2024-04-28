@@ -1,0 +1,21 @@
+.background {
+  height: 100vh;
+}
+
+.header {
+  background-color: #d80085 !important;
+  padding: 10px;
+  font-family: "Degradasi";
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+  color: #f5e3e0 !important;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label {
+  font-family: "Degradasi";
+  color: #3a3238;
+}

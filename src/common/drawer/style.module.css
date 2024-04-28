@@ -9,7 +9,7 @@
 .toggle {
   color: #e8b4bc !important;
   background-color: #3a3238 !important;
-  box-shadow: -5px 0 10px rgba(0, 0, 0, 1);
+  box-shadow: -5px 0 10px rgba(0, 0, 0, 1) !important;
   margin-right: 20px !important;
 }
 

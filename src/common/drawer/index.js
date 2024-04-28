@@ -1,4 +1,5 @@
 import React, { useContext } from "react";
+import Cookies from "js-cookie";
 import { Nav, Navbar, Offcanvas, Row, Col } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router";
 
@@ -16,8 +17,8 @@ const Drawer = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    setUser(null);
+    Cookies.remove("userToken");
+    Cookies.remove("userID");
     navigate("/");
   };
 
@@ -59,6 +60,7 @@ const Drawer = () => {
               </Row>
             </Offcanvas.Title>
           </Offcanvas.Header>
+
           {/* Navigate Pages */}
           <Offcanvas.Body className="d-flex flex-column p-0">
             <div className="flex-grow-1">
@@ -73,28 +75,46 @@ const Drawer = () => {
                     className={`fa-solid fa-bell fa-lg ${styles.drawerIcon}`}></i>
                   <span className="px-2">Notifications</span>
                 </Nav.Link>
-                <Nav.Link
-                  className={`mx-3 my-1 p-3 ${
-                    location.pathname === "/dashboard"
-                      ? styles.active
-                      : styles.navItem
-                  }`}
-                  onClick={(e) => navigate("/dashboard")}>
-                  <i
-                    className={`fa-solid fa-house fa-lg ${styles.drawerIcon}`}></i>
-                  <span className="px-2">Dashboard</span>
-                </Nav.Link>
+
+                {(user?.is_admin || user?.is_staff) && (
+                  <Nav.Link
+                    className={`mx-3 my-1 p-3 ${
+                      location.pathname === "/dashboard"
+                        ? styles.active
+                        : styles.navItem
+                    }`}
+                    onClick={(e) => navigate("/dashboard")}>
+                    <i
+                      className={`fa-solid fa-house fa-lg ${styles.drawerIcon}`}></i>
+                    <span className="px-2">Dashboard</span>
+                  </Nav.Link>
+                )}
 
                 <Nav.Link
                   className={`mx-3 my-1 p-3 ${
                     location.pathname === "/swtd"
                       ? styles.active
                       : styles.navItem
-                  }`}>
+                  }`}
+                  onClick={(e) => navigate("/swtd")}>
                   <i
                     className={`fa-solid fa-table-list fa-lg ${styles.drawerIcon}`}></i>
                   <span className="px-2">SWTDs</span>
                 </Nav.Link>
+
+                {user?.is_admin && (
+                  <Nav.Link
+                    className={`mx-3 my-1 p-3 ${
+                      location.pathname === "/admin"
+                        ? styles.active
+                        : styles.navItem
+                    }`}
+                    onClick={(e) => navigate("/admin")}>
+                    <i
+                      className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}></i>
+                    <span className="px-2">Admin</span>
+                  </Nav.Link>
+                )}
 
                 <Nav.Link
                   className={`mx-3 my-1 p-3 ${

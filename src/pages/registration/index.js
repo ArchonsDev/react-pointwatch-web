@@ -1,24 +1,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Container,
-  Card,
-  Row,
-  Col,
-  Form,
-  InputGroup,
-  Toast,
-  ToastContainer,
-} from "react-bootstrap";
+import { Container, Card, Row, Col, Form, InputGroup, Toast,ToastContainer } from "react-bootstrap"; /* prettier-ignore */
 
 import departments from "../../data/departments.json";
 import { register } from "../../api/auth";
-import {
-  isEmpty,
-  isValidLength,
-  isValidEmail,
-  isValidPassword,
-} from "../../common/validation/utils";
+import { isEmpty, isValidLength, isValidEmail, isValidPassword } from "../../common/validation/utils"; /* prettier-ignore */
 
 import styles from "./style.module.css";
 import BtnPrimary from "../../common/buttons/BtnPrimary";

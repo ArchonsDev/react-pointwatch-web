@@ -21,6 +21,12 @@ export const isValidPassword = (password) => {
   );
 };
 
+export const isValidDate = (date) => {
+  const selectedDate = new Date(date);
+  const today = new Date();
+  return today > selectedDate;
+};
+
 const hasSpecialCharacter = (password) => {
   const specialCharacterRegex = /[!@#$%^&*(),.?":{}|<>]/;
   return specialCharacterRegex.test(password);

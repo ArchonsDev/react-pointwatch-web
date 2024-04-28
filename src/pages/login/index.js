@@ -1,30 +1,20 @@
 import React, { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  Button,
-  Container,
-  Row,
-  Col,
-  Form,
-  InputGroup,
-  Modal,
-  ToastContainer,
-  Toast,
-  Spinner,
-} from "react-bootstrap";
+import { Button, Container,Row, Col, Form, InputGroup, Modal, ToastContainer, Toast, Spinner } from "react-bootstrap"; /* prettier-ignore */
 import styles from "./style.module.css";
+
+import SessionUserContext from "../../contexts/SessionUserContext";
+import { login, recovery } from "../../api/auth";
+import { isEmpty } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 
-import { login, recovery } from "../../api/auth";
-import { isEmpty } from "../../common/validation/utils";
-
-import logo from "../../images/logo.png";
 import logo1 from "../../images/logo1.png";
 import { clear } from "@testing-library/user-event/dist/clear";
 
 const Login = () => {
+  const { user, setUser } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
   const [errorMessage, setErrorMessage] = useState(null);
@@ -80,9 +70,9 @@ const Login = () => {
       form,
       (response) => {
         setTimeout(() => {
-          const accessToken = response?.data?.access_token;
-          localStorage.setItem("accessToken", accessToken); //Website does not lose token upon refresh
-          navigate("/dashboard");
+          setUser(response.data.user);
+          if (user?.is_admin || user?.is_staff) navigate("/dashboard");
+          else navigate("/swtd");
           setIsLoading(false);
           clearForm();
         }, 4500);
@@ -240,9 +230,9 @@ const Login = () => {
           <Row>
             <Col>
               <img
-                src={logo}
+                src={logo1}
                 className="logo"
-                height="90px"
+                height="70px"
                 alt="PointWatch logo"
               />
             </Col>
@@ -253,7 +243,7 @@ const Login = () => {
             <span className={styles.line2}>welcome!</span>
           </Row>
 
-          <Row className="mt-3 mb-3">
+          <Row className="mt-4 mb-3">
             <Form>
               <Form.Group className="mb-3" controlId="inputEmail">
                 <InputGroup hasValidation>

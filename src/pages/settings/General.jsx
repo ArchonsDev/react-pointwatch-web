@@ -17,7 +17,7 @@ const General = () => {
   const { user, setUser } = useContext(SessionUserContext);
   const accessToken = localStorage.getItem("accessToken");
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, enableEditing, cancelEditing] = useSwitch();
   const [showModal, openModal, closeModal] = useSwitch();
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -68,7 +68,7 @@ const General = () => {
           lastname: form.lastname,
           department: form.department,
         });
-        setIsEditing(false);
+        cancelEditing();
         triggerShowSuccess(4500);
       },
       (error) => {
@@ -99,7 +99,7 @@ const General = () => {
       lastname: user?.lastname,
       department: user?.department,
     });
-    setIsEditing(false);
+    cancelEditing();
   };
 
   return (
@@ -133,9 +133,7 @@ const General = () => {
               <Form.Label className={styles.formLabel} column sm="3">
                 Employee ID
               </Form.Label>
-              <Col sm="9">
-                <Form.Control value={user?.employee_id} plaintext readOnly />
-              </Col>
+              <Col sm="9">{user?.employee_id}</Col>
             </Form.Group>
           </Row>
 
@@ -144,9 +142,7 @@ const General = () => {
               <Form.Label className={styles.formLabel} column sm="3">
                 Email
               </Form.Label>
-              <Col sm="9">
-                <Form.Control value={user?.email} plaintext readOnly />
-              </Col>
+              <Col sm="9">{user?.email}</Col>
             </Form.Group>
           </Row>
 
@@ -175,9 +171,7 @@ const General = () => {
                   )}
                 </Col>
               ) : (
-                <Col sm="9">
-                  <Form.Control value={user?.firstname} plaintext readOnly />
-                </Col>
+                <Col sm="9">{user?.firstname}</Col>
               )}
             </Form.Group>
           </Row>
@@ -209,9 +203,7 @@ const General = () => {
                   )}
                 </Col>
               ) : (
-                <Col sm="9">
-                  <Form.Control value={user?.lastname} plaintext readOnly />
-                </Col>
+                <Col sm="9">{user?.lastname}</Col>
               )}
             </Form.Group>
           </Row>
@@ -237,9 +229,7 @@ const General = () => {
                   </Form.Select>
                 </Col>
               ) : (
-                <Col sm="9">
-                  <Form.Control value={user?.department} plaintext readOnly />
-                </Col>
+                <Col sm="9">{user?.department}</Col>
               )}
             </Form.Group>
           </Row>
@@ -250,7 +240,7 @@ const General = () => {
         <Col sm="3"></Col>
         <Col className="text-end" sm="9">
           {!isEditing ? (
-            <BtnSecondary onClick={() => setIsEditing(true)}>Edit</BtnSecondary>
+            <BtnSecondary onClick={enableEditing}>Edit</BtnSecondary>
           ) : (
             <>
               <BtnPrimary onClick={openModal}>Save Changes</BtnPrimary>{" "}

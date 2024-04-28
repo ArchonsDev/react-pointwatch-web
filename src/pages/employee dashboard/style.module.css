@@ -1,0 +1,74 @@
+.background {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.header {
+  background-color: #d80085 !important;
+  padding: 10px;
+  font-family: "Degradasi";
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+  color: #f5e3e0 !important;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label {
+  font-family: "Degradasi";
+  color: #3a3238;
+}
+
+.employeeDetails {
+  font-family: "Poppins-Medium";
+}
+
+.searchBar {
+  font-family: "Poppins-Regular";
+  border-radius: 7px;
+  border: none;
+}
+
+.filterText {
+  font-family: "Poppins-Medium";
+}
+
+.tableHeader {
+  background-color: #e8b4bc !important;
+  font-family: "Poppins-Medium";
+  border-radius: 10px 10px 0 0 !important;
+}
+
+.tableBody {
+  font-family: "Poppins-Regular";
+  border-radius: 0 0 0 0 !important;
+  cursor: pointer;
+}
+
+.tableBody:hover {
+  background-color: rgb(232, 232, 232);
+}
+
+.cardHeader {
+  background-color: #e8b4bc !important;
+  font-family: "Poppins-SemiBold";
+  font-size: 1.2rem;
+}
+
+.cardBody {
+  font-family: "Poppins-Regular";
+}
+
+.formLabel {
+  font-family: "Poppins-SemiBold";
+}
+
+.formBox {
+  border: grey 1px solid !important;
+}
+
+.triangle {
+  cursor: pointer;
+}
