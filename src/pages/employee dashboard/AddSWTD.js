@@ -8,7 +8,7 @@ import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
 import { addSWTD } from "../../api/swtd";
 import { useTrigger } from "../../hooks/useTrigger";
-import { isEmpty } from "../../common/validation/utils";
+import { isEmpty, isValidDate } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
@@ -62,12 +62,6 @@ const AddSWTD = () => {
     });
   };
 
-  const isDateInvalid = () => {
-    const selectedDate = new Date(form.date);
-    const today = new Date();
-    if (selectedDate > today) return true;
-  };
-
   const isTimeInvalid = () => {
     const timeStart = form.time_started;
     const timeFinish = form.time_finished;
@@ -85,7 +79,7 @@ const AddSWTD = () => {
       isEmpty(form.category) ||
       isEmpty(form.role) ||
       isEmpty(form.date) ||
-      isDateInvalid() ||
+      isValidDate(form.date) ||
       isEmpty(form.time_started) ||
       isEmpty(form.time_finished)
     ) {
@@ -300,7 +294,8 @@ const AddSWTD = () => {
                         onChange={handleChange}
                         value={form.date}
                         isInvalid={
-                          (isClicked && isEmpty(form.date)) || isDateInvalid()
+                          (isClicked && isEmpty(form.date)) ||
+                          isValidDate(form.date)
                         }
                       />
                       {isClicked && (

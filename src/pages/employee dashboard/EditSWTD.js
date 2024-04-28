@@ -1,49 +1,59 @@
-import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import Cookies from "js-cookie";
+import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, Card, Form, FloatingLabel } from "react-bootstrap"; /* prettier-ignore */
 
-import SessionUserContext from "../../contexts/SessionUserContext";
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
 
-import { isEmpty } from "../../common/validation/utils";
+import { isEmpty, isValidDate } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
+import { useTrigger } from "../../hooks/useTrigger";
+import { getSWTD, editSWTD } from "../../api/swtd";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 
-const EditSWTD = ({ id }) => {
-  const { user } = useContext(SessionUserContext);
+const EditSWTD = () => {
+  const { id } = useParams();
+  const token = Cookies.get("userToken");
+  const [swtd, setSWTD] = useState(null);
+
   const navigate = useNavigate();
   const [isEditing, enableEditing, cancelEditing] = useSwitch();
+  const [showSuccess, triggerShowSuccess] = useTrigger(false);
+  const [showError, triggerShowError] = useTrigger(false);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [isClicked, setIsClicked] = useState(false);
 
-  // const [form, setForm] = useState({
-  //   author_id: user?.id,
-  //   title: "",
-  //   venue: "",
-  //   category: "",
-  //   role: "",
-  //   date: "",
-  //   time_started: "",
-  //   time_finished: "",
-  //   points: 0,
-  //   benefits: "",
-  // });
+  const fetchSWTD = () => {
+    getSWTD(
+      {
+        token: token,
+        form_id: id,
+      },
+      (response) => {
+        setSWTD(response.data);
+        setForm(response.data);
+      },
+      (error) => {
+        console.log("Error fetching SWTD data: ", error);
+      }
+    );
+  };
 
   const [form, setForm] = useState({
-    author_id: user?.id,
-    title: "SWTD",
-    venue: "CIT",
-    category: "Profession/Work-Relevant Seminar",
-    role: "Attendee",
-    date: "Apr 24 2024",
-    time_started: "12:00 AM",
-    time_finished: "5:00 PM",
-    points: 5,
-    benefits: "it was very good i found inner peace",
+    title: swtd?.title,
+    venue: swtd?.venue,
+    category: swtd?.category,
+    role: swtd?.role,
+    date: swtd?.date,
+    time_started: swtd?.time_started,
+    time_finished: swtd?.time_finished,
+    points: swtd?.points,
+    benefits: swtd?.benefits,
   });
 
   const handleChange = (e) => {
@@ -57,7 +67,7 @@ const EditSWTD = ({ id }) => {
     navigate("/swtd");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsClicked(true);
 
@@ -65,11 +75,49 @@ const EditSWTD = ({ id }) => {
       isEmpty(form.title) ||
       isEmpty(form.venue) ||
       isEmpty(form.category) ||
-      isEmpty(form.role)
+      isEmpty(form.role) ||
+      isEmpty(form.date) ||
+      !isValidDate(form.date) ||
+      isEmpty(form.time_started) ||
+      isEmpty(form.time_finished) ||
+      isEmpty(form.benefits)
     ) {
       return;
     }
+
+    if (!isEmpty(form.date)) {
+      const [year, month, day] = form.date.split("-");
+      form.date = `${month}-${day}-${year}`;
+    }
+
+    await editSWTD(
+      {
+        id: id,
+        ...form,
+        token: token,
+      },
+      (response) => {
+        triggerShowSuccess(4500);
+        setIsClicked(false);
+        cancelEditing();
+        setSWTD(form);
+      },
+      (error) => {
+        if (error.response && error.response.data) {
+          setErrorMessage(<>{error.response.data.error}</>);
+          triggerShowError(4500);
+          cancelEditing();
+        } else {
+          setErrorMessage(<>An error occurred.</>);
+          triggerShowError(4500);
+        }
+      }
+    );
   };
+
+  useEffect(() => {
+    fetchSWTD();
+  }, []);
 
   return (
     <div className={styles.background}>
@@ -95,7 +143,11 @@ const EditSWTD = ({ id }) => {
           </Col>
           <Col className="text-end">
             {isEditing ? (
-              <BtnSecondary onClick={cancelEditing}>
+              <BtnSecondary
+                onClick={() => {
+                  cancelEditing();
+                  setForm(swtd ? swtd : "");
+                }}>
                 Cancel Editing
               </BtnSecondary>
             ) : (
@@ -106,6 +158,16 @@ const EditSWTD = ({ id }) => {
         <Card style={{ width: "80rem" }}>
           <Card.Header className={styles.cardHeader}>SWTD Details</Card.Header>
           <Card.Body className={`${styles.cardBody} p-4`}>
+            {showError && (
+              <div className="alert alert-danger mb-3" role="alert">
+                {errorMessage}
+              </div>
+            )}
+            {showSuccess && (
+              <div className="alert alert-success mb-3" role="alert">
+                Details changed!
+              </div>
+            )}
             {/* Title */}
             <Form noValidate>
               <Row>
@@ -131,7 +193,7 @@ const EditSWTD = ({ id }) => {
                     </Col>
                   ) : (
                     <Col className="d-flex align-items-center">
-                      {form.title}
+                      {swtd?.title}
                     </Col>
                   )}
                 </Form.Group>
@@ -161,7 +223,7 @@ const EditSWTD = ({ id }) => {
                     </Col>
                   ) : (
                     <Col className="d-flex align-items-center">
-                      {form.venue}
+                      {swtd?.venue}
                     </Col>
                   )}
                 </Form.Group>
@@ -202,7 +264,7 @@ const EditSWTD = ({ id }) => {
                       </Col>
                     ) : (
                       <Col className="d-flex align-items-center">
-                        {form.category}
+                        {swtd?.category}
                       </Col>
                     )}
                   </Form.Group>
@@ -242,7 +304,7 @@ const EditSWTD = ({ id }) => {
                       </Col>
                     ) : (
                       <Col className="d-flex align-items-center">
-                        {form.role}
+                        {swtd?.role}
                       </Col>
                     )}
                   </Form.Group>
@@ -264,7 +326,10 @@ const EditSWTD = ({ id }) => {
                           name="date"
                           onChange={handleChange}
                           value={form.date}
-                          isInvalid={isClicked && isEmpty(form.date)}
+                          isInvalid={
+                            (isClicked && isEmpty(form.date)) ||
+                            !isValidDate(form.date)
+                          }
                         />
                         {isClicked && (
                           <Form.Control.Feedback type="invalid">
@@ -274,7 +339,7 @@ const EditSWTD = ({ id }) => {
                       </Col>
                     ) : (
                       <Col className="d-flex align-items-center">
-                        {form.date}
+                        {swtd?.date}
                       </Col>
                     )}
                   </Form.Group>
@@ -307,7 +372,7 @@ const EditSWTD = ({ id }) => {
                     </Form.Label>
                     {isEditing ? (
                       <>
-                        <Col className="text-start" sm="3">
+                        <Col className="text-start" sm="4">
                           <FloatingLabel
                             controlId="floatingInputStart"
                             label="Time Start">
@@ -333,7 +398,7 @@ const EditSWTD = ({ id }) => {
                           sm="1">
                           <span>to</span>
                         </Col>
-                        <Col sm="3">
+                        <Col sm="4">
                           <FloatingLabel
                             controlId="floatingInputFinish"
                             label="Time End">
@@ -357,7 +422,7 @@ const EditSWTD = ({ id }) => {
                       </>
                     ) : (
                       <Col className="d-flex align-items-center" sm="10">
-                        {form.time_started} to {form.time_finished}
+                        {swtd?.time_started} to {swtd?.time_finished}
                       </Col>
                     )}
                   </Form.Group>
@@ -367,14 +432,10 @@ const EditSWTD = ({ id }) => {
                     <Form.Label className={styles.formLabel} column sm="2">
                       Points
                     </Form.Label>
-                    <Col className="text-start" sm="2">
-                      <Form.Control
-                        className={styles.formBox}
-                        name="points"
-                        onChange={handleChange}
-                        value={form.points}
-                        readOnly
-                      />
+                    <Col
+                      className="d-flex justify-content-start align-items-center"
+                      sm="2">
+                      {swtd?.points}
                     </Col>
                   </Form.Group>
                 </Col>
@@ -404,7 +465,7 @@ const EditSWTD = ({ id }) => {
                     </Col>
                   ) : (
                     <Col className="d-flex align-items-center">
-                      {form.benefits}
+                      {swtd?.benefits}
                     </Col>
                   )}
                 </Form.Group>

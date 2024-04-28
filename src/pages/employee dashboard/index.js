@@ -1,37 +1,28 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import {
-  Row,
-  Col,
-  Container,
-  InputGroup,
-  Form,
-  ListGroup,
-} from "react-bootstrap";
-import { getSWTDs } from "../../api/swtd";
+import { Row, Col, Container, InputGroup, Form, ListGroup } from "react-bootstrap"; /* prettier-ignore */
+import { getAllSWTDs } from "../../api/swtd";
 import SessionUserContext from "../../contexts/SessionUserContext";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
 const SWTDDashboard = () => {
-  const { user, setUser } = useContext(SessionUserContext);
+  const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
   const [userSWTDs, setUserSWTDs] = useState([]);
   const token = Cookies.get("userToken");
   const id = Cookies.get("userID");
 
-  const fetchSWTD = async () => {
-    await getSWTDs(
+  const fetchAllSWTDs = async () => {
+    await getAllSWTDs(
       {
         author_id: id,
         token: token,
       },
       (response) => {
-        setTimeout(() => {
-          setUserSWTDs(response.swtds);
-        });
+        setUserSWTDs(response.swtds);
       },
       (error) => {
         if (error.response && error.response.data) {
@@ -42,7 +33,7 @@ const SWTDDashboard = () => {
   };
 
   useEffect(() => {
-    fetchSWTD();
+    fetchAllSWTDs();
   }, []);
 
   const handleAddRecordClick = () => {
@@ -133,8 +124,7 @@ const SWTDDashboard = () => {
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
-                  onClick={() => handleEditRecordClick(item.id)}
-                >
+                  onClick={() => handleEditRecordClick(item.id)}>
                   <Row>
                     <Col xs={1}>{item.id}</Col>
                     <Col xs={7}>{item.title}</Col>
