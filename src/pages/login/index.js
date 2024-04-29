@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Button, Container,Row, Col, Form, InputGroup, Modal, ToastContainer, Toast, Spinner } from "react-bootstrap"; /* prettier-ignore */
+import { Button, Container, Row, Col, Form, InputGroup, Modal, ToastContainer, Toast, Spinner } from "react-bootstrap"; /* prettier-ignore */
 import styles from "./style.module.css";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
@@ -20,6 +20,8 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEmailSending, setIsEmailSending] = useState(false);
+
   const toggleShow = () => setShowToast(!showToast);
 
   const [emailSent, setEmailSent] = useState(false);
@@ -33,6 +35,7 @@ const Login = () => {
     setEmailSent(false);
     setEmailError(false);
   };
+
   const handleOpen = () => setShow(true);
 
   const [email, setEmail] = useState("");
@@ -109,24 +112,30 @@ const Login = () => {
 
   const handleSendEmail = async (e) => {
     e.preventDefault();
+    setIsEmailSending(true);
+
     try {
       await recovery(
         { email },
         (response) => {
+          setIsEmailSending(false);
           setEmailSent(true);
           setEmailError(false);
           setEmail("");
         },
         (error) => {
+          setIsEmailSending(false);
+
           setEmailSent(false);
           setEmailError(true);
           setEmail("");
-          console.error("Error sending recovery email:", error);
+          console.error("Error sending recovery email");
         }
       );
     } catch (error) {
+      setIsEmailSending(false);
       setEmail("");
-      console.error("Error sending recovery email:", error);
+      console.error("Error sending recovery email");
     }
   };
 
@@ -173,45 +182,59 @@ const Login = () => {
                 </Modal.Title>
               </Modal.Header>
               <Modal.Body className={styles.modalBody}>
-                {emailSent && !emailError && (
+                {isEmailSending ? (
+                  <Row className="mt-3">
+                    <Col
+                      className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}>
+                      <Spinner className={styles.spinner} animation="border" />
+                      Checking email...
+                    </Col>
+                  </Row>
+                ) : (
                   <>
-                    Email sent successfully! Check your inbox{" "}
-                    {
-                      <Link
-                        to="https://security.microsoft.com/quarantine"
-                        target="_blank"
-                        rel="noopener noreferrer">
-                        here
-                      </Link>
-                    }{" "}
-                    for further instructions.
-                  </>
-                )}
-                {emailError && !emailSent && (
-                  <>Error sending email. Please try again later.</>
-                )}
-                {!emailSent && !emailError && (
-                  <>
-                    Enter the email of your registered account below. An email
-                    will be sent to guide you in resetting your password.
-                    <InputGroup className="mt-3">
-                      <InputGroup.Text>
-                        <i
-                          className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
-                      </InputGroup.Text>
-                      <Form.Control
-                        type="email"
-                        value={email}
-                        name="email"
-                        onChange={handleEmail}
-                        placeholder="Email"
-                      />
-                    </InputGroup>
+                    {emailSent && !emailError && (
+                      <>
+                        Email sent successfully! If you are using Microsoft,
+                        check{" "}
+                        {
+                          /* prettier-ignore */
+                          <Link to="https://security.microsoft.com/quarantine" target="_blank" rel="noopener noreferrer"> 
+                          here
+                        </Link>
+                        }{" "}
+                        for further instructions or in your spam.
+                      </>
+                    )}
+
+                    {emailError && !emailSent && (
+                      <>Error sending email. Please try again later.</>
+                    )}
+
+                    {!emailSent && !emailError && (
+                      <>
+                        Enter the email of your registered account below. An
+                        email will be sent to guide you in resetting your
+                        password.
+                        <InputGroup className="mt-3">
+                          <InputGroup.Text>
+                            <i
+                              className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
+                          </InputGroup.Text>
+                          <Form.Control
+                            type="email"
+                            value={email}
+                            name="email"
+                            onChange={handleEmail}
+                            placeholder="Email"
+                          />
+                        </InputGroup>
+                      </>
+                    )}
                   </>
                 )}
               </Modal.Body>
               <Modal.Footer>
-                {!emailSent && !emailError && (
+                {!emailSent && !emailError && !isEmailSending && (
                   <Container>
                     <Row>
                       <Col className="text-end">
@@ -286,8 +309,10 @@ const Login = () => {
 
               {isLoading ? (
                 <Row className="mt-3">
-                  <Col className={`${styles.spinner} text-center`}>
-                    <Spinner animation="border" /> Signing in...
+                  <Col
+                    className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}>
+                    <Spinner className={styles.spinner} animation="border" />{" "}
+                    Signing in...
                   </Col>
                 </Row>
               ) : (

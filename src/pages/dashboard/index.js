@@ -9,26 +9,13 @@ import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
 const Dashboard = () => {
-  /**
-   * Dashboard
-   *    Drawer tab: Dashboard
-   *    the table with the list of employees and their points and allat
-   *
-   * Employee Dashboard
-   *    Drawer tab: SWTDs
-   *    the table with the owner's list of SWTDs
-   *
-   * Admin Dashboard
-   *    Drawer tab: Admin
-   *    all the stuff admin can do, modifying accs, etc
-   */
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
-  // useEffect(() => {
-  //   if (!user?.is_admin || !user?.is_staff) {
-  //     navigate("/swtd");
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (!user?.is_admin || !user?.is_staff || !user?.is_superuser) {
+      navigate("/swtd");
+    }
+  }, []);
 
   return (
     <div className={styles.background}>

@@ -84,12 +84,13 @@ export const recovery = async (data, onSuccess, onFail, onCleanup) => {
 export const reset = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `http://localhost:5000/auth/resetpassword?token=${data.token}`,
+      "http://localhost:5000/auth/resetpassword",
       {
         password: data.password,
       },
       {
         headers: {
+          Authorization: `Bearer ${data.token}`,
           "Content-Type": "application/json",
         },
       }
