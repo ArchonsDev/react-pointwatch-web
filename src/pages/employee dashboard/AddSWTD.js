@@ -13,6 +13,7 @@ import { isEmpty, isValidDate } from "../../common/validation/utils";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
+import { clear } from "@testing-library/user-event/dist/clear";
 
 const AddSWTD = () => {
   const { user } = useContext(SessionUserContext);
@@ -80,9 +81,12 @@ const AddSWTD = () => {
       isEmpty(form.role) ||
       isEmpty(form.date) ||
       !isValidDate(form.date) ||
+      isTimeInvalid() ||
       isEmpty(form.time_started) ||
       isEmpty(form.time_finished)
     ) {
+      setErrorMessage("An error occurred. Please check the details again.");
+      triggerShowError(4500);
       return;
     }
 

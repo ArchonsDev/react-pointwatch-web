@@ -108,27 +108,27 @@ const App = () => {
           <Route path="/authorized" element={<Authorized />} />
           <Route
             path="/swtd"
-            element={user ? <SWTDDashboard /> : <Navigate to="/login" />}
+            element={token ? <SWTDDashboard /> : <Navigate to="/login" />}
           />
           <Route
             path="/swtd/form"
-            element={user ? <AddSWTD /> : <Navigate to="/login" />}
+            element={token ? <AddSWTD /> : <Navigate to="/login" />}
           />
           <Route
             path="/swtd/:id"
-            element={user ? <EditSWTD /> : <Navigate to="/login" />}
+            element={token ? <EditSWTD /> : <Navigate to="/login" />}
           />
           <Route
             path="/settings"
-            element={user ? <Settings /> : <Navigate to="/login" />}
+            element={token ? <Settings /> : <Navigate to="/login" />}
           />
           <Route
             path="/dashboard"
-            element={user ? <Dashboard /> : <Navigate to="/login" />}
+            element={token ? <Dashboard /> : <Navigate to="/login" />}
           />
           <Route
             path="/admin"
-            element={user ? <AdminDashboard /> : <Navigate to="/login" />}
+            element={token ? <AdminDashboard /> : <Navigate to="/login" />}
           />
         </Routes>
       </SessionUserContext.Provider>

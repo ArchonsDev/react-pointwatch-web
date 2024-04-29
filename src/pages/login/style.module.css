@@ -31,6 +31,13 @@
   font-family: "Poppins-Regular";
 }
 
+.iconBox {
+  background-color: #e8b4bc !important;
+  border: none !important;
+  border-top-right-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+}
+
 .password {
   font-family: "Poppins-Light";
   border: none;
