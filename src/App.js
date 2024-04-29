@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { Modal } from "react-bootstrap";
+import { jwtDecode } from "jwt-decode";
+import { Routes, Route, useLocation, Navigate, useNavigate } from "react-router-dom"; /* prettier-ignore */
 
 import Login from "./pages/login";
 import Register from "./pages/registration";
@@ -21,13 +22,17 @@ import SessionUserContext from "./contexts/SessionUserContext";
 import { getUser } from "./api/user";
 
 import styles from "./styles/App.module.css";
+import BtnSecondary from "./common/buttons/BtnSecondary";
+import BtnPrimary from "./common/buttons/BtnPrimary";
 
 const App = () => {
   const location = useLocation();
-  const [user, setUser] = useState(null);
-
+  const navigate = useNavigate();
   const token = Cookies.get("userToken");
+  console.log(token);
   const cookieID = Cookies.get("userID");
+  const [user, setUser] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   let id = null;
   if (cookieID !== undefined) {
@@ -72,6 +77,11 @@ const App = () => {
       ? "Training Information"
       : tabNames[location.pathname] || "WildPark";
 
+  const handleModalClose = () => {
+    setShowModal(false);
+    navigate("/login");
+  };
+
   useEffect(() => {
     const isTokenExpired = (token) => {
       const decodedToken = jwtDecode(token);
@@ -83,6 +93,8 @@ const App = () => {
       Cookies.remove("userToken");
       Cookies.remove("userID");
       setUser(null);
+      navigate("/");
+      setShowModal(true);
     }
 
     if (data.token !== null && data.id !== null) {
@@ -132,6 +144,21 @@ const App = () => {
           />
         </Routes>
       </SessionUserContext.Provider>
+
+      {/* <Modal show={showModal} onHide={handleModalClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Session Expired</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Your session has expired. Please login again.</Modal.Body>
+        <Modal.Footer>
+          <BtnSecondary variant="secondary" onClick={handleModalClose}>
+            Close
+          </BtnSecondary>
+          <BtnPrimary variant="primary" onClick={handleModalClose}>
+            Login
+          </BtnPrimary>
+        </Modal.Footer>
+      </Modal> */}
     </div>
   );
 };
