@@ -1,27 +1,27 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  Container,
-  Card,
-  Row,
-  Col,
-  Form,
-  InputGroup,
-  Toast,
-  ToastContainer,
-} from "react-bootstrap";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Container, Card, Row, Col, Form, InputGroup, Toast, ToastContainer, Spinner } from "react-bootstrap"; /* prettier-ignore */
 
-import { isValidPassword } from "../../common/validation/utils";
+import { isEmpty, isValidPassword } from "../../common/validation/utils";
+import { useSwitch } from "../../hooks/useSwitch";
 import { reset } from "../../api/auth";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
+import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
-const ResetPassword = ({ token }) => {
+const ResetPassword = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const queryParams = new URLSearchParams(location.search);
+  const token = queryParams.get("token");
   const [errorMessage, setErrorMessage] = useState(null);
   const [showToast, setShowToast] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isResetComplete, setIsResetComplete] = useState(false);
+  const [showModal, openModal, closeModal] = useSwitch();
 
   const toggleShow = () => setShowToast(!showToast);
 
@@ -31,6 +31,13 @@ const ResetPassword = ({ token }) => {
     confirmPassword: "",
   });
 
+  const resetForm = () => {
+    setForm({
+      password: "",
+      confirmPassword: "",
+    });
+  };
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -38,56 +45,33 @@ const ResetPassword = ({ token }) => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const isPasswordValid = () => {
+    if (isEmpty(form.password)) return false;
+    return !isValidPassword(form.password);
+  };
 
+  const passwordsMatch = () => {
+    return form.password === form.confirmPassword;
+  };
+
+  const handleSubmit = async () => {
     setErrorMessage(null);
-
-    let hasError = false;
-    let errorMessages = [];
-
-    if (!isValidPassword(form.password)) {
-      errorMessages.push(
-        <>
-          <b>Password</b> must contain <b>at least one special character</b>.
-          <br />
-          <b>Password</b> be <b>at least 8 characters long</b>.<br />
-          <b>Password</b> must contain <b>at least one number</b>.<br />
-        </>
-      );
-      hasError = true;
-    }
-
-    if (form.password !== form.confirmPassword) {
-      errorMessages.push(
-        <>
-          <b>Passwords</b> do not match.
-          <br />
-        </>
-      );
-      hasError = true;
-    }
-
-    if (hasError) {
-      setErrorMessage(errorMessages);
-      setShowToast(true);
-      return;
-    }
-
+    setIsLoading(true);
     await reset(
       form,
       (response) => {
         setTimeout(() => {
           setIsResetComplete(true);
+          setIsLoading(false);
+          resetForm();
         });
       },
       (error) => {
-        if (error.response && error.response.status === 400) {
-          setErrorMessage(<>{error.response.data.error}</>);
+        if (error.response) {
+          setErrorMessage(error.response.data.error);
+          setIsLoading(false);
           setShowToast(true);
-        } else if (error.response && error.response.status === 422) {
-          setErrorMessage(<b>Token is null.</b>);
-          setShowToast(true);
+          resetForm();
         }
       }
     );
@@ -104,6 +88,7 @@ const ResetPassword = ({ token }) => {
           Reset Password
         </h3>
       </header>
+
       {/* Error Toast */}
       <ToastContainer className="p-3" position="top-end">
         <Toast
@@ -132,64 +117,98 @@ const ResetPassword = ({ token }) => {
         <Card className="p-4" style={{ width: "45rem" }}>
           {!isResetComplete ? (
             <Card.Body>
-              <Row className="mb-4">
-                <Col className="text-center align-items-center justify-content-center">
-                  <img
-                    src={logo}
-                    className="logo"
-                    height="80px"
-                    alt="PointWatch logo"
-                  />
-                  <span className={styles.brand}>PointWatch</span>
-                </Col>
-              </Row>
-              <Form className={styles.form}>
+              {isLoading ? (
                 <Row>
-                  <Col>
-                    <Form.Group className="mb-3" controlId="inputPassword">
-                      <InputGroup>
-                        <InputGroup.Text className={styles.iconBox}>
-                          <i
-                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="password"
-                          value={form.password}
-                          name="password"
-                          onChange={handleChange}
-                          placeholder="Password"
-                        />
-                      </InputGroup>
-                    </Form.Group>
+                  <Col
+                    className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}>
+                    <Spinner className={styles.spinner} animation="border" />
+                    Resetting password...
                   </Col>
                 </Row>
-                <Row>
-                  <Col>
-                    <Form.Group
-                      className="mb-3"
-                      controlId="inputConfirmPassword">
-                      <InputGroup>
-                        <InputGroup.Text className={styles.iconBox}>
-                          <i
-                            className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="password"
-                          placeholder="Confirm Password"
-                          name="confirmPassword"
-                          onChange={handleChange}
-                        />
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-                </Row>
+              ) : (
+                <>
+                  <Row className="mb-4">
+                    <Col className="text-center align-items-center justify-content-center">
+                      <img
+                        src={logo}
+                        className="logo"
+                        height="80px"
+                        alt="PointWatch logo"
+                      />
+                      <span className={styles.brand}>PointWatch</span>
+                    </Col>
+                  </Row>
+                  <Form className={styles.form} noValidate>
+                    <Row>
+                      <Col>
+                        <Form.Group className="mb-3" controlId="inputPassword">
+                          <InputGroup>
+                            <InputGroup.Text className={styles.iconBox}>
+                              <i
+                                className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
+                            </InputGroup.Text>
+                            <Form.Control
+                              type="password"
+                              value={form.password}
+                              name="password"
+                              onChange={handleChange}
+                              placeholder="Password"
+                              isInvalid={isPasswordValid()}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                              {isEmpty(form.password) ? (
+                                <>Password is required.</>
+                              ) : (
+                                <>
+                                  Must have at least 8 characters, one special
+                                  character, and one number.
+                                </>
+                              )}
+                            </Form.Control.Feedback>
+                          </InputGroup>
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col>
+                        <Form.Group
+                          className="mb-3"
+                          controlId="inputConfirmPassword">
+                          <InputGroup>
+                            <InputGroup.Text className={styles.iconBox}>
+                              <i
+                                className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
+                            </InputGroup.Text>
+                            <Form.Control
+                              type="password"
+                              placeholder="Confirm Password"
+                              name="confirmPassword"
+                              onChange={handleChange}
+                              isInvalid={!passwordsMatch()}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                              Passwords do not match.
+                            </Form.Control.Feedback>
+                          </InputGroup>
+                        </Form.Group>
+                      </Col>
+                    </Row>
 
-                <Row>
-                  <Col className="text-center">
-                    <BtnPrimary onClick={handleSubmit}>Submit</BtnPrimary>
-                  </Col>
-                </Row>
-              </Form>
+                    <Row>
+                      <Col className="text-center">
+                        <BtnPrimary onClick={openModal}>Submit</BtnPrimary>
+                        <ConfirmationModal
+                          show={showModal}
+                          onHide={closeModal}
+                          onConfirm={handleSubmit}
+                          header={"Reset Password"}
+                          message={"Do you wish to save these changes?"}
+                        />
+                      </Col>
+                    </Row>
+                  </Form>
+                </>
+              )}
             </Card.Body>
           ) : (
             <Card.Body>
@@ -202,7 +221,7 @@ const ResetPassword = ({ token }) => {
               </Row>
               <Row>
                 <Col className="text-center">
-                  <BtnPrimary onClick={(e) => window.close()}>
+                  <BtnPrimary onClick={() => navigate("/login")}>
                     Proceed to Login
                   </BtnPrimary>
                 </Col>

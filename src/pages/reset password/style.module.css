@@ -50,3 +50,10 @@
   font-family: "Poppins-Regular" !important;
   color: #b22222 !important;
 }
+
+.spinner {
+  color: #d80085;
+  font-family: "Poppins-Medium";
+  vertical-align: middle;
+  margin-right: 10px;
+}

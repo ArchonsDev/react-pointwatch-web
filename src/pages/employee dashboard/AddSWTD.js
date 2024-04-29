@@ -79,7 +79,7 @@ const AddSWTD = () => {
       isEmpty(form.category) ||
       isEmpty(form.role) ||
       isEmpty(form.date) ||
-      isValidDate(form.date) ||
+      !isValidDate(form.date) ||
       isEmpty(form.time_started) ||
       isEmpty(form.time_finished)
     ) {
@@ -294,8 +294,8 @@ const AddSWTD = () => {
                         onChange={handleChange}
                         value={form.date}
                         isInvalid={
-                          (isClicked && isEmpty(form.date)) ||
-                          isValidDate(form.date)
+                          isClicked &&
+                          (isEmpty(form.date) || !isValidDate(form.date))
                         }
                       />
                       {isClicked && (

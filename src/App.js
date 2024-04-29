@@ -104,14 +104,32 @@ const App = () => {
           />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/reset" element={<ResetPassword token={token} />} />
+          <Route path="/reset" element={<ResetPassword />} />
           <Route path="/authorized" element={<Authorized />} />
-          <Route path="/swtd" element={<SWTDDashboard />} />
-          <Route path="/swtd/form" element={<AddSWTD />} />
-          <Route path="/swtd/:id" element={<EditSWTD />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route
+            path="/swtd"
+            element={user ? <SWTDDashboard /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/swtd/form"
+            element={user ? <AddSWTD /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/swtd/:id"
+            element={user ? <EditSWTD /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/settings"
+            element={user ? <Settings /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/dashboard"
+            element={user ? <Dashboard /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/admin"
+            element={user ? <AdminDashboard /> : <Navigate to="/login" />}
+          />
         </Routes>
       </SessionUserContext.Provider>
     </div>

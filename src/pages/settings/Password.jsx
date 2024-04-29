@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import Cookies from "js-cookie";
 import { Row, Col, Form, Container } from "react-bootstrap";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
@@ -13,7 +14,7 @@ import styles from "./style.module.css";
 
 const Password = () => {
   const { user, setUser } = useContext(SessionUserContext);
-  const accessToken = localStorage.getItem("accessToken");
+  const token = Cookies.get("userToken");
 
   const [showModal, openModal, closeModal] = useSwitch();
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
@@ -53,7 +54,7 @@ const Password = () => {
     await updatePassword(
       {
         id: user.id,
-        token: accessToken,
+        token: token,
         ...form,
       },
       (response) => {

@@ -11,11 +11,11 @@ import styles from "./style.module.css";
 const AdminDashboard = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
-  // useEffect(() => {
-  //   if (!user?.is_admin || !user?.is_staff) {
-  //     navigate("/swtd");
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (!user?.is_admin || !user?.is_superuser) {
+      navigate("/swtd");
+    }
+  }, []);
 
   return (
     <div className={styles.background}>

@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import Cookies from "js-cookie";
 import { Form, Row, Col } from "react-bootstrap";
 
 import departments from "../../data/departments.json";
@@ -15,7 +16,7 @@ import styles from "./style.module.css";
 
 const General = () => {
   const { user, setUser } = useContext(SessionUserContext);
-  const accessToken = localStorage.getItem("accessToken");
+  const token = Cookies.get("userToken");
 
   const [isEditing, enableEditing, cancelEditing] = useSwitch();
   const [showModal, openModal, closeModal] = useSwitch();
@@ -58,7 +59,7 @@ const General = () => {
     await updateUser(
       {
         id: user.id,
-        token: accessToken,
+        token: token,
         ...form,
       },
       (response) => {
