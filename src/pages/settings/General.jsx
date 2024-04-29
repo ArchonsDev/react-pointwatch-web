@@ -21,10 +21,9 @@ const General = () => {
   const [isEditing, enableEditing, cancelEditing] = useSwitch();
   const [showModal, openModal, closeModal] = useSwitch();
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
+  const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [isClicked, setIsClicked] = useState(false);
-
-  const showErrorMessage = errorMessage !== null;
 
   const [form, setForm] = useState({
     firstname: user?.firstname,
@@ -55,6 +54,16 @@ const General = () => {
 
   const handleSubmit = async () => {
     setIsClicked(true);
+    if (isEmpty(form.firstname) || isEmpty(form.lastname)) {
+      setErrorMessage("Fields cannot be empty.");
+      setForm({
+        firstname: user?.firstname,
+        lastname: user?.lastname,
+        department: user?.department,
+      });
+      triggerShowError(4500);
+      return;
+    }
 
     await updateUser(
       {
@@ -105,7 +114,7 @@ const General = () => {
 
   return (
     <Form className={styles.form} noValidate>
-      {showErrorMessage && (
+      {showError && (
         <div className="alert alert-danger mb-3" role="alert">
           {errorMessage}
         </div>

@@ -67,6 +67,12 @@ const EditSWTD = () => {
     navigate("/swtd");
   };
 
+  const isTimeInvalid = () => {
+    const timeStart = form.time_started;
+    const timeFinish = form.time_finished;
+    if (timeStart > timeFinish) return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsClicked(true);
@@ -78,10 +84,24 @@ const EditSWTD = () => {
       isEmpty(form.role) ||
       isEmpty(form.date) ||
       !isValidDate(form.date) ||
+      isTimeInvalid() ||
       isEmpty(form.time_started) ||
       isEmpty(form.time_finished) ||
       isEmpty(form.benefits)
     ) {
+      setErrorMessage("An error occurred. Please check the details again.");
+      setForm({
+        title: swtd?.title,
+        venue: swtd?.venue,
+        category: swtd?.category,
+        role: swtd?.role,
+        date: swtd?.date,
+        time_started: swtd?.time_started,
+        time_finished: swtd?.time_finished,
+        points: swtd?.points,
+        benefits: swtd?.benefits,
+      });
+      triggerShowError(4500);
       return;
     }
 
@@ -383,15 +403,20 @@ const EditSWTD = () => {
                               onChange={handleChange}
                               value={form.time_started}
                               isInvalid={
-                                isClicked && isEmpty(form.time_started)
+                                (isClicked && isEmpty(form.time_started)) ||
+                                isTimeInvalid()
                               }
                             />
+                            {isClicked && (
+                              <Form.Control.Feedback type="invalid">
+                                {isEmpty(form.time_started) ? (
+                                  <>Time is required.</>
+                                ) : (
+                                  <>Time must be valid.</>
+                                )}
+                              </Form.Control.Feedback>
+                            )}
                           </FloatingLabel>
-                          {isClicked && (
-                            <Form.Control.Feedback type="invalid">
-                              Time of SWTD is required.
-                            </Form.Control.Feedback>
-                          )}
                         </Col>
                         <Col
                           className="d-flex align-items-center justify-content-center text-center"

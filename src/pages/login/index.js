@@ -270,7 +270,7 @@ const Login = () => {
             <Form>
               <Form.Group className="mb-3" controlId="inputEmail">
                 <InputGroup hasValidation>
-                  <InputGroup.Text className={styles.formBox}>
+                  <InputGroup.Text className={styles.iconBox}>
                     <i
                       className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
                   </InputGroup.Text>
@@ -290,7 +290,7 @@ const Login = () => {
 
               <Form.Group className="mb-3" controlId="inputPassword">
                 <InputGroup hasValidation>
-                  <InputGroup.Text className={styles.formBox}>
+                  <InputGroup.Text className={styles.iconBox}>
                     <i className={`${styles.icon} fa-solid fa-lock fa-lg`}></i>
                   </InputGroup.Text>
                   <Form.Control
