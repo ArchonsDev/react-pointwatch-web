@@ -63,6 +63,18 @@ const General = () => {
       });
       triggerShowError(4500);
       return;
+    } else if (
+      !isValidLength(form.firstname, 1) ||
+      !isValidLength(form.lastname, 1)
+    ) {
+      setErrorMessage("Fields must be valid.");
+      setForm({
+        firstname: user?.firstname,
+        lastname: user?.lastname,
+        department: user?.department,
+      });
+      triggerShowError(4500);
+      return;
     }
 
     await updateUser(
