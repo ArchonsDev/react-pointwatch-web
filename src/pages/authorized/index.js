@@ -1,21 +1,38 @@
-import React, { useContext, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useContext, useEffect } from "react";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
+import { useLocation, useNavigate } from "react-router-dom";
 
-import SessionUserContext from '../../contexts/SessionUserContext';
+import SessionUserContext from "../../contexts/SessionUserContext";
+import { getUser } from "../../api/user";
 
-// @Dawn -> This is just a temporary page to accept the user token.
 const Authorized = () => {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const token = new URLSearchParams(location.search).get('token');
-    const { setUser } = useContext(SessionUserContext);
-  
-    useEffect(() => {
-      setUser(token); // Receives the token and saves it to state.
-      navigate('/'); // IMPORTANT! Redirect the user to whatever page it is after the token is received.
-    }, [token]);
-  
-    return null; // This component does not need to return a UI
+  const location = useLocation();
+  const navigate = useNavigate();
+  const token = new URLSearchParams(location.search).get("token");
+  const idToken = new URLSearchParams(location.search).get("user");
+  const { setUser } = useContext(SessionUserContext);
+  const userID = jwtDecode(idToken);
+
+  useEffect(() => {
+    if (userID && token) {
+      Cookies.set("userToken", token);
+      Cookies.set("userID", userID.sub);
+
+      getUser(
+        {
+          token: token,
+          id: userID.sub,
+        },
+        (response) => {
+          setUser(response?.data);
+          navigate("/");
+        }
+      );
+    }
+  }, [token, userID, navigate, setUser]);
+
+  return null;
 };
 
 export default Authorized;
