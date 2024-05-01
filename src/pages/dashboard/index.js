@@ -5,7 +5,6 @@ import { Row, Col, Container } from "react-bootstrap";
 import SessionUserContext from "../../contexts/SessionUserContext";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 
-import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
 const Dashboard = () => {
