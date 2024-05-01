@@ -22,13 +22,15 @@ const Password = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const [form, setForm] = useState({
-    password: "",
+    currentPassword: "",
+    newPassword: "",
     confirmPassword: "",
   });
 
   const resetForm = () => {
     setForm({
-      password: "",
+      currentPassword:"",
+      newPassword: "",
       confirmPassword: "",
     });
   };
@@ -40,17 +42,29 @@ const Password = () => {
     });
   };
 
+  const isCurrentPasswordCorrect = () => {
+    return form.currentPassword === user.password;
+  }
+
   const isPasswordValid = () => {
-    if (isEmpty(form.password)) return false;
-    return !isValidPassword(form.password);
+    if (isEmpty(form.newPassword)) return false;
+    return !isValidPassword(form.newPassword);
   };
 
   const passwordsMatch = () => {
-    return form.password === form.confirmPassword;
+    return form.newPassword === form.confirmPassword;
   };
 
   const handleSubmit = async () => {
     setErrorMessage(null);
+  
+    if (!isCurrentPasswordCorrect()) {
+      setErrorMessage("An error occurred. Please check details again.");
+      triggerShowError(4500);
+      return; 
+    }
+
+  
     await updatePassword(
       {
         id: user.id,
@@ -60,7 +74,7 @@ const Password = () => {
       (response) => {
         setUser({
           ...user,
-          password: form.password,
+          newPassword: form.newPassword,
         });
         triggerShowSuccess(4500);
       },
@@ -90,22 +104,39 @@ const Password = () => {
         </div>
       )}
       <Form className={styles.form} noValidate>
-        <Row>
-          <Form.Group as={Row} className="mb-3" controlId="inputPassword">
+      <Row>
+          <Form.Group as={Row} className="mb-3" controlId="inputCurrentPassword">
             <Form.Label className={styles.formLabel} column sm="2">
-              Password
+              Current Password
             </Form.Label>
             <Col sm="10">
               <Form.Control
                 type="password"
-                name="password"
+                name="currentPassword"
                 className={styles.formBox}
-                value={form.password}
+                value={form.currentPassword}
+                onChange={handleChange}
+              />
+            </Col>
+          </Form.Group>
+        </Row>
+
+        <Row>
+          <Form.Group as={Row} className="mb-3" controlId="inputNewPassword">
+            <Form.Label className={styles.formLabel} column sm="2">
+              New Password
+            </Form.Label>
+            <Col sm="10">
+              <Form.Control
+                type="password"
+                name="newPassword"
+                className={styles.formBox}
+                value={form.newPassword}
                 onChange={handleChange}
                 isInvalid={isPasswordValid()}
               />
               <Form.Control.Feedback type="invalid">
-                {isEmpty(form.password) ? (
+                {isEmpty(form.newPassword) ? (
                   <>Password is required.</>
                 ) : (
                   <>
@@ -148,9 +179,9 @@ const Password = () => {
             <BtnPrimary
               onClick={openModal}
               disabled={
-                !isValidPassword(form.password) ||
+                !isValidPassword(form.newPassword) ||
                 !passwordsMatch() ||
-                isEmpty(form.password) ||
+                isEmpty(form.newPassword) ||
                 isEmpty(form.confirmPassword)
               }>
               Save Changes
