@@ -3,7 +3,7 @@
   overflow-y: auto;
 }
 
-.header {
+/* .header {
   background-color: #d80085 !important;
   padding: 10px;
   font-family: "Degradasi";
@@ -14,7 +14,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
+} */
 
 .label {
   font-family: "Degradasi";

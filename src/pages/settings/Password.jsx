@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { Row, Col, Form, Container } from "react-bootstrap";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
+import { login } from "../../api/auth";
 import { updatePassword } from "../../api/user";
 import { useTrigger } from "../../hooks/useTrigger";
 import { useSwitch } from "../../hooks/useSwitch";
@@ -29,7 +30,7 @@ const Password = () => {
 
   const resetForm = () => {
     setForm({
-      currentPassword:"",
+      currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     });
@@ -42,10 +43,6 @@ const Password = () => {
     });
   };
 
-  const isCurrentPasswordCorrect = () => {
-    return form.currentPassword === user.password;
-  }
-
   const isPasswordValid = () => {
     if (isEmpty(form.newPassword)) return false;
     return !isValidPassword(form.newPassword);
@@ -55,16 +52,8 @@ const Password = () => {
     return form.newPassword === form.confirmPassword;
   };
 
-  const handleSubmit = async () => {
+  const update = async () => {
     setErrorMessage(null);
-  
-    if (!isCurrentPasswordCorrect()) {
-      setErrorMessage("An error occurred. Please check details again.");
-      triggerShowError(4500);
-      return; 
-    }
-
-  
     await updatePassword(
       {
         id: user.id,
@@ -91,6 +80,24 @@ const Password = () => {
     resetForm();
   };
 
+  const handleSubmit = async () => {
+    setErrorMessage(null);
+
+    await login(
+      {
+        email: user?.email,
+        password: form.currentPassword,
+      },
+      (response) => {
+        update();
+      },
+      (error) => {
+        setErrorMessage("An error occurred. Please check details again.");
+        triggerShowError(4500);
+      }
+    );
+  };
+
   return (
     <Container>
       {showError && (
@@ -104,8 +111,11 @@ const Password = () => {
         </div>
       )}
       <Form className={styles.form} noValidate>
-      <Row>
-          <Form.Group as={Row} className="mb-3" controlId="inputCurrentPassword">
+        <Row>
+          <Form.Group
+            as={Row}
+            className="mb-3"
+            controlId="inputCurrentPassword">
             <Form.Label className={styles.formLabel} column sm="2">
               Current Password
             </Form.Label>

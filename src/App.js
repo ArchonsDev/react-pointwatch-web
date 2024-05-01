@@ -29,8 +29,8 @@ const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
-  console.log(token);
   const cookieID = Cookies.get("userID");
+
   const [user, setUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -108,6 +108,20 @@ const App = () => {
         location.pathname === "/login" ? styles.bg : styles["no-bg"]
       }`}>
       <SessionUserContext.Provider value={{ user, setUser }}>
+        <Modal show={showModal} onHide={handleModalClose}>
+          <Modal.Header closeButton>
+            <Modal.Title>Session Expired</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Your session has expired. Please login again.</Modal.Body>
+          <Modal.Footer>
+            <BtnSecondary variant="secondary" onClick={handleModalClose}>
+              Close
+            </BtnSecondary>
+            <BtnPrimary variant="primary" onClick={handleModalClose}>
+              Login
+            </BtnPrimary>
+          </Modal.Footer>
+        </Modal>
         {showDrawer && <Drawer />}
         <Routes>
           <Route
@@ -144,21 +158,6 @@ const App = () => {
           />
         </Routes>
       </SessionUserContext.Provider>
-
-      {/* <Modal show={showModal} onHide={handleModalClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Session Expired</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Your session has expired. Please login again.</Modal.Body>
-        <Modal.Footer>
-          <BtnSecondary variant="secondary" onClick={handleModalClose}>
-            Close
-          </BtnSecondary>
-          <BtnPrimary variant="primary" onClick={handleModalClose}>
-            Login
-          </BtnPrimary>
-        </Modal.Footer>
-      </Modal> */}
     </div>
   );
 };

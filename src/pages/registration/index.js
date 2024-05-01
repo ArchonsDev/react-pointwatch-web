@@ -360,13 +360,16 @@ const Registration = () => {
                             !passwordsMatch()
                           }
                         />
-                        {isClicked && (
+
+                        {isClicked && isEmpty(form.confirmPassword) && (
                           <Form.Control.Feedback type="invalid">
-                            {isEmpty(form.confirmPassword) ? (
-                              <>Confirm password is required.</>
-                            ) : (
-                              <>Passwords do not match.</>
-                            )}
+                            Confirm password is required.
+                          </Form.Control.Feedback>
+                        )}
+
+                        {!isEmpty(form.password) && (
+                          <Form.Control.Feedback type="invalid">
+                            Passwords do not match.
                           </Form.Control.Feedback>
                         )}
                       </InputGroup>

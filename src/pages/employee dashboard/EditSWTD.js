@@ -141,16 +141,6 @@ const EditSWTD = () => {
 
   return (
     <div className={styles.background}>
-      <header className={styles.header}>
-        <Row>
-          <Col className="text-end">
-            <h3>
-              <img src={logo} height="50px" alt="PointWatch logo" /> PointWatch
-            </h3>
-          </Col>
-        </Row>
-      </header>
-
       <Container className="d-flex flex-column justify-content-start align-items-start">
         <Row className="w-100 mb-3">
           <Col>
@@ -342,6 +332,7 @@ const EditSWTD = () => {
                       <Col sm="10">
                         <Form.Control
                           type="date"
+                          max={new Date().toISOString().slice(0, 10)}
                           className={styles.formBox}
                           name="date"
                           onChange={handleChange}
