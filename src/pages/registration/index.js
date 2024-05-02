@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Container, Card, Row, Col, Form, InputGroup, Toast,ToastContainer } from "react-bootstrap"; /* prettier-ignore */
+import { Container, Card, Row, Col, Form, InputGroup, Toast,ToastContainer} from "react-bootstrap"; /* prettier-ignore */
 
 import departments from "../../data/departments.json";
 import { register } from "../../api/auth";
@@ -35,53 +35,38 @@ const Registration = () => {
     });
   };
 
-  const isEmailValid = () => {
-    if (!isClicked) return false;
-    return isEmpty(form.email) || !isValidEmail(form.email);
-  };
-
-  const isEmployeeIDValid = () => {
-    if (!isClicked) return false;
-    return isEmpty(form.employee_id) || !isValidLength(form.employee_id, 1);
-  };
-
-  const isFirstnameValid = () => {
-    if (!isClicked) return false;
-    return isEmpty(form.firstname) || !isValidLength(form.firstname, 1);
-  };
-
-  const isLastnameValid = () => {
-    if (!isClicked) return false;
-    return isEmpty(form.lastname) || !isValidLength(form.lastname, 1);
-  };
-
-  const isDepartmentsValid = () => {
-    if (!isClicked) return false;
-    return form.department === "";
-  };
-
-  const isPasswordValid = () => {
-    if (!isClicked) return false;
-    return isEmpty(form.password) || !isValidPassword(form.password);
-  };
-
   const passwordsMatch = () => {
     return form.password === form.confirmPassword;
+  };
+
+  const invalidFields = () => {
+    const requiredFields = [
+      "email",
+      "employee_id",
+      "firstname",
+      "lastname",
+      "department",
+      "password",
+      "confirmPassword",
+    ];
+    return (
+      requiredFields.some((field) => isEmpty(form[field])) ||
+      !isValidEmail(form.email) ||
+      !isValidLength(form.employee_id, 1) ||
+      !isValidLength(form.firstname, 1) ||
+      !isValidLength(form.lastname, 1) ||
+      !isValidPassword(form.password) ||
+      !passwordsMatch() ||
+      form.department === ""
+    );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsClicked(true);
 
-    if (
-      isEmailValid() ||
-      isEmployeeIDValid() ||
-      isFirstnameValid() ||
-      isLastnameValid() ||
-      isDepartmentsValid() ||
-      isPasswordValid() ||
-      !passwordsMatch()
-    ) {
+    if (invalidFields()) {
+      setErrorMessage("Please check the details again.");
       setIsClicked(false);
       return;
     }
@@ -172,15 +157,13 @@ const Registration = () => {
                           name="email"
                           onChange={handleChange}
                           placeholder="E-mail"
-                          isInvalid={isEmailValid()}
+                          isInvalid={
+                            !isEmpty(form.email) && !isValidEmail(form.email)
+                          }
                         />
-                        {isClicked && (
+                        {!isEmpty(form.email) && !isValidEmail(form.email) && (
                           <Form.Control.Feedback type="invalid">
-                            {isEmpty(form.email) ? (
-                              <>E-mail is required.</>
-                            ) : (
-                              <>E-mail must be valid.</>
-                            )}
+                            <>E-mail must be valid.</>
                           </Form.Control.Feedback>
                         )}
                       </InputGroup>
@@ -199,17 +182,17 @@ const Registration = () => {
                           name="employee_id"
                           onChange={handleChange}
                           placeholder="Employee ID"
-                          isInvalid={isEmployeeIDValid()}
+                          isInvalid={
+                            !isEmpty(form.employee_id) &&
+                            !isValidLength(form.employee_id, 1)
+                          }
                         />
-                        {isClicked && (
-                          <Form.Control.Feedback type="invalid">
-                            {isEmpty(form.employee_id) ? (
-                              <>Employee ID is required.</>
-                            ) : (
+                        {!isEmpty(form.employee_id) &&
+                          !isValidLength(form.employee_id, 1) && (
+                            <Form.Control.Feedback type="invalid">
                               <>Employee ID must be valid.</>
-                            )}
-                          </Form.Control.Feedback>
-                        )}
+                            </Form.Control.Feedback>
+                          )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -230,17 +213,17 @@ const Registration = () => {
                           name="firstname"
                           onChange={handleChange}
                           placeholder="First name"
-                          isInvalid={isFirstnameValid()}
+                          isInvalid={
+                            !isEmpty(form.firstname) &&
+                            !isValidLength(form.firstname, 1)
+                          }
                         />
-                        {isClicked && (
-                          <Form.Control.Feedback type="invalid">
-                            {isEmpty(form.firstname) ? (
-                              <>First name is required.</>
-                            ) : (
+                        {!isEmpty(form.firstname) &&
+                          !isValidLength(form.firstname, 1) && (
+                            <Form.Control.Feedback type="invalid">
                               <>First name is too short.</>
-                            )}
-                          </Form.Control.Feedback>
-                        )}
+                            </Form.Control.Feedback>
+                          )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -257,17 +240,17 @@ const Registration = () => {
                           name="lastname"
                           onChange={handleChange}
                           placeholder="Last name"
-                          isInvalid={isLastnameValid()}
+                          isInvalid={
+                            !isEmpty(form.lastname) &&
+                            !isValidLength(form.lastname, 1)
+                          }
                         />
-                        {isClicked && (
-                          <Form.Control.Feedback type="invalid">
-                            {isEmpty(form.lastname) ? (
-                              <>Last name is required.</>
-                            ) : (
-                              <>Last name is too short.</>
-                            )}
-                          </Form.Control.Feedback>
-                        )}
+                        {!isEmpty(form.lastname) &&
+                          !isValidLength(form.lastname, 1) && (
+                            <Form.Control.Feedback type="invalid">
+                              Last name is too short.
+                            </Form.Control.Feedback>
+                          )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -287,7 +270,7 @@ const Registration = () => {
                           value={form.department}
                           name="department"
                           onChange={handleChange}
-                          isInvalid={isDepartmentsValid()}>
+                          isInvalid={isClicked && form.department === ""}>
                           <option value="" disabled>
                             Departments
                           </option>
@@ -322,20 +305,18 @@ const Registration = () => {
                           name="password"
                           onChange={handleChange}
                           placeholder="Password"
-                          isInvalid={isPasswordValid()}
+                          isInvalid={
+                            !isEmpty(form.password) &&
+                            !isValidPassword(form.password)
+                          }
                         />
-                        {isClicked && (
-                          <Form.Control.Feedback type="invalid">
-                            {isEmpty(form.password) ? (
-                              <>Password is required.</>
-                            ) : (
-                              <>
-                                Must have at least 8 characters, one special
-                                character, and one number.
-                              </>
-                            )}
-                          </Form.Control.Feedback>
-                        )}
+                        {!isEmpty(form.password) &&
+                          !isValidPassword(form.password) && (
+                            <Form.Control.Feedback type="invalid">
+                              Must have at least 8 characters, one special
+                              character, and one number.
+                            </Form.Control.Feedback>
+                          )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -355,17 +336,8 @@ const Registration = () => {
                           placeholder="Confirm Password"
                           name="confirmPassword"
                           onChange={handleChange}
-                          isInvalid={
-                            (isClicked && isEmpty(form.confirmPassword)) ||
-                            !passwordsMatch()
-                          }
+                          isInvalid={!passwordsMatch()}
                         />
-
-                        {isClicked && isEmpty(form.confirmPassword) && (
-                          <Form.Control.Feedback type="invalid">
-                            Confirm password is required.
-                          </Form.Control.Feedback>
-                        )}
 
                         {!isEmpty(form.password) && (
                           <Form.Control.Feedback type="invalid">
@@ -379,7 +351,14 @@ const Registration = () => {
 
                 <Row>
                   <Col className="text-center">
-                    <BtnPrimary onClick={handleSubmit}>Register</BtnPrimary>
+                    <BtnPrimary
+                      onClick={handleSubmit}
+                      disabled={invalidFields()}
+                      title={
+                        invalidFields() ? "Please check the details again." : ""
+                      }>
+                      Register
+                    </BtnPrimary>
                   </Col>
                 </Row>
               </Form>

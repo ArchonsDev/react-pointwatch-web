@@ -107,7 +107,10 @@ const App = () => {
             path="/"
             element={token ? <Navigate to="/swtd" /> : <Navigate to="/login" />}
           />
-          <Route path="/login" element={<Login />} />
+          <Route
+            path="/login"
+            element={token ? <Navigate to="/swtd" /> : <Login />}
+          />
           <Route path="/register" element={<Register />} />
           <Route path="/reset" element={<ResetPassword />} />
           <Route path="/authorized" element={<Authorized />} />

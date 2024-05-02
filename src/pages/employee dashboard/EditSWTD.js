@@ -6,7 +6,7 @@ import { Row, Col, Container, Card, Form, FloatingLabel, Button } from "react-bo
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
 
-import { isEmpty } from "../../common/validation/utils";
+import { isEmpty, isValidDate } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { getSWTD, editSWTD } from "../../api/swtd";
@@ -88,7 +88,9 @@ const EditSWTD = () => {
       "benefits",
     ];
     return (
-      requiredFields.some((field) => isEmpty(form[field])) || isTimeInvalid()
+      requiredFields.some((field) => isEmpty(form[field])) ||
+      isTimeInvalid() ||
+      !isValidDate(form.date)
     );
   };
 
@@ -112,9 +114,8 @@ const EditSWTD = () => {
       },
       (response) => {
         triggerShowSuccess(3000);
-
         cancelEditing();
-        setSWTD(form);
+        fetchSWTD();
       },
       (error) => {
         if (error.response && error.response.data) {
@@ -326,11 +327,22 @@ const EditSWTD = () => {
                           name="date"
                           onChange={handleChange}
                           value={form.date}
-                          isInvalid={isEmpty(form.date)}
+                          isInvalid={
+                            (!isEmpty(form.date) && !isValidDate(form.date)) ||
+                            isEmpty(form.date)
+                          }
                         />
-                        <Form.Control.Feedback type="invalid">
-                          Date of SWTD is required.
-                        </Form.Control.Feedback>
+                        {isEmpty(form.date) && (
+                          <Form.Control.Feedback type="invalid">
+                            Date is required.
+                          </Form.Control.Feedback>
+                        )}
+
+                        {!isEmpty(form.date) && !isValidDate(form.date) && (
+                          <Form.Control.Feedback type="invalid">
+                            Date must be valid.
+                          </Form.Control.Feedback>
+                        )}
                       </Col>
                     ) : (
                       <Col className="d-flex align-items-center">
@@ -407,7 +419,11 @@ const EditSWTD = () => {
                               name="time_finished"
                               onChange={handleChange}
                               value={form.time_finished}
-                              isInvalid={isEmpty(form.time_finished)}
+                              isInvalid={
+                                isTimeInvalid(form.time_finished) ||
+                                (!isEmpty(form.time_started) &&
+                                  isEmpty(form.time_finished))
+                              }
                             />
                           </FloatingLabel>
                         </Col>
