@@ -5,30 +5,19 @@ import { Row, Col, Container } from "react-bootstrap";
 import SessionUserContext from "../../contexts/SessionUserContext";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 
-import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
 const Dashboard = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
   useEffect(() => {
-    if (!user?.is_admin || !user?.is_staff || !user?.is_superuser) {
+    if (!user?.is_admin && !user?.is_staff && !user?.is_superuser) {
       navigate("/swtd");
     }
   }, []);
 
   return (
     <div className={styles.background}>
-      <header className={styles.header}>
-        <Row>
-          <Col className="text-end">
-            <h3>
-              <img src={logo} height="50px" alt="PointWatch logo" /> PointWatch
-            </h3>
-          </Col>
-        </Row>
-      </header>
-
       <Container className="d-flex flex-column justify-content-start align-items-start">
         <Row className="mb-3">
           <h3 className={styles.label}>Dashboard</h3>

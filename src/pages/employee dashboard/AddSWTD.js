@@ -23,7 +23,6 @@ const AddSWTD = () => {
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [isClicked, setIsClicked] = useState(false);
 
   const handleBackClick = () => {
     navigate("/swtd");
@@ -70,9 +69,25 @@ const AddSWTD = () => {
     if (timeStart > timeFinish) return true;
   };
 
+  const invalidFields = () => {
+    const requiredFields = [
+      "title",
+      "venue",
+      "category",
+      "role",
+      "date",
+      "time_started",
+      "time_finished",
+    ];
+    return (
+      requiredFields.some((field) => isEmpty(form[field])) ||
+      !isValidDate(form.date) ||
+      isTimeInvalid()
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsClicked(true);
 
     if (
       isEmpty(form.title) ||
@@ -100,7 +115,6 @@ const AddSWTD = () => {
       (response) => {
         setTimeout(() => {
           triggerShowSuccess(4500);
-          setIsClicked(false);
           clearForm();
         });
       },
@@ -130,16 +144,6 @@ const AddSWTD = () => {
 
   return (
     <div className={styles.background}>
-      <header className={styles.header}>
-        <Row>
-          <Col className="text-end">
-            <h3>
-              <img src={logo} height="50px" alt="PointWatch logo" /> PointWatch
-            </h3>
-          </Col>
-        </Row>
-      </header>
-
       <Container
         className={`${styles.container} d-flex flex-column justify-content-center align-items-start`}>
         <Row className="mb-3">
@@ -178,13 +182,7 @@ const AddSWTD = () => {
                       name="title"
                       onChange={handleChange}
                       value={form.title}
-                      isInvalid={isClicked && isEmpty(form.title)}
                     />
-                    {isClicked && (
-                      <Form.Control.Feedback type="invalid">
-                        Title of SWTD is required.
-                      </Form.Control.Feedback>
-                    )}
                   </Col>
                 </Form.Group>
               </Row>
@@ -202,13 +200,7 @@ const AddSWTD = () => {
                       name="venue"
                       onChange={handleChange}
                       value={form.venue}
-                      isInvalid={isClicked && isEmpty(form.venue)}
                     />
-                    {isClicked && (
-                      <Form.Control.Feedback type="invalid">
-                        Venue of SWTD is required.
-                      </Form.Control.Feedback>
-                    )}
                   </Col>
                 </Form.Group>
               </Row>
@@ -228,8 +220,7 @@ const AddSWTD = () => {
                         className={styles.formBox}
                         name="category"
                         onChange={handleChange}
-                        value={form.category}
-                        isInvalid={isClicked && isEmpty(form.category)}>
+                        value={form.category}>
                         <option value="" disabled>
                           Select a category
                         </option>
@@ -239,11 +230,6 @@ const AddSWTD = () => {
                           </option>
                         ))}
                       </Form.Select>
-                      {isClicked && (
-                        <Form.Control.Feedback type="invalid">
-                          Category of SWTD is required.
-                        </Form.Control.Feedback>
-                      )}
                     </Col>
                   </Form.Group>
                 </Col>
@@ -262,8 +248,7 @@ const AddSWTD = () => {
                         className={styles.formBox}
                         name="role"
                         onChange={handleChange}
-                        value={form.role}
-                        isInvalid={isClicked && isEmpty(form.role)}>
+                        value={form.role}>
                         <option value="" disabled>
                           Select a role
                         </option>
@@ -273,11 +258,6 @@ const AddSWTD = () => {
                           </option>
                         ))}
                       </Form.Select>
-                      {isClicked && (
-                        <Form.Control.Feedback type="invalid">
-                          Role is required.
-                        </Form.Control.Feedback>
-                      )}
                     </Col>
                   </Form.Group>
                 </Col>
@@ -293,24 +273,12 @@ const AddSWTD = () => {
                     <Col sm="10">
                       <Form.Control
                         type="date"
+                        max={new Date().toISOString().slice(0, 10)}
                         className={styles.formBox}
                         name="date"
                         onChange={handleChange}
                         value={form.date}
-                        isInvalid={
-                          isClicked &&
-                          (isEmpty(form.date) || !isValidDate(form.date))
-                        }
                       />
-                      {isClicked && (
-                        <Form.Control.Feedback type="invalid">
-                          {isEmpty(form.date) ? (
-                            <>Date of SWTD is required.</>
-                          ) : (
-                            <>Date of SWTD must be valid.</>
-                          )}
-                        </Form.Control.Feedback>
-                      )}
                     </Col>
                   </Form.Group>
                 </Col>
@@ -350,20 +318,11 @@ const AddSWTD = () => {
                           name="time_started"
                           onChange={handleChange}
                           value={form.time_started}
-                          isInvalid={
-                            (isClicked && isEmpty(form.time_started)) ||
-                            isTimeInvalid()
-                          }
+                          isInvalid={isTimeInvalid()}
                         />
-                        {isClicked && (
-                          <Form.Control.Feedback type="invalid">
-                            {isEmpty(form.time_started) ? (
-                              <>Time is required.</>
-                            ) : (
-                              <>Time must be valid.</>
-                            )}
-                          </Form.Control.Feedback>
-                        )}
+                        <Form.Control.Feedback type="invalid">
+                          Time must be valid.
+                        </Form.Control.Feedback>
                       </FloatingLabel>
                     </Col>
                     <Col
@@ -381,7 +340,6 @@ const AddSWTD = () => {
                           name="time_finished"
                           onChange={handleChange}
                           value={form.time_finished}
-                          isInvalid={isClicked && isEmpty(form.time_finished)}
                         />
                       </FloatingLabel>
                     </Col>
@@ -418,19 +376,15 @@ const AddSWTD = () => {
                       name="benefits"
                       onChange={handleChange}
                       value={form.benefits}
-                      isInvalid={isClicked && isEmpty(form.benefits)}
                     />
-                    {isClicked && (
-                      <Form.Control.Feedback type="invalid">
-                        Benefits is required.
-                      </Form.Control.Feedback>
-                    )}
                   </Col>
                 </Form.Group>
               </Row>
               <Row>
                 <Col className="text-end">
-                  <BtnPrimary onClick={handleSubmit}>Submit</BtnPrimary>
+                  <BtnPrimary onClick={handleSubmit} disabled={invalidFields()}>
+                    Submit
+                  </BtnPrimary>
                 </Col>
               </Row>
             </Form>

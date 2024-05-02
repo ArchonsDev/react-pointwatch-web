@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { Row, Col, Form, Container } from "react-bootstrap";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
+import { login } from "../../api/auth";
 import { updatePassword } from "../../api/user";
 import { useTrigger } from "../../hooks/useTrigger";
 import { useSwitch } from "../../hooks/useSwitch";
@@ -22,13 +23,15 @@ const Password = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const [form, setForm] = useState({
-    password: "",
+    currentPassword: "",
+    newPassword: "",
     confirmPassword: "",
   });
 
   const resetForm = () => {
     setForm({
-      password: "",
+      currentPassword: "",
+      newPassword: "",
       confirmPassword: "",
     });
   };
@@ -41,15 +44,15 @@ const Password = () => {
   };
 
   const isPasswordValid = () => {
-    if (isEmpty(form.password)) return false;
-    return !isValidPassword(form.password);
+    if (isEmpty(form.newPassword)) return false;
+    return !isValidPassword(form.newPassword);
   };
 
   const passwordsMatch = () => {
-    return form.password === form.confirmPassword;
+    return form.newPassword === form.confirmPassword;
   };
 
-  const handleSubmit = async () => {
+  const update = async () => {
     setErrorMessage(null);
     await updatePassword(
       {
@@ -60,7 +63,7 @@ const Password = () => {
       (response) => {
         setUser({
           ...user,
-          password: form.password,
+          newPassword: form.newPassword,
         });
         triggerShowSuccess(4500);
       },
@@ -77,6 +80,24 @@ const Password = () => {
     resetForm();
   };
 
+  const handleSubmit = async () => {
+    setErrorMessage(null);
+
+    await login(
+      {
+        email: user?.email,
+        password: form.currentPassword,
+      },
+      (response) => {
+        update();
+      },
+      (error) => {
+        setErrorMessage("An error occurred. Please check details again.");
+        triggerShowError(4500);
+      }
+    );
+  };
+
   return (
     <Container>
       {showError && (
@@ -91,21 +112,41 @@ const Password = () => {
       )}
       <Form className={styles.form} noValidate>
         <Row>
-          <Form.Group as={Row} className="mb-3" controlId="inputPassword">
+          <Form.Group
+            as={Row}
+            className="mb-3"
+            controlId="inputCurrentPassword">
             <Form.Label className={styles.formLabel} column sm="2">
-              Password
+              Current Password
             </Form.Label>
             <Col sm="10">
               <Form.Control
                 type="password"
-                name="password"
+                name="currentPassword"
                 className={styles.formBox}
-                value={form.password}
+                value={form.currentPassword}
+                onChange={handleChange}
+              />
+            </Col>
+          </Form.Group>
+        </Row>
+
+        <Row>
+          <Form.Group as={Row} className="mb-3" controlId="inputNewPassword">
+            <Form.Label className={styles.formLabel} column sm="2">
+              New Password
+            </Form.Label>
+            <Col sm="10">
+              <Form.Control
+                type="password"
+                name="newPassword"
+                className={styles.formBox}
+                value={form.newPassword}
                 onChange={handleChange}
                 isInvalid={isPasswordValid()}
               />
               <Form.Control.Feedback type="invalid">
-                {isEmpty(form.password) ? (
+                {isEmpty(form.newPassword) ? (
                   <>Password is required.</>
                 ) : (
                   <>
@@ -148,9 +189,9 @@ const Password = () => {
             <BtnPrimary
               onClick={openModal}
               disabled={
-                !isValidPassword(form.password) ||
+                !isValidPassword(form.newPassword) ||
                 !passwordsMatch() ||
-                isEmpty(form.password) ||
+                isEmpty(form.newPassword) ||
                 isEmpty(form.confirmPassword)
               }>
               Save Changes

@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Card, Nav, Col, Row, Container } from "react-bootstrap";
 
 import General from "./General";
 import Password from "./Password";
 import Logs from "./Logs";
 
-import logo from "../../images/logo1.png";
+import SessionUserContext from "../../contexts/SessionUserContext";
 import styles from "./style.module.css";
 
 const Settings = () => {
+  const { user } = useContext(SessionUserContext);
   const [activeTab, setActiveTab] = useState("general");
 
   const handleSelectTab = (selectedTab) => {
@@ -29,16 +30,6 @@ const Settings = () => {
 
   return (
     <div className={styles.background}>
-      <header className={styles.header}>
-        <Row>
-          <Col className="text-end">
-            <h3>
-              <img src={logo} height="50px" alt="PointWatch logo" /> PointWatch
-            </h3>
-          </Col>
-        </Row>
-      </header>
-
       <Container className="d-flex flex-column justify-content-start align-items-start">
         <Row className="mb-3">
           <h3 className={styles.label}>Settings</h3>
@@ -70,15 +61,17 @@ const Settings = () => {
                 Password
               </Nav.Link>
             </Nav.Item>
-            <Nav.Item>
-              <Nav.Link
-                eventKey="logs"
-                className={`${styles.navHeader} ${
-                  activeTab === "logs" ? styles.activeTab : styles.inactiveTab
-                }`}>
-                Logs
-              </Nav.Link>
-            </Nav.Item>
+            {(user?.is_admin || user?.is_staff) && (
+              <Nav.Item>
+                <Nav.Link
+                  eventKey="logs"
+                  className={`${styles.navHeader} ${
+                    activeTab === "logs" ? styles.activeTab : styles.inactiveTab
+                  }`}>
+                  Logs
+                </Nav.Link>
+              </Nav.Item>
+            )}
           </Nav>
         </Row>
         <Row>

@@ -1,5 +1,11 @@
 .navbar {
-  position: fixed !important;
+  background-color: #d80085 !important;
+}
+
+.header {
+  font-family: "Degradasi";
+  font-size: 1.5rem;
+  color: #f5e3e0 !important;
 }
 
 .sidebar {
@@ -7,10 +13,9 @@
 }
 
 .toggle {
-  color: #e8b4bc !important;
-  background-color: #3a3238 !important;
-  box-shadow: -5px 0 10px rgba(0, 0, 0, 1) !important;
-  margin-right: 20px !important;
+  border: none !important;
+  color: #f5e3e0 !important;
+  padding: 10px !important;
 }
 
 .active {
@@ -58,4 +63,13 @@
 .empId {
   font-family: "Poppins-Regular";
   color: #e8b4bc;
+}
+
+.icon {
+  color: #f5e3e0;
+}
+
+.rightNav {
+  color: #f5e3e0;
+  font-family: "Poppins-Medium";
 }

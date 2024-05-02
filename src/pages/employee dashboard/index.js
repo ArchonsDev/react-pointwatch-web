@@ -46,16 +46,6 @@ const SWTDDashboard = () => {
 
   return (
     <div className={styles.background}>
-      <header className={styles.header}>
-        <Row>
-          <Col className="text-end">
-            <h3>
-              <img src={logo} height="50px" alt="PointWatch logo" /> PointWatch
-            </h3>
-          </Col>
-        </Row>
-      </header>
-
       <Container className="d-flex flex-column justify-content-start align-items-start">
         <Row className="mb-2">
           <h3 className={styles.label}>SWTD Points Overview</h3>

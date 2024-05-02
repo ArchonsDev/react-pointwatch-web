@@ -12,7 +12,6 @@ import { useTrigger } from "../../hooks/useTrigger";
 import { getSWTD, editSWTD } from "../../api/swtd";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
-import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 
@@ -20,6 +19,7 @@ const EditSWTD = () => {
   const { id } = useParams();
   const token = Cookies.get("userToken");
   const [swtd, setSWTD] = useState(null);
+  const [form, setForm] = useState(null);
 
   const navigate = useNavigate();
   const [isEditing, enableEditing, cancelEditing] = useSwitch();
@@ -28,6 +28,12 @@ const EditSWTD = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [isClicked, setIsClicked] = useState(false);
 
+  const formatDate = (date) => {
+    if (!date) return "";
+    const [month, day, year] = date.split("-");
+    return `${year}-${month}-${day}`;
+  };
+
   const fetchSWTD = () => {
     getSWTD(
       {
@@ -35,26 +41,27 @@ const EditSWTD = () => {
         form_id: id,
       },
       (response) => {
-        setSWTD(response.data);
-        setForm(response.data);
+        const data = response.data;
+        setSWTD(data);
+
+        const formattedDate = formatDate(data.date);
+        setForm({
+          title: data.title,
+          venue: data.venue,
+          category: data.category,
+          role: data.role,
+          date: formattedDate,
+          time_started: data.time_started,
+          time_finished: data.time_finished,
+          points: data.points,
+          benefits: data.benefits,
+        });
       },
       (error) => {
         console.log("Error fetching SWTD data: ", error);
       }
     );
   };
-
-  const [form, setForm] = useState({
-    title: swtd?.title,
-    venue: swtd?.venue,
-    category: swtd?.category,
-    role: swtd?.role,
-    date: swtd?.date,
-    time_started: swtd?.time_started,
-    time_finished: swtd?.time_finished,
-    points: swtd?.points,
-    benefits: swtd?.benefits,
-  });
 
   const handleChange = (e) => {
     setForm({
@@ -141,16 +148,6 @@ const EditSWTD = () => {
 
   return (
     <div className={styles.background}>
-      <header className={styles.header}>
-        <Row>
-          <Col className="text-end">
-            <h3>
-              <img src={logo} height="50px" alt="PointWatch logo" /> PointWatch
-            </h3>
-          </Col>
-        </Row>
-      </header>
-
       <Container className="d-flex flex-column justify-content-start align-items-start">
         <Row className="w-100 mb-3">
           <Col>
@@ -166,7 +163,7 @@ const EditSWTD = () => {
               <BtnSecondary
                 onClick={() => {
                   cancelEditing();
-                  setForm(swtd ? swtd : "");
+                  fetchSWTD();
                 }}>
                 Cancel Editing
               </BtnSecondary>
@@ -342,6 +339,7 @@ const EditSWTD = () => {
                       <Col sm="10">
                         <Form.Control
                           type="date"
+                          max={new Date().toISOString().slice(0, 10)}
                           className={styles.formBox}
                           name="date"
                           onChange={handleChange}
