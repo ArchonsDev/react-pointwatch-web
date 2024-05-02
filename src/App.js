@@ -32,7 +32,6 @@ const App = () => {
   const cookieID = Cookies.get("userID");
 
   const [user, setUser] = useState(null);
-  const [showModal, setShowModal] = useState(false);
 
   let id = null;
   if (cookieID !== undefined) {
@@ -77,11 +76,6 @@ const App = () => {
       ? "Training Information"
       : tabNames[location.pathname] || "WildPark";
 
-  const handleModalClose = () => {
-    setShowModal(false);
-    navigate("/login");
-  };
-
   useEffect(() => {
     const isTokenExpired = (token) => {
       const decodedToken = jwtDecode(token);
@@ -94,7 +88,6 @@ const App = () => {
       Cookies.remove("userID");
       setUser(null);
       navigate("/");
-      setShowModal(true);
     }
 
     if (data.token !== null && data.id !== null) {
@@ -108,27 +101,16 @@ const App = () => {
         location.pathname === "/login" ? styles.bg : styles["no-bg"]
       }`}>
       <SessionUserContext.Provider value={{ user, setUser }}>
-        <Modal show={showModal} onHide={handleModalClose}>
-          <Modal.Header closeButton>
-            <Modal.Title>Session Expired</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>Your session has expired. Please login again.</Modal.Body>
-          <Modal.Footer>
-            <BtnSecondary variant="secondary" onClick={handleModalClose}>
-              Close
-            </BtnSecondary>
-            <BtnPrimary variant="primary" onClick={handleModalClose}>
-              Login
-            </BtnPrimary>
-          </Modal.Footer>
-        </Modal>
         {showDrawer && <Drawer />}
         <Routes>
           <Route
             path="/"
             element={token ? <Navigate to="/swtd" /> : <Navigate to="/login" />}
           />
-          <Route path="/login" element={<Login />} />
+          <Route
+            path="/login"
+            element={token ? <Navigate to="/swtd" /> : <Login />}
+          />
           <Route path="/register" element={<Register />} />
           <Route path="/reset" element={<ResetPassword />} />
           <Route path="/authorized" element={<Authorized />} />

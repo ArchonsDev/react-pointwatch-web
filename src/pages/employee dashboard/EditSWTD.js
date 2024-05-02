@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
-import { Row, Col, Container, Card, Form, FloatingLabel } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Card, Form, FloatingLabel, Button } from "react-bootstrap"; /* prettier-ignore */
 
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
@@ -20,13 +20,14 @@ const EditSWTD = () => {
   const token = Cookies.get("userToken");
   const [swtd, setSWTD] = useState(null);
   const [form, setForm] = useState(null);
+  const [comment, setComment] = useState(null);
+  const [comments, setComments] = useState([]);
 
   const navigate = useNavigate();
   const [isEditing, enableEditing, cancelEditing] = useSwitch();
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [isClicked, setIsClicked] = useState(false);
 
   const formatDate = (date) => {
     if (!date) return "";
@@ -70,47 +71,35 @@ const EditSWTD = () => {
     });
   };
 
-  const handleBackClick = () => {
-    navigate("/swtd");
-  };
-
   const isTimeInvalid = () => {
     const timeStart = form.time_started;
     const timeFinish = form.time_finished;
     if (timeStart > timeFinish) return true;
   };
 
+  const invalidFields = () => {
+    const requiredFields = [
+      "title",
+      "venue",
+      "category",
+      "role",
+      "time_started",
+      "time_finished",
+      "benefits",
+    ];
+    return (
+      requiredFields.some((field) => isEmpty(form[field])) ||
+      isTimeInvalid() ||
+      !isValidDate(form.date)
+    );
+  };
+
+  const handleCommentChange = (e) => {
+    setComment(e.target.value);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsClicked(true);
-
-    if (
-      isEmpty(form.title) ||
-      isEmpty(form.venue) ||
-      isEmpty(form.category) ||
-      isEmpty(form.role) ||
-      isEmpty(form.date) ||
-      !isValidDate(form.date) ||
-      isTimeInvalid() ||
-      isEmpty(form.time_started) ||
-      isEmpty(form.time_finished) ||
-      isEmpty(form.benefits)
-    ) {
-      setErrorMessage("An error occurred. Please check the details again.");
-      setForm({
-        title: swtd?.title,
-        venue: swtd?.venue,
-        category: swtd?.category,
-        role: swtd?.role,
-        date: swtd?.date,
-        time_started: swtd?.time_started,
-        time_finished: swtd?.time_finished,
-        points: swtd?.points,
-        benefits: swtd?.benefits,
-      });
-      triggerShowError(4500);
-      return;
-    }
 
     if (!isEmpty(form.date)) {
       const [year, month, day] = form.date.split("-");
@@ -124,23 +113,24 @@ const EditSWTD = () => {
         token: token,
       },
       (response) => {
-        triggerShowSuccess(4500);
-        setIsClicked(false);
+        triggerShowSuccess(3000);
         cancelEditing();
-        setSWTD(form);
+        fetchSWTD();
       },
       (error) => {
         if (error.response && error.response.data) {
           setErrorMessage(<>{error.response.data.error}</>);
-          triggerShowError(4500);
+          triggerShowError(3000);
           cancelEditing();
         } else {
           setErrorMessage(<>An error occurred.</>);
-          triggerShowError(4500);
+          triggerShowError(3000);
         }
       }
     );
   };
+
+  const handlePost = async () => {};
 
   useEffect(() => {
     fetchSWTD();
@@ -149,12 +139,12 @@ const EditSWTD = () => {
   return (
     <div className={styles.background}>
       <Container className="d-flex flex-column justify-content-start align-items-start">
-        <Row className="w-100 mb-3">
+        <Row className="w-100 mb-2">
           <Col>
             <h3 className={styles.label}>
               <i
                 className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
-                onClick={handleBackClick}></i>{" "}
+                onClick={() => navigate("/swtd")}></i>{" "}
               Training Information
             </h3>
           </Col>
@@ -172,7 +162,7 @@ const EditSWTD = () => {
             )}
           </Col>
         </Row>
-        <Card style={{ width: "80rem" }}>
+        <Card className="mb-3 w-100">
           <Card.Header className={styles.cardHeader}>SWTD Details</Card.Header>
           <Card.Body className={`${styles.cardBody} p-4`}>
             {showError && (
@@ -200,13 +190,11 @@ const EditSWTD = () => {
                         name="title"
                         onChange={handleChange}
                         value={form.title}
-                        isInvalid={isClicked && isEmpty(form.title)}
+                        isInvalid={isEmpty(form.title)}
                       />
-                      {isClicked && (
-                        <Form.Control.Feedback type="invalid">
-                          Title of SWTD is required.
-                        </Form.Control.Feedback>
-                      )}
+                      <Form.Control.Feedback type="invalid">
+                        Title of SWTD is required.
+                      </Form.Control.Feedback>
                     </Col>
                   ) : (
                     <Col className="d-flex align-items-center">
@@ -230,13 +218,11 @@ const EditSWTD = () => {
                         name="venue"
                         onChange={handleChange}
                         value={form.venue}
-                        isInvalid={isClicked && isEmpty(form.venue)}
+                        isInvalid={isEmpty(form.venue)}
                       />
-                      {isClicked && (
-                        <Form.Control.Feedback type="invalid">
-                          Venue of SWTD is required.
-                        </Form.Control.Feedback>
-                      )}
+                      <Form.Control.Feedback type="invalid">
+                        Venue of SWTD is required.
+                      </Form.Control.Feedback>
                     </Col>
                   ) : (
                     <Col className="d-flex align-items-center">
@@ -263,7 +249,7 @@ const EditSWTD = () => {
                           name="category"
                           onChange={handleChange}
                           value={form.category}
-                          isInvalid={isClicked && isEmpty(form.category)}>
+                          isInvalid={isEmpty(form.category)}>
                           <option value="" disabled>
                             Select a category
                           </option>
@@ -273,11 +259,9 @@ const EditSWTD = () => {
                             </option>
                           ))}
                         </Form.Select>
-                        {isClicked && (
-                          <Form.Control.Feedback type="invalid">
-                            Category of SWTD is required.
-                          </Form.Control.Feedback>
-                        )}
+                        <Form.Control.Feedback type="invalid">
+                          Category of SWTD is required.
+                        </Form.Control.Feedback>
                       </Col>
                     ) : (
                       <Col className="d-flex align-items-center">
@@ -303,7 +287,7 @@ const EditSWTD = () => {
                           name="role"
                           onChange={handleChange}
                           value={form.role}
-                          isInvalid={isClicked && isEmpty(form.role)}>
+                          isInvalid={isEmpty(form.role)}>
                           <option value="" disabled>
                             Select a role
                           </option>
@@ -313,11 +297,10 @@ const EditSWTD = () => {
                             </option>
                           ))}
                         </Form.Select>
-                        {isClicked && (
-                          <Form.Control.Feedback type="invalid">
-                            Role is required.
-                          </Form.Control.Feedback>
-                        )}
+
+                        <Form.Control.Feedback type="invalid">
+                          Role is required.
+                        </Form.Control.Feedback>
                       </Col>
                     ) : (
                       <Col className="d-flex align-items-center">
@@ -345,13 +328,19 @@ const EditSWTD = () => {
                           onChange={handleChange}
                           value={form.date}
                           isInvalid={
-                            (isClicked && isEmpty(form.date)) ||
-                            !isValidDate(form.date)
+                            (!isEmpty(form.date) && !isValidDate(form.date)) ||
+                            isEmpty(form.date)
                           }
                         />
-                        {isClicked && (
+                        {isEmpty(form.date) && (
                           <Form.Control.Feedback type="invalid">
-                            Date of SWTD is required.
+                            Date is required.
+                          </Form.Control.Feedback>
+                        )}
+
+                        {!isEmpty(form.date) && !isValidDate(form.date) && (
+                          <Form.Control.Feedback type="invalid">
+                            Date must be valid.
                           </Form.Control.Feedback>
                         )}
                       </Col>
@@ -401,19 +390,18 @@ const EditSWTD = () => {
                               onChange={handleChange}
                               value={form.time_started}
                               isInvalid={
-                                (isClicked && isEmpty(form.time_started)) ||
+                                isEmpty(form.time_started) ||
+                                isEmpty(form.time_finished) ||
                                 isTimeInvalid()
                               }
                             />
-                            {isClicked && (
-                              <Form.Control.Feedback type="invalid">
-                                {isEmpty(form.time_started) ? (
-                                  <>Time is required.</>
-                                ) : (
-                                  <>Time must be valid.</>
-                                )}
-                              </Form.Control.Feedback>
-                            )}
+                            <Form.Control.Feedback type="invalid">
+                              {isEmpty(form.time_started) ? (
+                                <>Time is required.</>
+                              ) : (
+                                <>Time must be valid.</>
+                              )}
+                            </Form.Control.Feedback>
                           </FloatingLabel>
                         </Col>
                         <Col
@@ -432,15 +420,12 @@ const EditSWTD = () => {
                               onChange={handleChange}
                               value={form.time_finished}
                               isInvalid={
-                                isClicked && isEmpty(form.time_finished)
+                                isTimeInvalid(form.time_finished) ||
+                                (!isEmpty(form.time_started) &&
+                                  isEmpty(form.time_finished))
                               }
                             />
                           </FloatingLabel>
-                          {isClicked && (
-                            <Form.Control.Feedback type="invalid">
-                              Time of SWTD is required.
-                            </Form.Control.Feedback>
-                          )}
                         </Col>
                       </>
                     ) : (
@@ -478,13 +463,11 @@ const EditSWTD = () => {
                         name="benefits"
                         onChange={handleChange}
                         value={form.benefits}
-                        isInvalid={isClicked && isEmpty(form.benefits)}
+                        isInvalid={isEmpty(form.benefits)}
                       />
-                      {isClicked && (
-                        <Form.Control.Feedback type="invalid">
-                          Benefits is required.
-                        </Form.Control.Feedback>
-                      )}
+                      <Form.Control.Feedback type="invalid">
+                        Benefits is required.
+                      </Form.Control.Feedback>
                     </Col>
                   ) : (
                     <Col className="d-flex align-items-center">
@@ -496,13 +479,48 @@ const EditSWTD = () => {
               {isEditing && (
                 <Row>
                   <Col className="text-end">
-                    <BtnPrimary onClick={handleSubmit}>Save Changes</BtnPrimary>
+                    <BtnPrimary
+                      onClick={handleSubmit}
+                      disabled={invalidFields()}>
+                      Save Changes
+                    </BtnPrimary>
                   </Col>
                 </Row>
               )}
             </Form>
           </Card.Body>
         </Card>
+
+        {!isEditing && (
+          <Card className="mb-3 w-100">
+            <Card.Header className={styles.cardHeader}>Comments</Card.Header>
+            <Card.Body className={`${styles.cardBody} p-4`}>
+              No comments yet.
+            </Card.Body>
+            <Card.Footer className="p-3">
+              <Form noValidate>
+                <Form.Group as={Row}>
+                  <Col sm="11">
+                    <Form.Control
+                      type="text"
+                      className={styles.formBox}
+                      name="comment"
+                      onChange={handleCommentChange}
+                      value={comment}
+                    />
+                  </Col>
+                  <Col sm="1">
+                    <Button
+                      className={`${styles.button} w-100`}
+                      onClick={handlePost}>
+                      <i className="fa-solid fa-paper-plane fa-lg"></i>
+                    </Button>
+                  </Col>
+                </Form.Group>
+              </Form>
+            </Card.Footer>
+          </Card>
+        )}
       </Container>
     </div>
   );
