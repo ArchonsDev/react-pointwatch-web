@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { Card, Nav, Col, Row, Container } from "react-bootstrap";
+import { Card, Nav, Row, Container } from "react-bootstrap";
 
 import General from "./General";
 import Password from "./Password";
@@ -31,7 +31,7 @@ const Settings = () => {
   return (
     <div className={styles.background}>
       <Container className="d-flex flex-column justify-content-start align-items-start">
-        <Row className="mb-3">
+        <Row className="mb-2">
           <h3 className={styles.label}>Settings</h3>
         </Row>
         <Row>

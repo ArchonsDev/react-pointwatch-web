@@ -5,7 +5,6 @@ import { Row, Col, Container, InputGroup, Form, ListGroup } from "react-bootstra
 import { getAllSWTDs } from "../../api/swtd";
 import SessionUserContext from "../../contexts/SessionUserContext";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
-import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
 const SWTDDashboard = () => {

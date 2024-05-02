@@ -8,10 +8,9 @@ import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
 import { addSWTD } from "../../api/swtd";
 import { useTrigger } from "../../hooks/useTrigger";
-import { isEmpty, isValidDate } from "../../common/validation/utils";
+import { isEmpty } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
-import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 import { clear } from "@testing-library/user-event/dist/clear";
 
@@ -78,32 +77,15 @@ const AddSWTD = () => {
       "date",
       "time_started",
       "time_finished",
+      "benefits",
     ];
     return (
-      requiredFields.some((field) => isEmpty(form[field])) ||
-      !isValidDate(form.date) ||
-      isTimeInvalid()
+      requiredFields.some((field) => isEmpty(form[field])) || isTimeInvalid()
     );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      isEmpty(form.title) ||
-      isEmpty(form.venue) ||
-      isEmpty(form.category) ||
-      isEmpty(form.role) ||
-      isEmpty(form.date) ||
-      !isValidDate(form.date) ||
-      isTimeInvalid() ||
-      isEmpty(form.time_started) ||
-      isEmpty(form.time_finished)
-    ) {
-      setErrorMessage("An error occurred. Please check the details again.");
-      triggerShowError(4500);
-      return;
-    }
 
     if (!isEmpty(form.date)) {
       const [year, month, day] = form.date.split("-");
@@ -146,7 +128,7 @@ const AddSWTD = () => {
     <div className={styles.background}>
       <Container
         className={`${styles.container} d-flex flex-column justify-content-center align-items-start`}>
-        <Row className="mb-3">
+        <Row className="mb-2">
           <h3 className={styles.label}>
             <i
               className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}

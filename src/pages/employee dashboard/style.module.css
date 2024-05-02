@@ -1,20 +1,7 @@
 .background {
-  height: 100vh;
-  overflow-y: auto;
-}
-
-/* .header {
-  background-color: #d80085 !important;
-  padding: 10px;
-  font-family: "Degradasi";
-  margin-bottom: 2rem;
-  font-size: 1.2rem;
-  color: #f5e3e0 !important;
-  max-width: 100%;
+  min-height: 100vh;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-} */
+}
 
 .label {
   font-family: "Degradasi";
@@ -71,4 +58,14 @@
 
 .triangle {
   cursor: pointer;
+}
+
+.iconBox {
+  background-color: #e8b4bc !important;
+  color: #3a3238 !important;
+}
+
+.button {
+  background-color: #d80085 !important;
+  border: none !important;
 }
