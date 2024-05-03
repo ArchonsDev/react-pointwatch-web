@@ -58,12 +58,12 @@ const Password = () => {
       {
         id: user.id,
         token: token,
-        ...form,
+        password: form.newPassword,
       },
       (response) => {
         setUser({
           ...user,
-          newPassword: form.newPassword,
+          password: form.newPassword,
         });
         triggerShowSuccess(4500);
       },
