@@ -164,7 +164,11 @@ const General = () => {
               <Form.Label className={styles.formLabel} column sm="3">
                 Email
               </Form.Label>
-              <Col sm="9">{user?.email}</Col>
+              <Col
+                className="d-flex justify-content-start align-items-center"
+                sm="9">
+                {user?.email}
+              </Col>
             </Form.Group>
           </Row>
 
@@ -193,7 +197,11 @@ const General = () => {
                   )}
                 </Col>
               ) : (
-                <Col sm="9">{user?.firstname}</Col>
+                <Col
+                  className="d-flex justify-content-start align-items-center"
+                  sm="9">
+                  {user?.firstname}
+                </Col>
               )}
             </Form.Group>
           </Row>
@@ -225,7 +233,11 @@ const General = () => {
                   )}
                 </Col>
               ) : (
-                <Col sm="9">{user?.lastname}</Col>
+                <Col
+                  className="d-flex justify-content-start align-items-center"
+                  sm="9">
+                  {user?.lastname}
+                </Col>
               )}
             </Form.Group>
           </Row>
@@ -251,7 +263,11 @@ const General = () => {
                   </Form.Select>
                 </Col>
               ) : (
-                <Col sm="9">{user?.department}</Col>
+                <Col
+                  className="d-flex justify-content-start align-items-center"
+                  sm="9">
+                  {user?.department}
+                </Col>
               )}
             </Form.Group>
           </Row>

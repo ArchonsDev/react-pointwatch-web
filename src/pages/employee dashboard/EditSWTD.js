@@ -351,6 +351,8 @@ const EditSWTD = () => {
                     )}
                   </Form.Group>
                 </Col>
+
+                {/* Proof */}
                 <Col className="text-end">
                   <Form.Group as={Row} className="mb-3" controlId="inputProof">
                     <Form.Label className={styles.formLabel} column sm="2">
