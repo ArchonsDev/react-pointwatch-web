@@ -74,8 +74,8 @@ const Settings = () => {
             )}
           </Nav>
         </Row>
-        <Row>
-          <Card className="p-4" style={{ width: "80rem" }}>
+        <Row className="w-100">
+          <Card className={`${styles.card} p-4`}>
             <Card.Body>{renderActiveView()}</Card.Body>
           </Card>
         </Row>

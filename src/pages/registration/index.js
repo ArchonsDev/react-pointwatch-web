@@ -127,7 +127,7 @@ const Registration = () => {
 
       {/* Registration Form */}
       <Container className="d-flex justify-content-center align-items-center">
-        <Card className="p-4" style={{ width: "60rem" }}>
+        <Card className="w-75 p-4">
           {!isRegistrationComplete ? (
             <Card.Body>
               <Row className="mb-4">

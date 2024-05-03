@@ -37,6 +37,7 @@ const AddSWTD = () => {
     time_started: "",
     time_finished: "",
     points: 50,
+    proof: "",
     benefits: "",
   });
 
@@ -50,6 +51,7 @@ const AddSWTD = () => {
       date: "",
       time_started: "",
       time_finished: "",
+      proof: "",
       benefits: "",
     });
   };
@@ -264,6 +266,7 @@ const AddSWTD = () => {
                     </Col>
                   </Form.Group>
                 </Col>
+                {/* Proof */}
                 <Col className="text-end">
                   <Form.Group as={Row} className="mb-3" controlId="inputProof">
                     <Form.Label className={styles.formLabel} column sm="2">
