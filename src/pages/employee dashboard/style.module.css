@@ -56,6 +56,12 @@
   border: grey 1px solid !important;
 }
 
+.pointsBox {
+  border: grey 1px solid !important;
+  font-family: "Poppins-SemiBold";
+  color: #d80085 !important;
+}
+
 .triangle {
   cursor: pointer;
 }
@@ -68,4 +74,9 @@
 .button {
   background-color: #d80085 !important;
   border: none !important;
+}
+
+.imgProof {
+  height: 60%;
+  width: 60%;
 }

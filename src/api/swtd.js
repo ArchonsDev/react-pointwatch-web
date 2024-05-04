@@ -33,12 +33,13 @@ export const addSWTD = async (data, onSuccess, onFail, onCleanup) => {
         time_started: data.time_started,
         time_finished: data.time_finished,
         points: data.points,
+        proof: data.proof,
         benefits: data.benefits,
       },
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
       }
     );
@@ -61,6 +62,49 @@ export const getSWTD = async (data, onSuccess, onFail, onCleanup) => {
         headers: {
           Authorization: `Bearer ${data.token}`,
           "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};
+
+export const getSWTDProof = async (data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/swtds/${data.form_id}/validation/proof`,
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+        },
+        responseType: "arraybuffer",
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};
+
+export const getSWTDValidation = async (data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/swtds/${data.form_id}/validation`,
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
         },
       }
     );

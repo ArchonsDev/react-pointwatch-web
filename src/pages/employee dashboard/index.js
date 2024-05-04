@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup } from "react-bootstrap"; /* prettier-ignore */
-import { getAllSWTDs } from "../../api/swtd";
+import { getAllSWTDs, getSWTDValidation } from "../../api/swtd";
 import SessionUserContext from "../../contexts/SessionUserContext";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
@@ -118,7 +118,7 @@ const SWTDDashboard = () => {
                     <Col xs={1}>{item.id}</Col>
                     <Col xs={7}>{item.title}</Col>
                     <Col xs={2}>{item.points}</Col>
-                    <Col xs={2}>Pending</Col>
+                    <Col xs={2}>{item.validation.status}</Col>
                   </Row>
                 </ListGroup.Item>
               ))}
