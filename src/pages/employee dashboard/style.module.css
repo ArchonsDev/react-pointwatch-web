@@ -69,3 +69,17 @@
   background-color: #d80085 !important;
   border: none !important;
 }
+
+.commentEdit {
+  cursor: pointer;
+  color: #3a3238;
+}
+
+.commentDelete {
+  cursor: pointer;
+  color: red;
+}
+
+.comment {
+  font-family: "Poppins-Light";
+}
