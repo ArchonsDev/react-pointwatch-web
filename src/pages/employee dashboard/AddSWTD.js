@@ -12,7 +12,6 @@ import { isEmpty } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
-import { clear } from "@testing-library/user-event/dist/clear";
 
 const AddSWTD = () => {
   const { user } = useContext(SessionUserContext);

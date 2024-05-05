@@ -76,6 +76,20 @@
   border: none !important;
 }
 
+.commentEdit {
+  cursor: pointer;
+  color: #3a3238;
+}
+
+.commentDelete {
+  cursor: pointer;
+  color: red;
+}
+
+.comment {
+  font-family: "Poppins-Light";
+}
+
 .imgProof {
   height: 60%;
   width: 60%;
