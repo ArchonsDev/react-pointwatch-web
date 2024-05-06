@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, Card, Form, FloatingLabel } from "react-bootstrap"; /* prettier-ignore */
@@ -16,7 +16,10 @@ import styles from "./style.module.css";
 const AddSWTD = () => {
   const { user } = useContext(SessionUserContext);
   const accessToken = Cookies.get("userToken");
+  const id = Cookies.get("userID");
   const navigate = useNavigate();
+  const inputFile = useRef(null);
+  const [isProofInvalid, setIsProofInvalid] = useState(false);
 
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
@@ -27,7 +30,7 @@ const AddSWTD = () => {
   };
 
   const [form, setForm] = useState({
-    author_id: user?.id,
+    author_id: id,
     title: "",
     venue: "",
     category: "",
@@ -41,6 +44,12 @@ const AddSWTD = () => {
   });
 
   const clearForm = () => {
+    if (inputFile.current) {
+      inputFile.current.value = "";
+      inputFile.current.type = "text";
+      inputFile.current.type = "file";
+    }
+
     setForm({
       ...form,
       title: "",
@@ -62,6 +71,26 @@ const AddSWTD = () => {
     });
   };
 
+  const handleProof = (e) => {
+    const file = e.target.files[0];
+    const allowedTypes = [
+      "application/pdf",
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+    ];
+    if (file && allowedTypes.includes(file.type)) {
+      setForm({
+        ...form,
+        proof: file,
+      });
+      setIsProofInvalid(false);
+    } else {
+      inputFile.current.value = null;
+      setIsProofInvalid(true);
+    }
+  };
+
   const isTimeInvalid = () => {
     const timeStart = form.time_started;
     const timeFinish = form.time_finished;
@@ -81,7 +110,9 @@ const AddSWTD = () => {
       "benefits",
     ];
     return (
-      requiredFields.some((field) => isEmpty(form[field])) || isTimeInvalid()
+      requiredFields.some((field) => isEmpty(form[field])) ||
+      isTimeInvalid() ||
+      !form.proof
     );
   };
 
@@ -92,7 +123,7 @@ const AddSWTD = () => {
       const [year, month, day] = form.date.split("-");
       form.date = `${month}-${day}-${year}`;
     }
-
+    console.log(form);
     await addSWTD(
       { ...form, token: accessToken },
       (response) => {
@@ -265,6 +296,7 @@ const AddSWTD = () => {
                     </Col>
                   </Form.Group>
                 </Col>
+
                 {/* Proof */}
                 <Col className="text-end">
                   <Form.Group as={Row} className="mb-3" controlId="inputProof">
@@ -276,7 +308,13 @@ const AddSWTD = () => {
                         type="file"
                         className={styles.formBox}
                         name="proof"
+                        onChange={handleProof}
+                        ref={inputFile}
+                        isInvalid={isProofInvalid}
                       />
+                      <Form.Text muted>
+                        Only upload PDFs, PNG, JPG/JPEG.
+                      </Form.Text>
                     </Col>
                   </Form.Group>
                 </Col>
@@ -329,6 +367,8 @@ const AddSWTD = () => {
                     </Col>
                   </Form.Group>
                 </Col>
+
+                {/* Points */}
                 <Col className="text-end">
                   <Form.Group as={Row} className="mb-3" controlId="inputPoints">
                     <Form.Label className={styles.formLabel} column sm="2">
@@ -336,7 +376,7 @@ const AddSWTD = () => {
                     </Form.Label>
                     <Col className="text-start" sm="2">
                       <Form.Control
-                        className={styles.formBox}
+                        className={styles.pointsBox}
                         name="points"
                         onChange={handleChange}
                         value={form.points}
@@ -366,7 +406,10 @@ const AddSWTD = () => {
               </Row>
               <Row>
                 <Col className="text-end">
-                  <BtnPrimary onClick={handleSubmit} disabled={invalidFields()}>
+                  <BtnPrimary
+                    onClick={handleSubmit}
+                    disabled={invalidFields()}
+                    title={invalidFields() ? "All fields are required." : ""}>
                     Submit
                   </BtnPrimary>
                 </Col>

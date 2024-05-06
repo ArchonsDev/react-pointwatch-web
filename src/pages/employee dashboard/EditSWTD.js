@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
-import { Row, Col, Container, Card, Form, FloatingLabel, Button, ListGroup, Badge } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Card, Form, FloatingLabel, Button, ListGroup, Badge, Modal } from "react-bootstrap"; /* prettier-ignore */
 
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
@@ -9,12 +9,13 @@ import roles from "../../data/roles.json";
 import { isEmpty, isValidDate } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
-import { getSWTD, editSWTD } from "../../api/swtd";
+import { getSWTD, getSWTDProof, getSWTDValidation, editSWTD } from "../../api/swtd"; /* prettier-ignore */
 import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
-import CommentModal from "../../common/modals/CommentModal";
+import EditCommentModal from "../../common/modals/EditCommentModal";
+import EditProofModal from "../../common/modals/EditProofModal";
 import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import styles from "./style.module.css";
 
@@ -24,26 +25,49 @@ const EditSWTD = () => {
   const token = Cookies.get("userToken");
 
   const [swtd, setSWTD] = useState(null);
-  const [form, setForm] = useState(null);
+  const [swtdProof, setSWTDProof] = useState(null);
+
+  const [status, setStatus] = useState({
+    status: "",
+    validated_on: "",
+    validator: "",
+  });
+
+  const [form, setForm] = useState({
+    title: "",
+    venue: "",
+    category: "",
+    role: "",
+    date: "",
+    time_started: "",
+    time_finished: "",
+    points: "",
+    benefits: "",
+  });
+
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
 
   const [selectedComment, setSelectedComment] = useState(null);
   const [showModal, openModal, closeModal] = useSwitch();
   const [showCommentModal, openCommentModal, closeCommentModal] = useSwitch();
+  const [showProofModal, openProofModal, closeProofModal] = useSwitch();
 
   const [isEditing, enableEditing, cancelEditing] = useSwitch();
-
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [showCommentError, triggerShowCommentError] = useTrigger(false);
-
   const [errorMessage, setErrorMessage] = useState(null);
 
   const formatDate = (date) => {
     if (!date) return "";
     const [month, day, year] = date.split("-");
     return `${year}-${month}-${day}`;
+  };
+
+  const arrayBufferToBase64 = (buffer) => {
+    const binary = new Uint8Array(buffer);
+    return btoa(String.fromCharCode.apply(null, binary));
   };
 
   const fetchSWTD = () => {
@@ -68,6 +92,52 @@ const EditSWTD = () => {
           points: data.points,
           benefits: data.benefits,
         });
+      },
+      (error) => {
+        console.log("Error fetching SWTD data: ", error);
+      }
+    );
+  };
+
+  const fetchSWTDProof = () => {
+    getSWTDProof(
+      {
+        form_id: id,
+        token: token,
+      },
+      (response) => {
+        console.log(response);
+        const contentType = response.headers["content-type"];
+        const base64ImageString = arrayBufferToBase64(response.data);
+
+        let fileType = "image/png";
+        let type = "img";
+
+        if (contentType.includes("application/pdf")) {
+          fileType = "application/pdf";
+          type = "pdf";
+        }
+
+        const srcValue = `data:${fileType};base64,${base64ImageString}`;
+        setSWTDProof({
+          src: srcValue,
+          type: type,
+        });
+      },
+      (error) => {
+        console.log("Error fetching SWTD data: ", error);
+      }
+    );
+  };
+
+  const fetchSWTDValidation = () => {
+    getSWTDValidation(
+      {
+        form_id: id,
+        token: token,
+      },
+      (response) => {
+        setStatus(response.data);
       },
       (error) => {
         console.log("Error fetching SWTD data: ", error);
@@ -205,11 +275,43 @@ const EditSWTD = () => {
   useEffect(() => {
     fetchSWTD();
     fetchComments();
+    fetchSWTDValidation();
   }, []);
 
   return (
     <div className={styles.background}>
       <Container className="d-flex flex-column justify-content-start align-items-start">
+        <Modal
+          show={showProofModal}
+          onHide={closeProofModal}
+          size="lg"
+          centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Proof</Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="d-flex justify-content-center align-items-center">
+            <Row className="w-100">
+              {swtdProof?.type === "img" && (
+                <img
+                  src={swtdProof?.src}
+                  title="SWTD Proof"
+                  className={styles.imgProof}
+                />
+              )}
+
+              {swtdProof?.type === "pdf" && (
+                <object
+                  data={swtdProof?.src}
+                  type="application/pdf"
+                  width="100%"
+                  height="500px"
+                  aria-label="SWTD Proof PDF">
+                  <p>PDF could not be displayed. Please download it instead.</p>
+                </object>
+              )}
+            </Row>
+          </Modal.Body>
+        </Modal>
         <Row className="w-100 mb-2">
           <Col>
             <h3 className={styles.label}>
@@ -234,7 +336,9 @@ const EditSWTD = () => {
           </Col>
         </Row>
         <Card className="mb-3 w-100">
-          <Card.Header className={styles.cardHeader}>SWTD Details</Card.Header>
+          <Card.Header className={styles.cardHeader}>
+            Status: {status?.status}
+          </Card.Header>
           <Card.Body className={`${styles.cardBody} p-4`}>
             {showError && (
               <div className="alert alert-danger mb-3" role="alert">
@@ -409,7 +513,7 @@ const EditSWTD = () => {
                           </Form.Control.Feedback>
                         )}
 
-                        {!isEmpty(form.date) && !isValidDate(form.date) && (
+                        {!isEmpty(form.date) && !isValidDate(form?.date) && (
                           <Form.Control.Feedback type="invalid">
                             Date must be valid.
                           </Form.Control.Feedback>
@@ -429,12 +533,22 @@ const EditSWTD = () => {
                     <Form.Label className={styles.formLabel} column sm="2">
                       Proof
                     </Form.Label>
-                    <Col className="text-start" sm="10">
-                      <Form.Control
-                        type="file"
-                        className={styles.formBox}
-                        name="proof"
-                      />
+
+                    <Col className="d-flex justify-content-start align-items-center">
+                      <Row className="w-100">
+                        <Col className="text-start" md="auto">
+                          <BtnPrimary
+                            onClick={() => {
+                              fetchSWTDProof();
+                              openProofModal();
+                            }}>
+                            View
+                          </BtnPrimary>
+                        </Col>
+                        <Col className="text-start">
+                          <BtnSecondary>Change Proof</BtnSecondary>
+                        </Col>
+                      </Row>
                     </Col>
                   </Form.Group>
                 </Col>
@@ -491,7 +605,7 @@ const EditSWTD = () => {
                               className={styles.formBox}
                               name="time_finished"
                               onChange={handleChange}
-                              value={form.time_finished}
+                              value={form?.time_finished}
                               isInvalid={
                                 isTimeInvalid(form.time_finished) ||
                                 (!isEmpty(form.time_started) &&
@@ -508,6 +622,8 @@ const EditSWTD = () => {
                     )}
                   </Form.Group>
                 </Col>
+
+                {/* Points */}
                 <Col className="text-end">
                   <Form.Group as={Row} className="mb-3" controlId="inputPoints">
                     <Form.Label className={styles.formLabel} column sm="2">
@@ -613,7 +729,7 @@ const EditSWTD = () => {
                           )}
                         </ListGroup.Item>
                       ))}
-                    <CommentModal
+                    <EditCommentModal
                       show={showCommentModal}
                       onHide={closeCommentModal}
                       data={selectedComment}
