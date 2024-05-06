@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, Card, Form, FloatingLabel, Button, ListGroup, Badge, Modal } from "react-bootstrap"; /* prettier-ignore */
@@ -52,6 +52,7 @@ const EditSWTD = () => {
   const [showModal, openModal, closeModal] = useSwitch();
   const [showCommentModal, openCommentModal, closeCommentModal] = useSwitch();
   const [showProofModal, openProofModal, closeProofModal] = useSwitch();
+  const [showEditProof, openEditProof, closeEditProof] = useSwitch();
 
   const [isEditing, enableEditing, cancelEditing] = useSwitch();
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
@@ -252,6 +253,16 @@ const EditSWTD = () => {
     );
   };
 
+  const proofSuccess = async () => {
+    triggerShowSuccess(3000);
+    fetchSWTDProof();
+  };
+
+  const proofError = (message) => {
+    setErrorMessage(message);
+    triggerShowError(3000);
+  };
+
   const editSuccess = async () => {
     await fetchComments();
   };
@@ -281,6 +292,7 @@ const EditSWTD = () => {
   return (
     <div className={styles.background}>
       <Container className="d-flex flex-column justify-content-start align-items-start">
+        {/* View Proof Modal */}
         <Modal
           show={showProofModal}
           onHide={closeProofModal}
@@ -296,6 +308,7 @@ const EditSWTD = () => {
                   src={swtdProof?.src}
                   title="SWTD Proof"
                   className={styles.imgProof}
+                  alt="SWTD Proof"
                 />
               )}
 
@@ -312,6 +325,8 @@ const EditSWTD = () => {
             </Row>
           </Modal.Body>
         </Modal>
+
+        {/* Header */}
         <Row className="w-100 mb-2">
           <Col>
             <h3 className={styles.label}>
@@ -321,6 +336,8 @@ const EditSWTD = () => {
               Training Information
             </h3>
           </Col>
+
+          {/* Editing/Cancel Editing Buttons */}
           <Col className="text-end">
             {isEditing ? (
               <BtnSecondary
@@ -335,6 +352,8 @@ const EditSWTD = () => {
             )}
           </Col>
         </Row>
+
+        {/* SWTD Information */}
         <Card className="mb-3 w-100">
           <Card.Header className={styles.cardHeader}>
             Status: {status?.status}
@@ -546,11 +565,19 @@ const EditSWTD = () => {
                           </BtnPrimary>
                         </Col>
                         <Col className="text-start">
-                          <BtnSecondary>Change Proof</BtnSecondary>
+                          <BtnSecondary onClick={() => openEditProof()}>
+                            Change Proof
+                          </BtnSecondary>
                         </Col>
                       </Row>
                     </Col>
                   </Form.Group>
+                  <EditProofModal
+                    show={showEditProof}
+                    onHide={closeEditProof}
+                    editSuccess={proofSuccess}
+                    editError={proofError}
+                  />
                 </Col>
               </Row>
 
@@ -680,6 +707,7 @@ const EditSWTD = () => {
           </Card.Body>
         </Card>
 
+        {/* Comments */}
         {!isEditing && (
           <Card className="mb-3 w-100">
             <Card.Header className={styles.cardHeader}>Comments</Card.Header>
@@ -735,6 +763,7 @@ const EditSWTD = () => {
                       data={selectedComment}
                       editSuccess={editSuccess}
                     />
+
                     <ConfirmationModal
                       show={showModal}
                       onHide={closeModal}

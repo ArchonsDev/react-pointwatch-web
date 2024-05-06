@@ -151,3 +151,28 @@ export const editSWTD = async (data, onSuccess, onFail, onCleanup) => {
     onCleanup && onCleanup();
   }
 };
+
+export const editProof = async (data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.put(
+      `http://localhost:5000/swtds/${data.id}/validation/proof`,
+      {
+        proof: data.proof,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};
