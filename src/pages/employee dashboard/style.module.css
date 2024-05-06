@@ -56,6 +56,12 @@
   border: grey 1px solid !important;
 }
 
+.pointsBox {
+  border: grey 1px solid !important;
+  font-family: "Poppins-SemiBold";
+  color: #d80085 !important;
+}
+
 .triangle {
   cursor: pointer;
 }
@@ -82,4 +88,9 @@
 
 .comment {
   font-family: "Poppins-Light";
+}
+
+.imgProof {
+  height: 60%;
+  width: 60%;
 }

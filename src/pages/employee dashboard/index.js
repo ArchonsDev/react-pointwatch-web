@@ -52,16 +52,19 @@ const SWTDDashboard = () => {
 
         <Row className={`${styles.employeeDetails} w-100 mb-3`}>
           <Col xs="auto">
-            <i className="fa-regular fa-calendar"></i> Term
+            <i className="fa-regular fa-calendar me-2"></i> Term:
           </Col>
           <Col xs="auto">
-            <i className="fa-solid fa-building"></i> {user?.department}
+            <i className="fa-solid fa-building me-2"></i>Department:{" "}
+            {user?.department}
           </Col>
           <Col xs="auto">
-            <i className="fa-solid fa-circle-plus"></i> Total Points
+            <i className="fa-solid fa-circle-plus me-2"></i>Total Points:{" "}
+            {user?.swtd_points.valid_points}
           </Col>
           <Col xs="auto">
-            <i className="fa-solid fa-plus-minus"></i> Excess/Lacking Points
+            <i className="fa-solid fa-plus-minus me-2"></i>Excess/Lacking
+            Points:
           </Col>
         </Row>
 
@@ -118,7 +121,7 @@ const SWTDDashboard = () => {
                     <Col xs={1}>{item.id}</Col>
                     <Col xs={7}>{item.title}</Col>
                     <Col xs={2}>{item.points}</Col>
-                    <Col xs={2}>Pending</Col>
+                    <Col xs={2}>{item.validation.status}</Col>
                   </Row>
                 </ListGroup.Item>
               ))}
