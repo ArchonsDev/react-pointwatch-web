@@ -14,19 +14,18 @@ import { getComments, postComment, deleteComment } from "../../api/comments"; /*
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
-import CommentModal from "../../common/modals/CommentModal";
+import EditCommentModal from "../../common/modals/EditCommentModal";
+import EditProofModal from "../../common/modals/EditProofModal";
 import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import styles from "./style.module.css";
 
 const EditSWTD = () => {
   const { id } = useParams();
-  const inputFile = useRef(null);
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
 
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
-  const [isProofInvalid, setIsProofInvalid] = useState(false);
 
   const [status, setStatus] = useState({
     status: "",
@@ -45,23 +44,19 @@ const EditSWTD = () => {
     points: "",
     benefits: "",
   });
+
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
-
-  const [showProof, setShowProof] = useState(false);
-  const handleCloseProof = () => setShowProof(false);
-  const handleShowProof = () => setShowProof(true);
 
   const [selectedComment, setSelectedComment] = useState(null);
   const [showModal, openModal, closeModal] = useSwitch();
   const [showCommentModal, openCommentModal, closeCommentModal] = useSwitch();
+  const [showProofModal, openProofModal, closeProofModal] = useSwitch();
 
   const [isEditing, enableEditing, cancelEditing] = useSwitch();
-
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [showCommentError, triggerShowCommentError] = useTrigger(false);
-
   const [errorMessage, setErrorMessage] = useState(null);
 
   const formatDate = (date) => {
@@ -155,26 +150,6 @@ const EditSWTD = () => {
       ...form,
       [e.target.name]: e.target.value,
     });
-  };
-
-  const handleProof = (e) => {
-    const file = e.target.files[0];
-    const allowedTypes = [
-      "application/pdf",
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-    ];
-    if (file && allowedTypes.includes(file.type)) {
-      setForm({
-        ...form,
-        proof: file,
-      });
-      setIsProofInvalid(false);
-    } else {
-      inputFile.current.value = null;
-      setIsProofInvalid(true);
-    }
   };
 
   const isTimeInvalid = () => {
@@ -306,7 +281,11 @@ const EditSWTD = () => {
   return (
     <div className={styles.background}>
       <Container className="d-flex flex-column justify-content-start align-items-start">
-        <Modal show={showProof} onHide={handleCloseProof} size="lg" centered>
+        <Modal
+          show={showProofModal}
+          onHide={closeProofModal}
+          size="lg"
+          centered>
           <Modal.Header closeButton>
             <Modal.Title>Proof</Modal.Title>
           </Modal.Header>
@@ -556,13 +535,20 @@ const EditSWTD = () => {
                     </Form.Label>
 
                     <Col className="d-flex justify-content-start align-items-center">
-                      <BtnPrimary
-                        onClick={() => {
-                          fetchSWTDProof();
-                          handleShowProof();
-                        }}>
-                        View
-                      </BtnPrimary>
+                      <Row className="w-100">
+                        <Col className="text-start" md="auto">
+                          <BtnPrimary
+                            onClick={() => {
+                              fetchSWTDProof();
+                              openProofModal();
+                            }}>
+                            View
+                          </BtnPrimary>
+                        </Col>
+                        <Col className="text-start">
+                          <BtnSecondary>Change Proof</BtnSecondary>
+                        </Col>
+                      </Row>
                     </Col>
                   </Form.Group>
                 </Col>
@@ -636,6 +622,8 @@ const EditSWTD = () => {
                     )}
                   </Form.Group>
                 </Col>
+
+                {/* Points */}
                 <Col className="text-end">
                   <Form.Group as={Row} className="mb-3" controlId="inputPoints">
                     <Form.Label className={styles.formLabel} column sm="2">
@@ -741,7 +729,7 @@ const EditSWTD = () => {
                           )}
                         </ListGroup.Item>
                       ))}
-                    <CommentModal
+                    <EditCommentModal
                       show={showCommentModal}
                       onHide={closeCommentModal}
                       data={selectedComment}

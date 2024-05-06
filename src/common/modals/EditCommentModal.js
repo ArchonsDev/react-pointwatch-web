@@ -12,7 +12,7 @@ import ConfirmationModal from "./ConfirmationModal";
 import BtnPrimary from "../buttons/BtnPrimary";
 import styles from "./style.module.css";
 
-const CommentModal = ({ show, onHide, data, editSuccess }) => {
+const EditCommentModal = ({ show, onHide, data, editSuccess }) => {
   const { id } = useParams();
   const token = Cookies.get("userToken");
   const [showModal, openModal, closeModal] = useSwitch();
@@ -87,7 +87,7 @@ const CommentModal = ({ show, onHide, data, editSuccess }) => {
               Comment edited!
             </div>
           )}
-          <Form onSubmit={(e) => e.preventDefault()}>
+          <Form noValidate onSubmit={(e) => e.preventDefault()}>
             <Row className="w-100">
               <Form.Group controlId="inputMessage">
                 <Form.Control
@@ -96,7 +96,11 @@ const CommentModal = ({ show, onHide, data, editSuccess }) => {
                   onChange={handleChange}
                   value={comment.message}
                   className={styles.comment}
+                  isInvalid={isEmpty(comment.message)}
                 />
+                <Form.Control.Feedback type="invalid">
+                  Comment cannot be empty.
+                </Form.Control.Feedback>
               </Form.Group>
             </Row>
           </Form>
@@ -108,7 +112,8 @@ const CommentModal = ({ show, onHide, data, editSuccess }) => {
                 onClick={() => {
                   openModal();
                   onHide();
-                }}>
+                }}
+                disabled={isEmpty(comment.message)}>
                 Save
               </BtnPrimary>
             </Col>
@@ -127,4 +132,4 @@ const CommentModal = ({ show, onHide, data, editSuccess }) => {
   );
 };
 
-export default CommentModal;
+export default EditCommentModal;
