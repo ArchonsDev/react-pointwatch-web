@@ -3,19 +3,20 @@ import Cookies from "js-cookie";
 import { useParams } from "react-router-dom";
 import { Modal, Row, Col, Form } from "react-bootstrap";
 
+import { editProof } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
-import { useTrigger } from "../../hooks/useTrigger";
 
 import ConfirmationModal from "./ConfirmationModal";
 import BtnPrimary from "../buttons/BtnPrimary";
 import styles from "./style.module.css";
 
-const EditProofModal = ({ show, onHide, data, editSuccess, editError }) => {
+const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
   const { id } = useParams();
   const inputFile = useRef(null);
   const token = Cookies.get("userToken");
-  const [isProofInvalid, setIsProofInvalid] = useState(false);
+  const [proof, setProof] = useState(null);
   const [showModal, openModal, closeModal] = useSwitch();
+  const [isProofInvalid, setIsProofInvalid] = useState(false);
 
   const handleProof = (e) => {
     const file = e.target.files[0];
@@ -26,10 +27,7 @@ const EditProofModal = ({ show, onHide, data, editSuccess, editError }) => {
       "image/jpg",
     ];
     if (file && allowedTypes.includes(file.type)) {
-      // setForm({
-      //   ...form,
-      //   proof: file,
-      // });
+      setProof(file);
       setIsProofInvalid(false);
     } else {
       inputFile.current.value = null;
@@ -37,24 +35,43 @@ const EditProofModal = ({ show, onHide, data, editSuccess, editError }) => {
     }
   };
 
-  const updateProof = () => {};
+  const updateProof = async () => {
+    await editProof(
+      {
+        id: id,
+        token: token,
+        proof: proof,
+      },
+      (response) => {
+        closeModal();
+        onHide();
+        editSuccess();
+      },
+      (error) => {
+        console.log(error.response.data.msg);
+        editError(error.response.data.msg);
+      }
+    );
+  };
 
   return (
     <>
       <Modal size="md" show={show} onHide={onHide} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Edit Comment</Modal.Title>
+          <Modal.Title>Change Proof</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className={styles.comment}>
           <Form noValidate onSubmit={(e) => e.preventDefault()}>
-            <Row className="w-100">
-              <Form.Group controlId="inputProof">
-                <Form.Control type="text" name="message" />
-                <Form.Control.Feedback type="invalid">
-                  Comment cannot be empty.
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Row>
+            <Form.Group controlId="inputProof">
+              <Form.Control
+                type="file"
+                name="proof"
+                onChange={handleProof}
+                ref={inputFile}
+                isInvalid={isProofInvalid}
+              />
+              <Form.Text muted>Only upload PDFs, PNG, JPG/JPEG.</Form.Text>
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -64,7 +81,8 @@ const EditProofModal = ({ show, onHide, data, editSuccess, editError }) => {
                 onClick={() => {
                   openModal();
                   onHide();
-                }}>
+                }}
+                disabled={isProofInvalid || !proof}>
                 Save
               </BtnPrimary>
             </Col>
@@ -76,7 +94,7 @@ const EditProofModal = ({ show, onHide, data, editSuccess, editError }) => {
         show={showModal}
         onHide={closeModal}
         onConfirm={updateProof}
-        header={"Update Comment"}
+        header={"Update Proof"}
         message={"Do you wish to save these changes?"}
       />
     </>

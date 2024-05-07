@@ -2,17 +2,20 @@ import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup } from "react-bootstrap"; /* prettier-ignore */
+
 import { getAllSWTDs } from "../../api/swtd";
 import SessionUserContext from "../../contexts/SessionUserContext";
+
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
 
 const SWTDDashboard = () => {
+  const id = Cookies.get("userID");
+  const token = Cookies.get("userToken");
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
+
   const [userSWTDs, setUserSWTDs] = useState([]);
-  const token = Cookies.get("userToken");
-  const id = Cookies.get("userID");
 
   const fetchAllSWTDs = async () => {
     await getAllSWTDs(
@@ -31,10 +34,6 @@ const SWTDDashboard = () => {
     );
   };
 
-  useEffect(() => {
-    fetchAllSWTDs();
-  }, []);
-
   const handleAddRecordClick = () => {
     navigate("/swtd/form");
   };
@@ -42,6 +41,10 @@ const SWTDDashboard = () => {
   const handleEditRecordClick = (id) => {
     navigate(`/swtd/${id}`);
   };
+
+  useEffect(() => {
+    fetchAllSWTDs();
+  }, []);
 
   return (
     <div className={styles.background}>
@@ -85,9 +88,9 @@ const SWTDDashboard = () => {
               </Form.Label>
               <Col sm="9">
                 <Form.Select name="filter">
+                  <option value="">No.</option>
                   <option value="">Points</option>
                   <option value="">Status</option>
-                  <option value="">Yeah</option>
                 </Form.Select>
               </Col>
             </Form.Group>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, Card, Form, FloatingLabel, Button, ListGroup, Badge, Modal } from "react-bootstrap"; /* prettier-ignore */
@@ -9,7 +9,7 @@ import roles from "../../data/roles.json";
 import { isEmpty, isValidDate } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
-import { getSWTD, getSWTDProof, getSWTDValidation, editSWTD } from "../../api/swtd"; /* prettier-ignore */
+import { getSWTD, getSWTDProof, getSWTDValidation, editSWTD, deleteSWTD } from "../../api/swtd"; /* prettier-ignore */
 import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -26,6 +26,22 @@ const EditSWTD = () => {
 
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
+
+  const [selectedComment, setSelectedComment] = useState(null);
+  const [showModal, openModal, closeModal] = useSwitch();
+  const [showCommentModal, openCommentModal, closeCommentModal] = useSwitch();
+  const [showProofModal, openProofModal, closeProofModal] = useSwitch();
+  const [showEditProof, openEditProof, closeEditProof] = useSwitch();
+  const [showDeleteModal, openDeleteModal, closeDeleteModal] = useSwitch();
+
+  const [isEditing, enableEditing, cancelEditing] = useSwitch();
+  const [showSuccess, triggerShowSuccess] = useTrigger(false);
+  const [showError, triggerShowError] = useTrigger(false);
+  const [showCommentError, triggerShowCommentError] = useTrigger(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState([]);
 
   const [status, setStatus] = useState({
     status: "",
@@ -45,29 +61,10 @@ const EditSWTD = () => {
     benefits: "",
   });
 
-  const [comment, setComment] = useState("");
-  const [comments, setComments] = useState([]);
-
-  const [selectedComment, setSelectedComment] = useState(null);
-  const [showModal, openModal, closeModal] = useSwitch();
-  const [showCommentModal, openCommentModal, closeCommentModal] = useSwitch();
-  const [showProofModal, openProofModal, closeProofModal] = useSwitch();
-
-  const [isEditing, enableEditing, cancelEditing] = useSwitch();
-  const [showSuccess, triggerShowSuccess] = useTrigger(false);
-  const [showError, triggerShowError] = useTrigger(false);
-  const [showCommentError, triggerShowCommentError] = useTrigger(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-
   const formatDate = (date) => {
     if (!date) return "";
     const [month, day, year] = date.split("-");
     return `${year}-${month}-${day}`;
-  };
-
-  const arrayBufferToBase64 = (buffer) => {
-    const binary = new Uint8Array(buffer);
-    return btoa(String.fromCharCode.apply(null, binary));
   };
 
   const fetchSWTD = () => {
@@ -106,22 +103,15 @@ const EditSWTD = () => {
         token: token,
       },
       (response) => {
-        console.log(response);
         const contentType = response.headers["content-type"];
-        const base64ImageString = arrayBufferToBase64(response.data);
 
-        let fileType = "image/png";
-        let type = "img";
+        const uint8Array = new Uint8Array(response.data);
+        const blob = new Blob([uint8Array], { type: contentType });
+        const blobURL = URL.createObjectURL(blob);
 
-        if (contentType.includes("application/pdf")) {
-          fileType = "application/pdf";
-          type = "pdf";
-        }
-
-        const srcValue = `data:${fileType};base64,${base64ImageString}`;
         setSWTDProof({
-          src: srcValue,
-          type: type,
+          src: blobURL,
+          type: contentType,
         });
       },
       (error) => {
@@ -252,6 +242,16 @@ const EditSWTD = () => {
     );
   };
 
+  const proofSuccess = async () => {
+    triggerShowSuccess(3000);
+    fetchSWTDProof();
+  };
+
+  const proofError = (message) => {
+    setErrorMessage(message);
+    triggerShowError(3000);
+  };
+
   const editSuccess = async () => {
     await fetchComments();
   };
@@ -272,6 +272,21 @@ const EditSWTD = () => {
     );
   };
 
+  const handleDeleteRecord = async () => {
+    await deleteSWTD(
+      {
+        id: id,
+        token: token,
+      },
+      (response) => {
+        navigate("/swtd");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  };
+
   useEffect(() => {
     fetchSWTD();
     fetchComments();
@@ -281,37 +296,37 @@ const EditSWTD = () => {
   return (
     <div className={styles.background}>
       <Container className="d-flex flex-column justify-content-start align-items-start">
+        {/* View Proof Modal */}
         <Modal
           show={showProofModal}
           onHide={closeProofModal}
           size="lg"
           centered>
-          <Modal.Header closeButton>
-            <Modal.Title>Proof</Modal.Title>
-          </Modal.Header>
           <Modal.Body className="d-flex justify-content-center align-items-center">
             <Row className="w-100">
-              {swtdProof?.type === "img" && (
+              {swtdProof?.type.startsWith("image") && (
                 <img
                   src={swtdProof?.src}
                   title="SWTD Proof"
                   className={styles.imgProof}
+                  alt="SWTD Proof"
                 />
               )}
 
-              {swtdProof?.type === "pdf" && (
-                <object
-                  data={swtdProof?.src}
+              {swtdProof?.type === "application/pdf" && (
+                <iframe
+                  src={swtdProof?.src}
                   type="application/pdf"
                   width="100%"
-                  height="500px"
-                  aria-label="SWTD Proof PDF">
-                  <p>PDF could not be displayed. Please download it instead.</p>
-                </object>
+                  height="650px"
+                  title="SWTD Proof PDF"
+                  aria-label="SWTD Proof PDF"></iframe>
               )}
             </Row>
           </Modal.Body>
         </Modal>
+
+        {/* Header */}
         <Row className="w-100 mb-2">
           <Col>
             <h3 className={styles.label}>
@@ -321,23 +336,37 @@ const EditSWTD = () => {
               Training Information
             </h3>
           </Col>
-          <Col className="text-end">
-            {isEditing ? (
-              <BtnSecondary
-                onClick={() => {
-                  cancelEditing();
-                  fetchSWTD();
-                }}>
-                Cancel Editing
-              </BtnSecondary>
-            ) : (
-              <BtnSecondary onClick={enableEditing}>Edit</BtnSecondary>
-            )}
-          </Col>
         </Row>
+
+        {/* SWTD Information */}
         <Card className="mb-3 w-100">
           <Card.Header className={styles.cardHeader}>
-            Status: {status?.status}
+            <Row>
+              <Col>Status: {status?.status}</Col>
+              <Col className="text-end">
+                {isEditing ? (
+                  <BtnSecondary
+                    onClick={() => {
+                      cancelEditing();
+                      fetchSWTD();
+                    }}>
+                    Cancel Editing
+                  </BtnSecondary>
+                ) : (
+                  <>
+                    <BtnSecondary onClick={enableEditing}>Edit</BtnSecondary>{" "}
+                    <BtnPrimary onClick={openDeleteModal}>Delete</BtnPrimary>
+                  </>
+                )}
+              </Col>
+              <ConfirmationModal
+                show={showDeleteModal}
+                onHide={closeDeleteModal}
+                onConfirm={handleDeleteRecord}
+                header={"Delete SWTD"}
+                message={"Do you wish to delete this submission?"}
+              />
+            </Row>
           </Card.Header>
           <Card.Body className={`${styles.cardBody} p-4`}>
             {showError && (
@@ -546,11 +575,19 @@ const EditSWTD = () => {
                           </BtnPrimary>
                         </Col>
                         <Col className="text-start">
-                          <BtnSecondary>Change Proof</BtnSecondary>
+                          <BtnSecondary onClick={() => openEditProof()}>
+                            Change Proof
+                          </BtnSecondary>
                         </Col>
                       </Row>
                     </Col>
                   </Form.Group>
+                  <EditProofModal
+                    show={showEditProof}
+                    onHide={closeEditProof}
+                    editSuccess={proofSuccess}
+                    editError={proofError}
+                  />
                 </Col>
               </Row>
 
@@ -680,6 +717,7 @@ const EditSWTD = () => {
           </Card.Body>
         </Card>
 
+        {/* Comments */}
         {!isEditing && (
           <Card className="mb-3 w-100">
             <Card.Header className={styles.cardHeader}>Comments</Card.Header>
@@ -735,6 +773,7 @@ const EditSWTD = () => {
                       data={selectedComment}
                       editSuccess={editSuccess}
                     />
+
                     <ConfirmationModal
                       show={showModal}
                       onHide={closeModal}
