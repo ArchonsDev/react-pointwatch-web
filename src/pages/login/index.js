@@ -11,7 +11,6 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 import logo1 from "../../images/logo1.png";
-import { clear } from "@testing-library/user-event/dist/clear";
 
 const Login = () => {
   const { user, setUser } = useContext(SessionUserContext);

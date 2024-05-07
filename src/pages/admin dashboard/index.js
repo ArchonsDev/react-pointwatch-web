@@ -5,11 +5,11 @@ import { Row, Col, Container, InputGroup, Form, ListGroup } from "react-bootstra
 
 import { getAllUsers } from "../../api/admin";
 import SessionUserContext from "../../contexts/SessionUserContext";
-import BtnPrimary from "../../common/buttons/BtnPrimary";
 
+import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
 
-const AdminDashboard = () => {
+const Dashboard = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
@@ -31,24 +31,22 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
+    if (!user?.is_admin && !user?.is_staff && !user?.is_superuser) {
+      navigate("/swtd");
+    }
+
     fetchAllUsers();
   }, []);
 
-  useEffect(() => {
-    if (!user?.is_admin && !user?.is_superuser) {
-      navigate("/swtd");
-    }
-  }, []);
-
   const handleEmployeeSWTDClick = (id) => {
-    navigate(`/admin/${id}`);
+    navigate(`/dashboard/${id}`);
   };
 
   return (
     <div className={styles.background}>
       <Container className="d-flex flex-column justify-content-start align-items-start">
         <Row className="mb-2">
-          <h3 className={styles.label}>Admin Dashboard</h3>
+          <h3 className={styles.label}>Dashboard</h3>
         </Row>
 
         <Row className="w-100">
@@ -67,28 +65,29 @@ const AdminDashboard = () => {
                 Filter
               </Form.Label>
               <Col sm="9">
-                <Form.Select name="filter">
+                <Form.Select className={styles.filterOption} name="filter">
+                  <option disabled>Select filter</option>
+                  <option value="">Department</option>
                   <option value="">Points</option>
-                  <option value="">Status</option>
-                  <option value="">Yeah</option>
                 </Form.Select>
               </Col>
             </Form.Group>
           </Col>
           <Col className="text-end" md={3}>
-            <BtnPrimary>Export Report</BtnPrimary>
+            <BtnPrimary onClick={() => window.print()}>
+              Export Report
+            </BtnPrimary>
           </Col>
         </Row>
 
-        {/* Follow the UI in the doc for this table */}
         <Row className="w-100">
           <ListGroup className="w-100" variant="flush">
             <ListGroup.Item className={styles.tableHeader}>
               <Row>
                 <Col xs={3}>ID No.</Col>
-                <Col xs={4}>Name</Col>
+                <Col xs={5}>Name</Col>
                 <Col xs={3}>Department</Col>
-                <Col xs={2}>Points</Col>
+                <Col xs={1}>Points</Col>
               </Row>
             </ListGroup.Item>
           </ListGroup>
@@ -100,15 +99,14 @@ const AdminDashboard = () => {
                   <ListGroup.Item
                     key={item.id}
                     className={styles.tableBody}
-                    onClick={() => handleEmployeeSWTDClick(item.id)}
-                  >
+                    onClick={() => handleEmployeeSWTDClick(item.id)}>
                     <Row>
                       <Col xs={3}>{item.employee_id}</Col>
-                      <Col xs={4}>
+                      <Col xs={5}>
                         {item.firstname} {item.lastname}
                       </Col>
                       <Col xs={3}>{item.department}</Col>
-                      <Col xs={2}>{item.swtd_points.valid_points}</Col>
+                      <Col xs={1}>{item.swtd_points.valid_points}</Col>
                     </Row>
                   </ListGroup.Item>
                 ))}
@@ -119,4 +117,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default Dashboard;

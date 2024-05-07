@@ -22,6 +22,10 @@
   font-family: "Poppins-Medium";
 }
 
+.filterOption {
+  font-family: "Poppins-Regular";
+}
+
 .tableHeader {
   background-color: #e8b4bc !important;
   font-family: "Poppins-Medium";
@@ -58,4 +62,23 @@
 
 .triangle {
   cursor: pointer;
+}
+
+.commentEdit {
+  cursor: pointer;
+  color: #3a3238;
+}
+
+.commentDelete {
+  cursor: pointer;
+  color: red;
+}
+
+.comment {
+  font-family: "Poppins-Light";
+}
+
+.button {
+  background-color: #d80085 !important;
+  border: none !important;
 }

@@ -11,7 +11,7 @@ import BtnPrimary from "../buttons/BtnPrimary";
 import styles from "./style.module.css";
 
 const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
-  const { id } = useParams();
+  const { swtd_id } = useParams();
   const inputFile = useRef(null);
   const token = Cookies.get("userToken");
   const [proof, setProof] = useState(null);
@@ -38,7 +38,7 @@ const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
   const updateProof = async () => {
     await editProof(
       {
-        id: id,
+        id: swtd_id,
         token: token,
         proof: proof,
       },

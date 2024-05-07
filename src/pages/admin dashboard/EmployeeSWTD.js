@@ -8,9 +8,11 @@ import { getUser } from "../../api/user";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
 
 const EmployeeSWTD = () => {
+  const { user } = useContext(SessionUserContext);
   const { id } = useParams();
   const token = Cookies.get("userToken");
   const navigate = useNavigate();
@@ -51,22 +53,23 @@ const EmployeeSWTD = () => {
   };
 
   const handleBackClick = () => {
-    navigate("/admin");
+    navigate("/dashboard");
   };
 
+  const handleViewSWTD = (swtd_id) => {
+    navigate(`/dashboard/${id}/${swtd_id}`);
+  };
+
+  const pageTitle = employee ? `${employee.firstname}'s SWTDs` : "SWTDs";
+
   useEffect(() => {
+    if (!user?.is_admin && !user?.is_staff && !user?.is_superuser) {
+      navigate("/swtd");
+    }
+
     fetchUser();
     fetchAllSWTDs();
   }, []);
-
-  const handleViewSWTD = (swtd_id) => {
-    navigate(`/admin/${id}/${swtd_id}`);
-  };
-
-  const pageTitle = employee
-    ? `${employee.firstname}'s SWTD Points Overview`
-    : "SWTD Points Overview";
-
   return (
     <div className={styles.background}>
       <Container className="d-flex flex-column justify-content-start align-items-start">
@@ -74,8 +77,7 @@ const EmployeeSWTD = () => {
           <h3 className={styles.label}>
             <i
               className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
-              onClick={handleBackClick}
-            ></i>{" "}
+              onClick={handleBackClick}></i>{" "}
             {pageTitle}
           </h3>
         </Row>
@@ -96,6 +98,11 @@ const EmployeeSWTD = () => {
             <i className="fa-solid fa-plus-minus me-2"></i>Excess/Lacking
             Points:
           </Col>
+          {user?.is_admin && (
+            <Col className="text-end">
+              <BtnSecondary>Clear Employee</BtnSecondary>
+            </Col>
+          )}
         </Row>
 
         <Row className="w-100">
@@ -122,6 +129,11 @@ const EmployeeSWTD = () => {
               </Col>
             </Form.Group>
           </Col>
+          <Col className="text-end" md={3}>
+            <BtnPrimary onClick={() => window.print()}>
+              Export Report
+            </BtnPrimary>
+          </Col>
         </Row>
 
         <Row className="w-100">
@@ -141,8 +153,7 @@ const EmployeeSWTD = () => {
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
-                  onClick={() => handleViewSWTD(item.id)}
-                >
+                  onClick={() => handleViewSWTD(item.id)}>
                   <Row>
                     <Col xs={1}>{item.id}</Col>
                     <Col xs={7}>{item.title}</Col>
