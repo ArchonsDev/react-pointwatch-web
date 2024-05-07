@@ -2,46 +2,46 @@ import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup } from "react-bootstrap"; /* prettier-ignore */
-import { getAllSWTDs } from "../../api/swtd";
+
+import { getAllUsers } from "../../api/admin";
 import SessionUserContext from "../../contexts/SessionUserContext";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
-import logo from "../../images/logo1.png";
+
 import styles from "./style.module.css";
 
-const SWTDDashboard = () => {
+const AdminDashboard = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
-  const [userSWTDs, setUserSWTDs] = useState([]);
+  const [users, setUsers] = useState([]);
   const token = Cookies.get("userToken");
-  const id = Cookies.get("userID");
+  const userID = Cookies.get("userID");
 
-  const fetchAllSWTDs = async () => {
-    await getAllSWTDs(
+  const fetchAllUsers = async () => {
+    await getAllUsers(
       {
-        author_id: id,
         token: token,
       },
       (response) => {
-        setUserSWTDs(response.swtds);
+        setUsers(response.users);
       },
       (error) => {
-        if (error.response && error.response.data) {
-          console.log(error.response.data.error);
-        }
+        console.log(error);
       }
     );
   };
 
   useEffect(() => {
-    fetchAllSWTDs();
+    fetchAllUsers();
   }, []);
 
-  const handleAddRecordClick = () => {
-    navigate("/swtd/form");
-  };
+  useEffect(() => {
+    if (!user?.is_admin && !user?.is_superuser) {
+      navigate("/swtd");
+    }
+  }, []);
 
-  const handleEditRecordClick = (id) => {
-    navigate(`/swtd/${id}`);
+  const handleEmployeeSWTDClick = (id) => {
+    navigate(`/admin/${id}`);
   };
 
   return (
@@ -76,39 +76,42 @@ const SWTDDashboard = () => {
             </Form.Group>
           </Col>
           <Col className="text-end" md={3}>
-            <BtnPrimary onClick={handleAddRecordClick}>
-              Add a New Record
-            </BtnPrimary>
+            <BtnPrimary>Export Report</BtnPrimary>
           </Col>
         </Row>
 
+        {/* Follow the UI in the doc for this table */}
         <Row className="w-100">
           <ListGroup className="w-100" variant="flush">
             <ListGroup.Item className={styles.tableHeader}>
               <Row>
-                <Col xs={1}>No.</Col>
-                <Col xs={7}>Title of SWTD</Col>
+                <Col xs={3}>ID No.</Col>
+                <Col xs={4}>Name</Col>
+                <Col xs={3}>Department</Col>
                 <Col xs={2}>Points</Col>
-                <Col xs={2}>Status</Col>
               </Row>
             </ListGroup.Item>
           </ListGroup>
           <ListGroup>
-            {userSWTDs &&
-              userSWTDs.map((item) => (
-                <ListGroup.Item
-                  key={item.id}
-                  className={styles.tableBody}
-                  onClick={() => handleEditRecordClick(item.id)}
-                >
-                  <Row>
-                    <Col xs={1}>{item.id}</Col>
-                    <Col xs={7}>{item.title}</Col>
-                    <Col xs={2}>{item.points}</Col>
-                    <Col xs={2}>Pending</Col>
-                  </Row>
-                </ListGroup.Item>
-              ))}
+            {users &&
+              users
+                .filter((item) => item.id !== parseInt(userID, 10))
+                .map((item) => (
+                  <ListGroup.Item
+                    key={item.id}
+                    className={styles.tableBody}
+                    onClick={() => handleEmployeeSWTDClick(item.id)}
+                  >
+                    <Row>
+                      <Col xs={3}>{item.employee_id}</Col>
+                      <Col xs={4}>
+                        {item.firstname} {item.lastname}
+                      </Col>
+                      <Col xs={3}>{item.department}</Col>
+                      <Col xs={2}>{item.swtd_points.valid_points}</Col>
+                    </Row>
+                  </ListGroup.Item>
+                ))}
           </ListGroup>
         </Row>
       </Container>
@@ -116,4 +119,4 @@ const SWTDDashboard = () => {
   );
 };
 
-export default SWTDDashboard;
+export default AdminDashboard;
