@@ -20,9 +20,10 @@ import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import styles from "./style.module.css";
 
 const EditSWTD = () => {
-  const { id } = useParams();
+  const { swtd_id } = useParams();
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
+  const userID = parseInt(Cookies.get("userID"), 10);
 
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
@@ -71,7 +72,7 @@ const EditSWTD = () => {
     getSWTD(
       {
         token: token,
-        form_id: id,
+        form_id: swtd_id,
       },
       (response) => {
         const data = response.data;
@@ -99,7 +100,7 @@ const EditSWTD = () => {
   const fetchSWTDProof = () => {
     getSWTDProof(
       {
-        form_id: id,
+        form_id: swtd_id,
         token: token,
       },
       (response) => {
@@ -123,7 +124,7 @@ const EditSWTD = () => {
   const fetchSWTDValidation = () => {
     getSWTDValidation(
       {
-        form_id: id,
+        form_id: swtd_id,
         token: token,
       },
       (response) => {
@@ -179,7 +180,7 @@ const EditSWTD = () => {
 
     await editSWTD(
       {
-        id: id,
+        id: swtd_id,
         ...form,
         token: token,
       },
@@ -187,6 +188,7 @@ const EditSWTD = () => {
         triggerShowSuccess(3000);
         cancelEditing();
         fetchSWTD();
+        fetchSWTDValidation();
       },
       (error) => {
         if (error.response && error.response.data) {
@@ -213,7 +215,7 @@ const EditSWTD = () => {
 
     postComment(
       {
-        id: id,
+        id: swtd_id,
         token: token,
         message: comment,
       },
@@ -230,7 +232,7 @@ const EditSWTD = () => {
   const fetchComments = () => {
     getComments(
       {
-        id: id,
+        id: swtd_id,
         token: token,
       },
       (response) => {
@@ -245,6 +247,7 @@ const EditSWTD = () => {
   const proofSuccess = async () => {
     triggerShowSuccess(3000);
     fetchSWTDProof();
+    fetchSWTDValidation();
   };
 
   const proofError = (message) => {
@@ -259,7 +262,7 @@ const EditSWTD = () => {
   const handleDelete = async () => {
     await deleteComment(
       {
-        swtd_id: id,
+        swtd_id: swtd_id,
         comment_id: selectedComment.id,
         token: token,
       },
@@ -275,7 +278,7 @@ const EditSWTD = () => {
   const handleDeleteRecord = async () => {
     await deleteSWTD(
       {
-        id: id,
+        id: swtd_id,
         token: token,
       },
       (response) => {
@@ -342,7 +345,18 @@ const EditSWTD = () => {
         <Card className="mb-3 w-100">
           <Card.Header className={styles.cardHeader}>
             <Row>
-              <Col>Status: {status?.status}</Col>
+              <Col>
+                Status:{" "}
+                {status?.status === "PENDING" && (
+                  <span className="text-muted">{status?.status}</span>
+                )}
+                {status?.status === "APPROVED" && (
+                  <span className="text-success">{status?.status}</span>
+                )}
+                {status?.status === "REJECTED" && (
+                  <span className="text-danger">{status?.status}</span>
+                )}
+              </Col>
               <Col className="text-end">
                 {isEditing ? (
                   <BtnSecondary
@@ -744,12 +758,14 @@ const EditSWTD = () => {
                             <Col xs={6}>{item.message}</Col>
                             <Col xs={2}>{item.date_modified}</Col>
                             <Col className="text-end" xs={1}>
-                              <i
-                                className={`${styles.commentEdit} fa-solid fa-pen-to-square`}
-                                onClick={() => {
-                                  openCommentModal();
-                                  setSelectedComment(item);
-                                }}></i>
+                              {item.author.id === userID && (
+                                <i
+                                  className={`${styles.commentEdit} fa-solid fa-pen-to-square`}
+                                  onClick={() => {
+                                    openCommentModal();
+                                    setSelectedComment(item);
+                                  }}></i>
+                              )}
                             </Col>
                             <Col className="text-end" xs={1}>
                               <i

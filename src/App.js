@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
-import { Modal } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import { Routes, Route, useLocation, Navigate, useNavigate } from "react-router-dom"; /* prettier-ignore */
 
@@ -9,11 +8,12 @@ import Register from "./pages/registration";
 import ResetPassword from "./pages/reset password";
 import Authorized from "./pages/authorized";
 
-import Dashboard from "./pages/dashboard";
 import SWTDDashboard from "./pages/employee dashboard";
 import AddSWTD from "./pages/employee dashboard/AddSWTD";
 import EditSWTD from "./pages/employee dashboard/EditSWTD";
-import AdminDashboard from "./pages/admin dashboard";
+import Dashboard from "./pages/admin dashboard";
+import EmployeeSWTD from "./pages/admin dashboard/EmployeeSWTD";
+import ViewSWTD from "./pages/admin dashboard/ViewSWTD";
 
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
@@ -22,8 +22,6 @@ import SessionUserContext from "./contexts/SessionUserContext";
 import { getUser } from "./api/user";
 
 import styles from "./styles/App.module.css";
-import BtnSecondary from "./common/buttons/BtnSecondary";
-import BtnPrimary from "./common/buttons/BtnPrimary";
 
 const App = () => {
   const location = useLocation();
@@ -55,25 +53,28 @@ const App = () => {
     );
   };
 
-  const showDrawer = ["/dashboard", "/swtd", "/admin", "/settings"].some(
-    (path) => location.pathname.startsWith(path)
+  const showDrawer = ["/swtd", "/dashboard", "/settings"].some((path) =>
+    location.pathname.startsWith(path)
   );
 
   const tabNames = {
     "/login": "Login",
     "/register": "Register",
     "/dashboard": "Dashboard",
+    "/dashboard/:id": "Dashboard",
+    "/dashboard/:id/:swtd_id": "Dashboard",
     "/reset": "Reset Password",
     "/settings": "Settings",
     "/swtd": "SWTD Points Overview",
     "/swtd/form": "Add a New Record",
-    "/admin": "Admin",
   };
 
   document.title =
     location.pathname.startsWith("/swtd/") &&
     !location.pathname.startsWith("/swtd/form")
       ? "Training Information"
+      : location.pathname.startsWith("/dashboard")
+      ? "Dashboard"
       : tabNames[location.pathname] || "WildPark";
 
   useEffect(() => {
@@ -123,7 +124,7 @@ const App = () => {
             element={token ? <AddSWTD /> : <Navigate to="/login" />}
           />
           <Route
-            path="/swtd/:id"
+            path="/swtd/:swtd_id"
             element={token ? <EditSWTD /> : <Navigate to="/login" />}
           />
           <Route
@@ -134,9 +135,15 @@ const App = () => {
             path="/dashboard"
             element={token ? <Dashboard /> : <Navigate to="/login" />}
           />
+
           <Route
-            path="/admin"
-            element={token ? <AdminDashboard /> : <Navigate to="/login" />}
+            path="/dashboard/:id"
+            element={token ? <EmployeeSWTD /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path="/dashboard/:id/:swtd_id"
+            element={token ? <ViewSWTD /> : <Navigate to="/login" />}
           />
         </Routes>
       </SessionUserContext.Provider>

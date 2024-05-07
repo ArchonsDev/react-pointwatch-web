@@ -123,7 +123,7 @@ const AddSWTD = () => {
       const [year, month, day] = form.date.split("-");
       form.date = `${month}-${day}-${year}`;
     }
-    console.log(form);
+
     await addSWTD(
       { ...form, token: accessToken },
       (response) => {

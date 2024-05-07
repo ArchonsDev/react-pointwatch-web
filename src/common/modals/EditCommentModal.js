@@ -13,7 +13,7 @@ import BtnPrimary from "../buttons/BtnPrimary";
 import styles from "./style.module.css";
 
 const EditCommentModal = ({ show, onHide, data, editSuccess }) => {
-  const { id } = useParams();
+  const { swtd_id } = useParams();
   const token = Cookies.get("userToken");
   const [showModal, openModal, closeModal] = useSwitch();
   const [errorMessage, setErrorMessage] = useState(null);
@@ -42,7 +42,7 @@ const EditCommentModal = ({ show, onHide, data, editSuccess }) => {
 
     await editComment(
       {
-        swtd_id: id,
+        swtd_id: swtd_id,
         comment_id: comment.comment_id,
         token: token,
         message: comment.message,
