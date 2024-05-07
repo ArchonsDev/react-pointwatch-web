@@ -82,7 +82,7 @@ const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
                   openModal();
                   onHide();
                 }}
-                disabled={isProofInvalid || !inputFile}>
+                disabled={isProofInvalid || !proof}>
                 Save
               </BtnPrimary>
             </Col>
