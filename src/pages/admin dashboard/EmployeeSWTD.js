@@ -1,19 +1,37 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup } from "react-bootstrap"; /* prettier-ignore */
+
 import { getAllSWTDs } from "../../api/swtd";
+import { getUser } from "../../api/user";
 import SessionUserContext from "../../contexts/SessionUserContext";
+
 import BtnPrimary from "../../common/buttons/BtnPrimary";
-import logo from "../../images/logo1.png";
 import styles from "./style.module.css";
 
-const StaffDashboard = () => {
-  const { user } = useContext(SessionUserContext);
-  const navigate = useNavigate();
-  const [userSWTDs, setUserSWTDs] = useState([]);
+const EmployeeSWTD = () => {
+  const { id } = useParams();
   const token = Cookies.get("userToken");
-  const id = Cookies.get("userID");
+  const navigate = useNavigate();
+
+  const [userSWTDs, setUserSWTDs] = useState([]);
+  const [employee, setEmployee] = useState(null);
+
+  const fetchUser = async () => {
+    await getUser(
+      {
+        id: id,
+        token: token,
+      },
+      (response) => {
+        setEmployee(response.data);
+      },
+      (error) => {
+        console.log(error.response);
+      }
+    );
+  };
 
   const fetchAllSWTDs = async () => {
     await getAllSWTDs(
@@ -32,29 +50,52 @@ const StaffDashboard = () => {
     );
   };
 
+  const handleBackClick = () => {
+    navigate("/admin");
+  };
+
   useEffect(() => {
+    fetchUser();
     fetchAllSWTDs();
   }, []);
 
-  useEffect(() => {
-    if (!user?.is_admin && !user?.is_staff && !user?.is_superuser) {
-      navigate("/swtd");
-    }
-  }, []);
-
-  const handleAddRecordClick = () => {
-    navigate("/swtd/form");
+  const handleViewSWTD = (swtd_id) => {
+    navigate(`/admin/${id}/${swtd_id}`);
   };
 
-  const handleEditRecordClick = (id) => {
-    navigate(`/swtd/${id}`);
-  };
+  const pageTitle = employee
+    ? `${employee.firstname}'s SWTD Points Overview`
+    : "SWTD Points Overview";
 
   return (
     <div className={styles.background}>
       <Container className="d-flex flex-column justify-content-start align-items-start">
         <Row className="mb-2">
-          <h3 className={styles.label}>Staff Dashboard</h3>
+          <h3 className={styles.label}>
+            <i
+              className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
+              onClick={handleBackClick}
+            ></i>{" "}
+            {pageTitle}
+          </h3>
+        </Row>
+
+        <Row className={`${styles.employeeDetails} w-100 mb-3`}>
+          <Col xs="auto">
+            <i className="fa-regular fa-calendar me-2"></i> Term:
+          </Col>
+          <Col xs="auto">
+            <i className="fa-solid fa-building me-2"></i>Department:{" "}
+            {employee?.department}
+          </Col>
+          <Col xs="auto">
+            <i className="fa-solid fa-circle-plus me-2"></i>Total Points:{" "}
+            {employee?.swtd_points.valid_points}
+          </Col>
+          <Col xs="auto">
+            <i className="fa-solid fa-plus-minus me-2"></i>Excess/Lacking
+            Points:
+          </Col>
         </Row>
 
         <Row className="w-100">
@@ -81,11 +122,6 @@ const StaffDashboard = () => {
               </Col>
             </Form.Group>
           </Col>
-          <Col className="text-end" md={3}>
-            <BtnPrimary onClick={handleAddRecordClick}>
-              Add a New Record
-            </BtnPrimary>
-          </Col>
         </Row>
 
         <Row className="w-100">
@@ -105,13 +141,13 @@ const StaffDashboard = () => {
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
-                  onClick={() => handleEditRecordClick(item.id)}
+                  onClick={() => handleViewSWTD(item.id)}
                 >
                   <Row>
                     <Col xs={1}>{item.id}</Col>
                     <Col xs={7}>{item.title}</Col>
                     <Col xs={2}>{item.points}</Col>
-                    <Col xs={2}>Pending</Col>
+                    <Col xs={2}>{item.validation.status}</Col>
                   </Row>
                 </ListGroup.Item>
               ))}
@@ -122,4 +158,4 @@ const StaffDashboard = () => {
   );
 };
 
-export default StaffDashboard;
+export default EmployeeSWTD;

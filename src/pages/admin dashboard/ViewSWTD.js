@@ -1,0 +1,529 @@
+import React, { useState, useEffect, useRef } from "react";
+import Cookies from "js-cookie";
+import { useNavigate, useParams } from "react-router-dom";
+import { Row, Col, Container, Card, Form, FloatingLabel, Button, ListGroup, Badge, Modal } from "react-bootstrap"; /* prettier-ignore */
+
+import { isEmpty, isValidDate } from "../../common/validation/utils";
+import { useSwitch } from "../../hooks/useSwitch";
+import { useTrigger } from "../../hooks/useTrigger";
+import { getSWTD } from "../../api/swtd"; /* prettier-ignore */
+import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
+
+import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
+import EditCommentModal from "../../common/modals/EditCommentModal";
+import ConfirmationModal from "../../common/modals/ConfirmationModal";
+import styles from "./style.module.css";
+
+const ViewSWTD = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const token = Cookies.get("userToken");
+
+  const [swtd, setSWTD] = useState(null);
+  const [swtdProof, setSWTDProof] = useState(null);
+
+  const [status, setStatus] = useState({
+    status: "",
+    validated_on: "",
+    validator: "",
+  });
+
+  const [form, setForm] = useState({
+    title: "",
+    venue: "",
+    category: "",
+    role: "",
+    date: "",
+    time_started: "",
+    time_finished: "",
+    points: "",
+    benefits: "",
+  });
+
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState([]);
+
+  const [selectedComment, setSelectedComment] = useState(null);
+  const [showModal, openModal, closeModal] = useSwitch();
+  const [showCommentModal, openCommentModal, closeCommentModal] = useSwitch();
+  const [showProofModal, openProofModal, closeProofModal] = useSwitch();
+
+  const [isEditing, enableEditing, cancelEditing] = useSwitch();
+  const [showSuccess, triggerShowSuccess] = useTrigger(false);
+  const [showError, triggerShowError] = useTrigger(false);
+  const [showCommentError, triggerShowCommentError] = useTrigger(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const formatDate = (date) => {
+    if (!date) return "";
+    const [month, day, year] = date.split("-");
+    return `${year}-${month}-${day}`;
+  };
+
+  const arrayBufferToBase64 = (buffer) => {
+    const binary = new Uint8Array(buffer);
+    return btoa(String.fromCharCode.apply(null, binary));
+  };
+
+  const fetchSWTD = () => {
+    getSWTD(
+      {
+        token: token,
+        form_id: id,
+      },
+      (response) => {
+        const data = response.data;
+        setSWTD(data);
+
+        const formattedDate = formatDate(data.date);
+        setForm({
+          title: data.title,
+          venue: data.venue,
+          category: data.category,
+          role: data.role,
+          date: formattedDate,
+          time_started: data.time_started,
+          time_finished: data.time_finished,
+          points: data.points,
+          benefits: data.benefits,
+        });
+      },
+      (error) => {
+        console.log("Error fetching SWTD data: ", error);
+      }
+    );
+  };
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const isTimeInvalid = () => {
+    const timeStart = form.time_started;
+    const timeFinish = form.time_finished;
+    if (timeStart > timeFinish) return true;
+  };
+
+  const handleCommentChange = (e) => {
+    setComment(e.target.value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!isEmpty(form.date)) {
+      const [year, month, day] = form.date.split("-");
+      form.date = `${month}-${day}-${year}`;
+    }
+  };
+
+  const handlePost = async (e) => {
+    e.preventDefault();
+
+    if (isEmpty(comment)) {
+      setErrorMessage("Comment cannot be empty.");
+      setComment("");
+      triggerShowCommentError(3000);
+      return;
+    }
+
+    postComment(
+      {
+        id: id,
+        token: token,
+        message: comment,
+      },
+      (response) => {
+        fetchComments();
+        setComment("");
+      },
+      (error) => {
+        console.log("Error: ", error);
+      }
+    );
+  };
+
+  const fetchComments = () => {
+    getComments(
+      {
+        id: id,
+        token: token,
+      },
+      (response) => {
+        setComments(response.data.comments);
+      },
+      (error) => {
+        console.log("Error: ", error);
+      }
+    );
+  };
+
+  const editSuccess = async () => {
+    await fetchComments();
+  };
+
+  const handleDelete = async () => {
+    await deleteComment(
+      {
+        swtd_id: id,
+        comment_id: selectedComment.id,
+        token: token,
+      },
+      (response) => {
+        fetchComments();
+      },
+      (error) => {
+        console.log("Error: ", error);
+      }
+    );
+  };
+
+  useEffect(() => {
+    fetchSWTD();
+    fetchComments();
+  }, []);
+
+  return (
+    <div className={styles.background}>
+      <Container className="d-flex flex-column justify-content-start align-items-start">
+        <Modal
+          show={showProofModal}
+          onHide={closeProofModal}
+          size="lg"
+          centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Proof</Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="d-flex justify-content-center align-items-center">
+            <Row className="w-100">
+              {swtdProof?.type === "img" && (
+                <img
+                  src={swtdProof?.src}
+                  title="SWTD Proof"
+                  className={styles.imgProof}
+                />
+              )}
+
+              {swtdProof?.type === "pdf" && (
+                <object
+                  data={swtdProof?.src}
+                  type="application/pdf"
+                  width="100%"
+                  height="500px"
+                  aria-label="SWTD Proof PDF"
+                >
+                  <p>PDF could not be displayed. Please download it instead.</p>
+                </object>
+              )}
+            </Row>
+          </Modal.Body>
+        </Modal>
+        <Row className="w-100 mb-2">
+          <Col>
+            <h3 className={styles.label}>
+              <i
+                className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
+                onClick={() => navigate("/admin")}
+              ></i>{" "}
+              SWTD Information
+            </h3>
+          </Col>
+        </Row>
+        <Card className="mb-3 w-100">
+          <Card.Header className={styles.cardHeader}>
+            Status: {status?.status}
+          </Card.Header>
+          <Card.Body className={`${styles.cardBody} p-4`}>
+            {showError && (
+              <div className="alert alert-danger mb-3" role="alert">
+                {errorMessage}
+              </div>
+            )}
+            {showSuccess && (
+              <div className="alert alert-success mb-3" role="alert">
+                Details changed!
+              </div>
+            )}
+            {/* Title */}
+            <Form noValidate>
+              <Row>
+                <Form.Group as={Row} className="mb-3" controlId="inputTitle">
+                  <Form.Label className={styles.formLabel} column sm="1">
+                    Title
+                  </Form.Label>
+                  {
+                    <Col className="d-flex align-items-center">
+                      {swtd?.title}
+                    </Col>
+                  }
+                </Form.Group>
+              </Row>
+
+              {/* Venue */}
+              <Row>
+                <Form.Group as={Row} className="mb-3" controlId="inputVenue">
+                  <Form.Label className={styles.formLabel} column sm="1">
+                    Venue
+                  </Form.Label>
+                  {
+                    <Col className="d-flex align-items-center">
+                      {swtd?.venue}
+                    </Col>
+                  }
+                </Form.Group>
+              </Row>
+
+              {/* Category */}
+              <Row className="w-100">
+                <Col>
+                  <Form.Group
+                    as={Row}
+                    className="mb-3"
+                    controlId="inputCategory"
+                  >
+                    <Form.Label className={styles.formLabel} column sm="2">
+                      Category
+                    </Form.Label>
+                    {
+                      <Col className="d-flex align-items-center">
+                        {swtd?.category}
+                      </Col>
+                    }
+                  </Form.Group>
+                </Col>
+
+                {/* Role */}
+                <Col>
+                  <Form.Group as={Row} className="mb-3" controlId="inputRole">
+                    <Form.Label
+                      className={`${styles.formLabel} text-end`}
+                      column
+                      sm="2"
+                    >
+                      Role
+                    </Form.Label>
+                    {
+                      <Col className="d-flex align-items-center">
+                        {swtd?.role}
+                      </Col>
+                    }
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              {/* Date */}
+              <Row className="w-100">
+                <Col>
+                  <Form.Group as={Row} className="mb-3" controlId="inputDate">
+                    <Form.Label className={styles.formLabel} column sm="2">
+                      Date
+                    </Form.Label>
+                    {
+                      <Col className="d-flex align-items-center">
+                        {swtd?.date}
+                      </Col>
+                    }
+                  </Form.Group>
+                </Col>
+
+                {/* Proof */}
+                <Col className="text-end">
+                  <Form.Group as={Row} className="mb-3" controlId="inputProof">
+                    <Form.Label className={styles.formLabel} column sm="2">
+                      Proof
+                    </Form.Label>
+
+                    <Col className="d-flex justify-content-start align-items-center">
+                      <Row className="w-100">
+                        <Col className="text-start" md="auto">
+                          <BtnPrimary
+                            onClick={() => {
+                              openProofModal(); //Accept Or Reject Proof
+                            }}
+                          >
+                            View
+                          </BtnPrimary>
+                        </Col>
+                        <Col className="text-start">
+                          <BtnSecondary>Change Proof</BtnSecondary>
+                        </Col>
+                      </Row>
+                    </Col>
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              {/* Time */}
+              <Row className="w-100">
+                <Col className={styles.time}>
+                  <Form.Group
+                    as={Row}
+                    className="mb-3"
+                    controlId="inputTimeStart"
+                  >
+                    <Form.Label className={styles.formLabel} column sm="2">
+                      Time
+                    </Form.Label>
+                    {
+                      <Col className="d-flex align-items-center" sm="10">
+                        {swtd?.time_started} to {swtd?.time_finished}
+                      </Col>
+                    }
+                  </Form.Group>
+                </Col>
+
+                {/* Points */}
+                <Col className="text-end">
+                  <Form.Group as={Row} className="mb-3" controlId="inputPoints">
+                    <Form.Label className={styles.formLabel} column sm="2">
+                      Points
+                    </Form.Label>
+                    <Col
+                      className="d-flex justify-content-start align-items-center"
+                      sm="2"
+                    >
+                      {swtd?.points}
+                    </Col>
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              {/* Benefits */}
+              <Row>
+                <Form.Group as={Row} className="mb-3" controlId="inputBenefits">
+                  <Form.Label className={styles.formLabel} column sm="1">
+                    Benefits
+                  </Form.Label>
+                  {
+                    <Col className="d-flex align-items-center">
+                      {swtd?.benefits}
+                    </Col>
+                  }
+                </Form.Group>
+              </Row>
+              {isEditing && (
+                <Row>
+                  <Col className="text-end">
+                    <BtnPrimary onClick={handleSubmit}>Save Changes</BtnPrimary>
+                  </Col>
+                </Row>
+              )}
+            </Form>
+          </Card.Body>
+        </Card>
+
+        {!isEditing && (
+          <Card className="mb-3 w-100">
+            <Card.Header className={styles.cardHeader}>Comments</Card.Header>
+            {comments.length !== 0 ? (
+              <Card.Body
+                className={`${styles.cardBody} d-flex justify-content-center align-items center p-1`}
+              >
+                {showCommentError && (
+                  <div className="alert alert-danger mb-3" role="alert">
+                    {errorMessage}
+                  </div>
+                )}
+
+                <Row className="w-100">
+                  <ListGroup variant="flush">
+                    {comments &&
+                      comments.map((item) => (
+                        <ListGroup.Item
+                          key={item.id}
+                          className={styles.commentBox}
+                        >
+                          <Row>
+                            <Col xs={2}>
+                              {item.author.firstname} {item.author.lastname}
+                            </Col>
+                            <Col xs={6}>{item.message}</Col>
+                            <Col xs={2}>{item.date_modified}</Col>
+                            <Col className="text-end" xs={1}>
+                              <i
+                                className={`${styles.commentEdit} fa-solid fa-pen-to-square`}
+                                onClick={() => {
+                                  openCommentModal();
+                                  setSelectedComment(item);
+                                }}
+                              ></i>
+                            </Col>
+                            <Col className="text-end" xs={1}>
+                              <i
+                                className={`${styles.commentDelete} fa-solid fa-trash-can`}
+                                onClick={() => {
+                                  openModal();
+                                  setSelectedComment(item);
+                                }}
+                              ></i>
+                            </Col>
+                          </Row>
+                          {item.is_edited && (
+                            <Badge bg="secondary" pill>
+                              Edited
+                            </Badge>
+                          )}
+                        </ListGroup.Item>
+                      ))}
+                    <EditCommentModal
+                      show={showCommentModal}
+                      onHide={closeCommentModal}
+                      data={selectedComment}
+                      editSuccess={editSuccess}
+                    />
+                    <ConfirmationModal
+                      show={showModal}
+                      onHide={closeModal}
+                      onConfirm={handleDelete}
+                      header={"Delete Comment"}
+                      message={"Do you wish to delete this comment?"}
+                    />
+                  </ListGroup>
+                </Row>
+              </Card.Body>
+            ) : (
+              <Card.Subtitle
+                className={`${styles.comment} d-flex justify-content-center align-items center p-4 text-muted`}
+              >
+                No comments yet.
+              </Card.Subtitle>
+            )}
+
+            <Card.Footer className="p-3">
+              <Form noValidate onSubmit={(e) => e.preventDefault()}>
+                <Row className="w-100">
+                  <Col sm="11">
+                    <Form.Group>
+                      <Form.Control
+                        type="text"
+                        className={styles.formBox}
+                        name="comment"
+                        onChange={handleCommentChange}
+                        value={comment}
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col className="text-end" sm="1">
+                    <Button
+                      className={`${styles.button} w-100`}
+                      onClick={handlePost}
+                    >
+                      <i className="fa-solid fa-paper-plane fa-lg"></i>
+                    </Button>
+                  </Col>
+                </Row>
+              </Form>
+            </Card.Footer>
+          </Card>
+        )}
+      </Container>
+    </div>
+  );
+};
+
+export default ViewSWTD;

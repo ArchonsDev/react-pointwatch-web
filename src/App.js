@@ -9,11 +9,13 @@ import Register from "./pages/registration";
 import ResetPassword from "./pages/reset password";
 import Authorized from "./pages/authorized";
 
-import Dashboard from "./pages/dashboard";
+import StaffDashboard from "./pages/dashboard";
 import SWTDDashboard from "./pages/employee dashboard";
 import AddSWTD from "./pages/employee dashboard/AddSWTD";
 import EditSWTD from "./pages/employee dashboard/EditSWTD";
 import AdminDashboard from "./pages/admin dashboard";
+import EmployeeSWTD from "./pages/admin dashboard/EmployeeSWTD";
+import ViewSWTD from "./pages/admin dashboard/ViewSWTD";
 
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
@@ -68,6 +70,7 @@ const App = () => {
     "/swtd": "SWTD Points Overview",
     "/swtd/form": "Add a New Record",
     "/admin": "Admin",
+    "/admin/:id": "SWTD Points",
   };
 
   document.title =
@@ -99,7 +102,8 @@ const App = () => {
     <div
       className={`${styles.App} ${
         location.pathname === "/login" ? styles.bg : styles["no-bg"]
-      }`}>
+      }`}
+    >
       <SessionUserContext.Provider value={{ user, setUser }}>
         {showDrawer && <Drawer />}
         <Routes>
@@ -132,11 +136,21 @@ const App = () => {
           />
           <Route
             path="/dashboard"
-            element={token ? <Dashboard /> : <Navigate to="/login" />}
+            element={token ? <StaffDashboard /> : <Navigate to="/login" />}
           />
           <Route
             path="/admin"
             element={token ? <AdminDashboard /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path="/admin/:id"
+            element={token ? <EmployeeSWTD /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path="/admin/:id/:swtd_id"
+            element={token ? <ViewSWTD /> : <Navigate to="/login" />}
           />
         </Routes>
       </SessionUserContext.Provider>

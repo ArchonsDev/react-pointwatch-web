@@ -5,7 +5,6 @@ export const getUser = async (data, onSuccess, onFail, onCleanup) => {
     const response = await axios.get(`http://localhost:5000/users/${data.id}`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
-        "Content-Type": "application/json",
       },
     });
 
