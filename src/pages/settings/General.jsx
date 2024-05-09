@@ -155,7 +155,11 @@ const General = () => {
               <Form.Label className={styles.formLabel} column sm="3">
                 Employee ID
               </Form.Label>
-              <Col sm="9">{user?.employee_id}</Col>
+              <Col
+                className="d-flex justify-content-start align-items-center"
+                sm="9">
+                {user?.employee_id}
+              </Col>
             </Form.Group>
           </Row>
 

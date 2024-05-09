@@ -9,6 +9,7 @@ import roles from "../../data/roles.json";
 import { isEmpty, isValidDate } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
+import { getTerms } from "../../api/admin";
 import { getSWTD, getSWTDProof, getSWTDValidation, editSWTD, deleteSWTD } from "../../api/swtd"; /* prettier-ignore */
 import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
 
@@ -43,6 +44,7 @@ const EditSWTD = () => {
 
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
+  const [terms, setTerms] = useState([]);
 
   const [status, setStatus] = useState({
     status: "",
@@ -54,6 +56,7 @@ const EditSWTD = () => {
     title: "",
     venue: "",
     category: "",
+    term_id: 0,
     role: "",
     date: "",
     time_started: "",
@@ -83,6 +86,7 @@ const EditSWTD = () => {
           title: data.title,
           venue: data.venue,
           category: data.category,
+          term_id: data.term_id,
           role: data.role,
           date: formattedDate,
           time_started: data.time_started,
@@ -136,6 +140,20 @@ const EditSWTD = () => {
     );
   };
 
+  const fetchTerms = () => {
+    getTerms(
+      {
+        token: token,
+      },
+      (response) => {
+        setTerms(response.terms);
+      },
+      (error) => {
+        console.log(error.message);
+      }
+    );
+  };
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -162,7 +180,8 @@ const EditSWTD = () => {
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       isTimeInvalid() ||
-      !isValidDate(form.date)
+      !isValidDate(form.date) ||
+      form.term_id === 0
     );
   };
 
@@ -192,7 +211,7 @@ const EditSWTD = () => {
       },
       (error) => {
         if (error.response && error.response.data) {
-          setErrorMessage(<>{error.response.data.error}</>);
+          setErrorMessage(<>{error.message}</>);
           triggerShowError(3000);
           cancelEditing();
         } else {
@@ -224,7 +243,7 @@ const EditSWTD = () => {
         setComment("");
       },
       (error) => {
-        console.log("Error: ", error);
+        console.log("Error: ", error.message);
       }
     );
   };
@@ -239,7 +258,7 @@ const EditSWTD = () => {
         setComments(response.data.comments);
       },
       (error) => {
-        console.log("Error: ", error);
+        console.log("Error: ", error.message);
       }
     );
   };
@@ -270,7 +289,7 @@ const EditSWTD = () => {
         fetchComments();
       },
       (error) => {
-        console.log("Error: ", error);
+        console.log("Error: ", error.message);
       }
     );
   };
@@ -285,13 +304,14 @@ const EditSWTD = () => {
         navigate("/swtd");
       },
       (error) => {
-        console.log(error);
+        console.log(error.message);
       }
     );
   };
 
   useEffect(() => {
     fetchSWTD();
+    fetchTerms();
     fetchComments();
     fetchSWTDValidation();
   }, []);
@@ -423,31 +443,67 @@ const EditSWTD = () => {
               </Row>
 
               {/* Venue */}
-              <Row>
-                <Form.Group as={Row} className="mb-3" controlId="inputVenue">
-                  <Form.Label className={styles.formLabel} column sm="1">
-                    Venue
-                  </Form.Label>
-                  {isEditing ? (
-                    <Col sm="11">
-                      <Form.Control
-                        type="text"
-                        className={styles.formBox}
-                        name="venue"
-                        onChange={handleChange}
-                        value={form.venue}
-                        isInvalid={isEmpty(form.venue)}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        Venue of SWTD is required.
-                      </Form.Control.Feedback>
-                    </Col>
-                  ) : (
-                    <Col className="d-flex align-items-center">
-                      {swtd?.venue}
-                    </Col>
-                  )}
-                </Form.Group>
+              <Row className="w-100">
+                <Col>
+                  <Form.Group as={Row} className="mb-3" controlId="inputVenue">
+                    <Form.Label className={styles.formLabel} column sm="2">
+                      Venue
+                    </Form.Label>
+                    {isEditing ? (
+                      <Col sm="10">
+                        <Form.Control
+                          type="text"
+                          className={styles.formBox}
+                          name="venue"
+                          onChange={handleChange}
+                          value={form.venue}
+                          isInvalid={isEmpty(form.venue)}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          Venue of SWTD is required.
+                        </Form.Control.Feedback>
+                      </Col>
+                    ) : (
+                      <Col className="d-flex align-items-center">
+                        {swtd?.venue}
+                      </Col>
+                    )}
+                  </Form.Group>
+                </Col>
+
+                {/* Term */}
+                <Col>
+                  <Form.Group as={Row} className="mb-3" controlId="inputTerm">
+                    <Form.Label
+                      className={`${styles.formLabel} text-end`}
+                      column
+                      sm="2">
+                      Term
+                    </Form.Label>
+                    {isEditing ? (
+                      <Col sm="10">
+                        <Form.Select
+                          className={styles.formBox}
+                          name="term_id"
+                          onChange={handleChange}
+                          value={form.term_id}>
+                          <option value={0} disabled>
+                            Select a term
+                          </option>
+                          {terms.map((term, index) => (
+                            <option key={index} value={term.id}>
+                              {term.name}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </Col>
+                    ) : (
+                      <Col className="d-flex align-items-center">
+                        {swtd?.term.name}
+                      </Col>
+                    )}
+                  </Form.Group>
+                </Col>
               </Row>
 
               {/* Category */}
@@ -570,8 +626,57 @@ const EditSWTD = () => {
                   </Form.Group>
                 </Col>
 
+                {/* Time */}
+                <Col>
+                  <Form.Group as={Row} className="mb-3" controlId="inputTime">
+                    <Form.Label
+                      className={`${styles.formLabel} text-end`}
+                      column
+                      sm="2">
+                      Time
+                    </Form.Label>
+                    {isEditing ? (
+                      <>
+                        <Col className="text-start" sm="4">
+                          <Form.Control
+                            type="time"
+                            className={styles.formBox}
+                            name="time_started"
+                            onChange={handleChange}
+                            value={form.time_started}
+                            isInvalid={isTimeInvalid()}
+                          />
+                          <Form.Control.Feedback type="invalid">
+                            Time must be valid.
+                          </Form.Control.Feedback>
+                        </Col>
+                        <Col
+                          className="d-flex justify-content-center align-items-center text-center"
+                          sm="1">
+                          to
+                        </Col>
+                        <Col sm="4">
+                          <Form.Control
+                            type="time"
+                            className={styles.formBox}
+                            name="time_finished"
+                            onChange={handleChange}
+                            value={form.time_finished}
+                          />
+                        </Col>
+                      </>
+                    ) : (
+                      <Col className="d-flex align-items-center" sm="10">
+                        {swtd?.time_started} to {swtd?.time_finished}
+                      </Col>
+                    )}
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row className="w-100">
                 {/* Proof */}
-                <Col className="text-end">
+                <Col>
                   <Form.Group as={Row} className="mb-3" controlId="inputProof">
                     <Form.Label className={styles.formLabel} column sm="2">
                       Proof
@@ -602,76 +707,6 @@ const EditSWTD = () => {
                     editSuccess={proofSuccess}
                     editError={proofError}
                   />
-                </Col>
-              </Row>
-
-              {/* Time */}
-              <Row className="w-100">
-                <Col className={styles.time}>
-                  <Form.Group
-                    as={Row}
-                    className="mb-3"
-                    controlId="inputTimeStart">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Time
-                    </Form.Label>
-                    {isEditing ? (
-                      <>
-                        <Col className="text-start" sm="4">
-                          <FloatingLabel
-                            controlId="floatingInputStart"
-                            label="Time Start">
-                            <Form.Control
-                              type="time"
-                              className={styles.formBox}
-                              name="time_started"
-                              onChange={handleChange}
-                              value={form.time_started}
-                              isInvalid={
-                                isEmpty(form.time_started) ||
-                                isEmpty(form.time_finished) ||
-                                isTimeInvalid()
-                              }
-                            />
-                            <Form.Control.Feedback type="invalid">
-                              {isEmpty(form.time_started) ? (
-                                <>Time is required.</>
-                              ) : (
-                                <>Time must be valid.</>
-                              )}
-                            </Form.Control.Feedback>
-                          </FloatingLabel>
-                        </Col>
-                        <Col
-                          className="d-flex align-items-center justify-content-center text-center"
-                          sm="1">
-                          <span>to</span>
-                        </Col>
-                        <Col sm="4">
-                          <FloatingLabel
-                            controlId="floatingInputFinish"
-                            label="Time End">
-                            <Form.Control
-                              type="time"
-                              className={styles.formBox}
-                              name="time_finished"
-                              onChange={handleChange}
-                              value={form?.time_finished}
-                              isInvalid={
-                                isTimeInvalid(form.time_finished) ||
-                                (!isEmpty(form.time_started) &&
-                                  isEmpty(form.time_finished))
-                              }
-                            />
-                          </FloatingLabel>
-                        </Col>
-                      </>
-                    ) : (
-                      <Col className="d-flex align-items-center" sm="10">
-                        {swtd?.time_started} to {swtd?.time_finished}
-                      </Col>
-                    )}
-                  </Form.Group>
                 </Col>
 
                 {/* Points */}

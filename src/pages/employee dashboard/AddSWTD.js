@@ -1,14 +1,15 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, Card, Form, FloatingLabel } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Card, Form } from "react-bootstrap"; /* prettier-ignore */
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
+import { getTerms } from "../../api/admin";
 import { addSWTD } from "../../api/swtd";
 import { useTrigger } from "../../hooks/useTrigger";
-import { isEmpty } from "../../common/validation/utils";
+import { isEmpty, isValidDate } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
@@ -25,15 +26,13 @@ const AddSWTD = () => {
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const handleBackClick = () => {
-    navigate("/swtd");
-  };
-
+  const [terms, setTerms] = useState([]);
   const [form, setForm] = useState({
     author_id: id,
     title: "",
     venue: "",
     category: "",
+    term_id: 0,
     role: "",
     date: "",
     time_started: "",
@@ -55,6 +54,7 @@ const AddSWTD = () => {
       title: "",
       venue: "",
       category: "",
+      term_id: 0,
       role: "",
       date: "",
       time_started: "",
@@ -112,6 +112,7 @@ const AddSWTD = () => {
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       isTimeInvalid() ||
+      form.term_id === 0 ||
       !form.proof
     );
   };
@@ -134,8 +135,7 @@ const AddSWTD = () => {
       },
       (error) => {
         if (error.response && error.response.data) {
-          console.log(error.response.data.error);
-          setErrorMessage(<>{error.response.data.error}</>);
+          setErrorMessage(<>{error.message}</>);
           triggerShowError(4500);
           setForm({
             ...form,
@@ -149,7 +149,22 @@ const AddSWTD = () => {
     );
   };
 
+  const fetchTerms = () => {
+    getTerms(
+      {
+        token: accessToken,
+      },
+      (response) => {
+        setTerms(response.terms);
+      },
+      (error) => {
+        console.log(error.message);
+      }
+    );
+  };
+
   useEffect(() => {
+    fetchTerms();
     setForm((prevForm) => ({
       ...prevForm,
       author_id: user?.id,
@@ -157,57 +172,59 @@ const AddSWTD = () => {
   }, [user]);
 
   return (
-    <div className={styles.background}>
-      <Container
-        className={`${styles.container} d-flex flex-column justify-content-center align-items-start`}>
-        <Row className="mb-2">
-          <h3 className={styles.label}>
-            <i
-              className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
-              onClick={handleBackClick}></i>{" "}
-            Add a New Record
-          </h3>
-        </Row>
+    <Container
+      className={`${styles.container} d-flex flex-column justify-content-center align-items-start`}>
+      <Row className="mb-2">
+        <h3 className={styles.label}>
+          <i
+            className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
+            onClick={() => navigate("/swtd")}></i>{" "}
+          Add a New Record
+        </h3>
+      </Row>
 
-        <Card className="mb-3" style={{ width: "80rem" }}>
-          <Card.Header className={styles.cardHeader}>SWTD Details</Card.Header>
-          <Card.Body className={`${styles.cardBody} p-4`}>
-            {showError && (
-              <div className="alert alert-danger mb-3" role="alert">
-                {errorMessage}
-              </div>
-            )}
-            {showSuccess && (
-              <div className="alert alert-success mb-3" role="alert">
-                Entry submitted!
-              </div>
-            )}
-            <Form noValidate>
-              {/* Title */}
-              <Row>
-                <Form.Group as={Row} className="mb-3" controlId="inputTitle">
-                  <Form.Label className={styles.formLabel} column sm="1">
-                    Title
-                  </Form.Label>
-                  <Col sm="11">
-                    <Form.Control
-                      type="text"
-                      className={styles.formBox}
-                      name="title"
-                      onChange={handleChange}
-                      value={form.title}
-                    />
-                  </Col>
-                </Form.Group>
-              </Row>
+      <Card className="mb-3" style={{ width: "80rem" }}>
+        <Card.Header className={styles.cardHeader}>SWTD Details</Card.Header>
+        <Card.Body className={`${styles.cardBody} p-4`}>
+          {showError && (
+            <div className="alert alert-danger mb-3" role="alert">
+              {errorMessage}
+            </div>
+          )}
+          {showSuccess && (
+            <div className="alert alert-success mb-3" role="alert">
+              Entry submitted!
+            </div>
+          )}
+          <Form noValidate>
+            {/* Title */}
+            <Row>
+              <Form.Group as={Row} className="mb-3" controlId="inputTitle">
+                <Form.Label className={styles.formLabel} column sm="1">
+                  Title
+                </Form.Label>
+                <Col
+                  className="d-flex justify-content-start align-items-start"
+                  sm="11">
+                  <Form.Control
+                    type="text"
+                    className={styles.formBox}
+                    name="title"
+                    onChange={handleChange}
+                    value={form.title}
+                  />
+                </Col>
+              </Form.Group>
+            </Row>
 
+            <Row className="w-100">
               {/* Venue */}
-              <Row>
+              <Col>
                 <Form.Group as={Row} className="mb-3" controlId="inputVenue">
-                  <Form.Label className={styles.formLabel} column sm="1">
+                  <Form.Label className={styles.formLabel} column sm="2">
                     Venue
                   </Form.Label>
-                  <Col sm="11">
+                  <Col sm="10">
                     <Form.Control
                       type="text"
                       className={styles.formBox}
@@ -217,208 +234,234 @@ const AddSWTD = () => {
                     />
                   </Col>
                 </Form.Group>
-              </Row>
+              </Col>
 
+              {/* Term */}
+              <Col>
+                <Form.Group as={Row} className="mb-3" controlId="inputTerm">
+                  <Form.Label
+                    className={`${styles.formLabel} text-end`}
+                    column
+                    sm="2">
+                    Term
+                  </Form.Label>
+                  <Col sm="10">
+                    <Form.Select
+                      className={styles.formBox}
+                      name="term_id"
+                      onChange={handleChange}
+                      value={form.term_id}>
+                      <option value={0} disabled>
+                        Select a term
+                      </option>
+                      {terms.map((term, index) => (
+                        <option key={index} value={term.id}>
+                          {term.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Col>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="w-100">
               {/* Category */}
-              <Row className="w-100">
-                <Col>
-                  <Form.Group
-                    as={Row}
-                    className="mb-3"
-                    controlId="inputCategory">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Category
-                    </Form.Label>
-                    <Col sm="10">
-                      <Form.Select
-                        className={styles.formBox}
-                        name="category"
-                        onChange={handleChange}
-                        value={form.category}>
-                        <option value="" disabled>
-                          Select a category
+              <Col>
+                <Form.Group as={Row} className="mb-3" controlId="inputCategory">
+                  <Form.Label className={styles.formLabel} column sm="2">
+                    Category
+                  </Form.Label>
+                  <Col sm="10">
+                    <Form.Select
+                      className={styles.formBox}
+                      name="category"
+                      onChange={handleChange}
+                      value={form.category}>
+                      <option value="" disabled>
+                        Select a category
+                      </option>
+                      {categories.categories.map((category, index) => (
+                        <option key={index} value={category}>
+                          {category}
                         </option>
-                        {categories.categories.map((category, index) => (
-                          <option key={index} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </Col>
-                  </Form.Group>
-                </Col>
+                      ))}
+                    </Form.Select>
+                  </Col>
+                </Form.Group>
+              </Col>
 
-                {/* Role */}
-                <Col>
-                  <Form.Group as={Row} className="mb-3" controlId="inputRole">
-                    <Form.Label
-                      className={`${styles.formLabel} text-end`}
-                      column
-                      sm="2">
-                      Role
-                    </Form.Label>
-                    <Col sm="10">
-                      <Form.Select
-                        className={styles.formBox}
-                        name="role"
-                        onChange={handleChange}
-                        value={form.role}>
-                        <option value="" disabled>
-                          Select a role
+              {/* Role */}
+              <Col>
+                <Form.Group as={Row} className="mb-3" controlId="inputRole">
+                  <Form.Label
+                    className={`${styles.formLabel} text-end`}
+                    column
+                    sm="2">
+                    Role
+                  </Form.Label>
+                  <Col sm="10">
+                    <Form.Select
+                      className={styles.formBox}
+                      name="role"
+                      onChange={handleChange}
+                      value={form.role}>
+                      <option value="" disabled>
+                        Select a role
+                      </option>
+                      {roles.roles.map((role, index) => (
+                        <option key={index} value={role}>
+                          {role}
                         </option>
-                        {roles.roles.map((role, index) => (
-                          <option key={index} value={role}>
-                            {role}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </Col>
-                  </Form.Group>
-                </Col>
-              </Row>
+                      ))}
+                    </Form.Select>
+                  </Col>
+                </Form.Group>
+              </Col>
+            </Row>
 
-              {/* Date */}
-              <Row className="w-100">
-                <Col>
-                  <Form.Group as={Row} className="mb-3" controlId="inputDate">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Date
-                    </Form.Label>
-                    <Col sm="10">
-                      <Form.Control
-                        type="date"
-                        max={new Date().toISOString().slice(0, 10)}
-                        className={styles.formBox}
-                        name="date"
-                        onChange={handleChange}
-                        value={form.date}
-                      />
-                    </Col>
-                  </Form.Group>
-                </Col>
-
-                {/* Proof */}
-                <Col className="text-end">
-                  <Form.Group as={Row} className="mb-3" controlId="inputProof">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Proof
-                    </Form.Label>
-                    <Col className="text-start" sm="10">
-                      <Form.Control
-                        type="file"
-                        className={styles.formBox}
-                        name="proof"
-                        onChange={handleProof}
-                        ref={inputFile}
-                        isInvalid={isProofInvalid}
-                      />
-                      <Form.Text muted>
-                        Only upload PDFs, PNG, JPG/JPEG.
-                      </Form.Text>
-                    </Col>
-                  </Form.Group>
-                </Col>
-              </Row>
+            {/* Date */}
+            <Row className="w-100">
+              <Col>
+                <Form.Group as={Row} className="mb-3" controlId="inputDate">
+                  <Form.Label className={styles.formLabel} column sm="2">
+                    Date
+                  </Form.Label>
+                  <Col sm="10">
+                    <Form.Control
+                      type="date"
+                      max={new Date().toISOString().slice(0, 10)}
+                      className={styles.formBox}
+                      name="date"
+                      onChange={handleChange}
+                      value={form.date}
+                      isInvalid={!isEmpty(form.date) && !isValidDate(form.date)}
+                    />
+                    {!isEmpty(form.date) && !isValidDate(form?.date) && (
+                      <Form.Control.Feedback type="invalid">
+                        Date must be valid.
+                      </Form.Control.Feedback>
+                    )}
+                  </Col>
+                </Form.Group>
+              </Col>
 
               {/* Time */}
-              <Row className="w-100">
-                <Col className={styles.time}>
-                  <Form.Group
-                    as={Row}
-                    className="mb-3"
-                    controlId="inputTimeStart">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Time
-                    </Form.Label>
-                    <Col className="text-start" sm="4">
-                      <FloatingLabel
-                        controlId="floatingInputStart"
-                        label="Time Start">
-                        <Form.Control
-                          type="time"
-                          className={styles.formBox}
-                          name="time_started"
-                          onChange={handleChange}
-                          value={form.time_started}
-                          isInvalid={isTimeInvalid()}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                          Time must be valid.
-                        </Form.Control.Feedback>
-                      </FloatingLabel>
-                    </Col>
-                    <Col
-                      className="d-flex align-items-center justify-content-center text-center"
-                      sm="1">
-                      <span>to</span>
-                    </Col>
-                    <Col sm="4">
-                      <FloatingLabel
-                        controlId="floatingInputFinish"
-                        label="Time End">
-                        <Form.Control
-                          type="time"
-                          className={styles.formBox}
-                          name="time_finished"
-                          onChange={handleChange}
-                          value={form.time_finished}
-                        />
-                      </FloatingLabel>
-                    </Col>
-                  </Form.Group>
-                </Col>
-
-                {/* Points */}
-                <Col className="text-end">
-                  <Form.Group as={Row} className="mb-3" controlId="inputPoints">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Points
-                    </Form.Label>
-                    <Col className="text-start" sm="2">
-                      <Form.Control
-                        className={styles.pointsBox}
-                        name="points"
-                        onChange={handleChange}
-                        value={form.points}
-                        readOnly
-                      />
-                    </Col>
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              {/* Benefits */}
-              <Row>
-                <Form.Group as={Row} className="mb-3" controlId="inputBenefits">
-                  <Form.Label className={styles.formLabel} column sm="1">
-                    Benefits
+              <Col>
+                <Form.Group as={Row} className="mb-3" controlId="inputTime">
+                  <Form.Label
+                    className={`${styles.formLabel} text-end`}
+                    column
+                    sm="2">
+                    Time
                   </Form.Label>
-                  <Col sm="11">
+                  <Col className="text-start" sm="4">
                     <Form.Control
-                      as="textarea"
+                      type="time"
                       className={styles.formBox}
-                      name="benefits"
+                      name="time_started"
                       onChange={handleChange}
-                      value={form.benefits}
+                      value={form.time_started}
+                      isInvalid={isTimeInvalid()}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      Time must be valid.
+                    </Form.Control.Feedback>
+                  </Col>
+                  <Col
+                    className="d-flex justify-content-center align-items-center text-center"
+                    sm="1">
+                    to
+                  </Col>
+                  <Col sm="4">
+                    <Form.Control
+                      type="time"
+                      className={styles.formBox}
+                      name="time_finished"
+                      onChange={handleChange}
+                      value={form.time_finished}
                     />
                   </Col>
                 </Form.Group>
-              </Row>
-              <Row>
-                <Col className="text-end">
-                  <BtnPrimary
-                    onClick={handleSubmit}
-                    disabled={invalidFields()}
-                    title={invalidFields() ? "All fields are required." : ""}>
-                    Submit
-                  </BtnPrimary>
+              </Col>
+            </Row>
+
+            {/* Proof */}
+            <Row className="w-100">
+              <Col>
+                <Form.Group as={Row} className="mb-3" controlId="inputProof">
+                  <Form.Label className={`${styles.formLabel}`} column sm="2">
+                    Proof
+                  </Form.Label>
+                  <Col sm="10">
+                    <Form.Control
+                      type="file"
+                      className={styles.formBox}
+                      name="proof"
+                      onChange={handleProof}
+                      ref={inputFile}
+                      isInvalid={isProofInvalid}
+                    />
+                    <Form.Text muted>
+                      Only upload PDFs, PNG, JPG/JPEG.
+                    </Form.Text>
+                  </Col>
+                </Form.Group>
+              </Col>
+
+              {/* Points */}
+              <Col>
+                <Form.Group as={Row} className="mb-3" controlId="inputPoints">
+                  <Form.Label
+                    className={`${styles.formLabel} text-end`}
+                    column
+                    sm="2">
+                    Points
+                  </Form.Label>
+                  <Col sm="2">
+                    <Form.Control
+                      className={`${styles.pointsBox} text-center`}
+                      name="points"
+                      onChange={handleChange}
+                      value={form.points}
+                      readOnly
+                    />
+                  </Col>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            {/* Benefits */}
+            <Row>
+              <Form.Group as={Row} className="mb-3" controlId="inputBenefits">
+                <Form.Label className={styles.formLabel} column sm="1">
+                  Benefits
+                </Form.Label>
+                <Col sm="11">
+                  <Form.Control
+                    as="textarea"
+                    className={styles.formBox}
+                    name="benefits"
+                    onChange={handleChange}
+                    value={form.benefits}
+                  />
                 </Col>
-              </Row>
-            </Form>
-          </Card.Body>
-        </Card>
-      </Container>
-    </div>
+              </Form.Group>
+            </Row>
+            <Row>
+              <Col className="text-end">
+                <BtnPrimary
+                  onClick={handleSubmit}
+                  disabled={invalidFields()}
+                  title={invalidFields() ? "All fields are required." : ""}>
+                  Submit
+                </BtnPrimary>
+              </Col>
+            </Row>
+          </Form>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 };
 

@@ -1,8 +1,3 @@
-.background {
-  min-height: 100vh;
-  overflow: hidden;
-}
-
 .label {
   font-family: "Degradasi";
   color: #3a3238;
@@ -93,4 +88,9 @@
 .imgProof {
   height: 60%;
   width: 60%;
+}
+
+.msg {
+  font-family: "Poppins-SemiBold";
+  color: #d80085;
 }

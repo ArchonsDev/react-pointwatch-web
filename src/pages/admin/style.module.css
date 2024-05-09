@@ -19,6 +19,10 @@
   background-color: #3a3238 !important;
 }
 
+.card {
+  border-top-left-radius: 0 !important;
+}
+
 .form {
   font-family: "Poppins-Regular";
 }
@@ -31,13 +35,6 @@
   border: grey 1px solid !important;
 }
 
-.circle {
-  width: 10em;
-  height: 10em;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-}
-
-.card {
-  border-top-left-radius: 0 !important;
+.table {
+  font-family: "Poppins-Regular";
 }
