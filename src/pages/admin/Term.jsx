@@ -169,15 +169,11 @@ const Term = () => {
                     name="end_date"
                     onChange={handleChange}
                     value={form.end_date}
-                    isInvalid={
-                      !isEmpty(form.end_date) && form.end_date < form.start_date
-                    }
+                    isInvalid={form.end_date < form.start_date}
                   />
-                  {!isEmpty(form.end_date) && (
-                    <Form.Control.Feedback type="invalid">
-                      End date must be after the start date.
-                    </Form.Control.Feedback>
-                  )}
+                  <Form.Control.Feedback type="invalid">
+                    End date must be after the start date.
+                  </Form.Control.Feedback>
                 </Col>
               </Form.Group>
             </Col>

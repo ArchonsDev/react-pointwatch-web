@@ -716,7 +716,7 @@ const EditSWTD = () => {
                       Points
                     </Form.Label>
                     <Col
-                      className="d-flex justify-content-start align-items-center"
+                      className={`${styles.points} d-flex justify-content-start align-items-center`}
                       sm="2">
                       {swtd?.points}
                     </Col>

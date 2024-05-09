@@ -57,6 +57,11 @@
   color: #d80085 !important;
 }
 
+.points {
+  font-family: "Poppins-SemiBold";
+  color: #d80085 !important;
+}
+
 .triangle {
   cursor: pointer;
 }
