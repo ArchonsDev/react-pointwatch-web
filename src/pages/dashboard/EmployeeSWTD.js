@@ -1,24 +1,42 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown } from "react-bootstrap"; /* prettier-ignore */
 
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
+import { getUser } from "../../api/user";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
 
-const SWTDDashboard = () => {
-  const id = Cookies.get("userID");
-  const token = Cookies.get("userToken");
+const EmployeeSWTD = () => {
   const { user } = useContext(SessionUserContext);
+  const { id } = useParams();
+  const token = Cookies.get("userToken");
   const navigate = useNavigate();
 
   const [userSWTDs, setUserSWTDs] = useState([]);
+  const [employee, setEmployee] = useState(null);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
+
+  const fetchUser = async () => {
+    await getUser(
+      {
+        id: id,
+        token: token,
+      },
+      (response) => {
+        setEmployee(response.data);
+      },
+      (error) => {
+        console.log(error.response);
+      }
+    );
+  };
 
   const fetchAllSWTDs = async () => {
     await getAllSWTDs(
@@ -37,14 +55,6 @@ const SWTDDashboard = () => {
     );
   };
 
-  const handleAddRecordClick = () => {
-    navigate("/swtd/form");
-  };
-
-  const handleEditRecordClick = (id) => {
-    navigate(`/swtd/${id}`);
-  };
-
   const fetchTerms = () => {
     getTerms(
       {
@@ -59,19 +69,39 @@ const SWTDDashboard = () => {
     );
   };
 
+  const handleBackClick = () => {
+    navigate("/dashboard");
+  };
+
+  const handleViewSWTD = (swtd_id) => {
+    navigate(`/dashboard/${id}/${swtd_id}`);
+  };
+
+  const pageTitle = employee
+    ? `${employee.firstname} ${employee.lastname}'s SWTDs`
+    : "SWTDs";
+
   const filteredSWTDs = userSWTDs?.filter(
     (swtd) => swtd?.term.id === selectedTerm?.id
   );
-
   useEffect(() => {
+    if (!user?.is_admin && !user?.is_staff && !user?.is_superuser) {
+      navigate("/swtd");
+    }
+
+    fetchUser();
     fetchTerms();
     fetchAllSWTDs();
   }, []);
-
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
       <Row className="mb-2">
-        <h3 className={styles.label}>SWTD Points Overview</h3>
+        <h3 className={styles.label}>
+          <i
+            className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
+            onClick={handleBackClick}></i>{" "}
+          {pageTitle}
+        </h3>
       </Row>
 
       <Row className={`${styles.employeeDetails} w-100 mb-3`}>
@@ -94,11 +124,11 @@ const SWTDDashboard = () => {
         </Col>
         <Col xs="auto">
           <i className="fa-solid fa-building me-2"></i>Department:{" "}
-          {user?.department}
+          {employee?.department}
         </Col>
         <Col xs="auto">
           <i className="fa-solid fa-circle-plus me-2"></i>Total Points:{" "}
-          {user?.swtd_points?.valid_points}
+          {employee?.swtd_points.valid_points}
         </Col>
         <Col xs="auto">
           <i className="fa-solid fa-plus-minus me-2"></i>Excess/Lacking Points:
@@ -115,10 +145,14 @@ const SWTDDashboard = () => {
           </InputGroup>
         </Col>
 
+        {user?.is_admin && (
+          <Col className="text-end">
+            <BtnSecondary>Clear Employee</BtnSecondary>
+          </Col>
+        )}
+
         <Col className="text-end">
-          <BtnPrimary onClick={handleAddRecordClick}>
-            Add a New Record
-          </BtnPrimary>
+          <BtnPrimary onClick={() => window.print()}>Export Report</BtnPrimary>
         </Col>
       </Row>
 
@@ -150,7 +184,7 @@ const SWTDDashboard = () => {
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
-                  onClick={() => handleEditRecordClick(item.id)}>
+                  onClick={() => handleViewSWTD(item.id)}>
                   <Row>
                     <Col xs={1}>{item.id}</Col>
                     <Col xs={7}>{item.title}</Col>
@@ -167,4 +201,4 @@ const SWTDDashboard = () => {
   );
 };
 
-export default SWTDDashboard;
+export default EmployeeSWTD;

@@ -116,6 +116,21 @@ const Drawer = () => {
                     <span className="px-2">SWTDs</span>
                   </Nav.Link>
 
+                  {/* Admin */}
+                  {user?.is_admin && (
+                    <Nav.Link
+                      className={`mx-3 my-1 p-3 ${
+                        location.pathname === "/admin"
+                          ? styles.active
+                          : styles.navItem
+                      }`}
+                      onClick={(e) => navigate("/admin")}>
+                      <i
+                        className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}></i>
+                      <span className="px-2">Admin</span>
+                    </Nav.Link>
+                  )}
+
                   {/* Settings */}
                   <Nav.Link
                     className={`mx-3 my-1 p-3 ${

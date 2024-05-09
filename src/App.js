@@ -11,10 +11,11 @@ import Authorized from "./pages/authorized";
 import SWTDDashboard from "./pages/employee dashboard";
 import AddSWTD from "./pages/employee dashboard/AddSWTD";
 import EditSWTD from "./pages/employee dashboard/EditSWTD";
-import Dashboard from "./pages/admin dashboard";
-import EmployeeSWTD from "./pages/admin dashboard/EmployeeSWTD";
-import ViewSWTD from "./pages/admin dashboard/ViewSWTD";
+import Dashboard from "./pages/dashboard";
+import EmployeeSWTD from "./pages/dashboard/EmployeeSWTD";
+import ViewSWTD from "./pages/dashboard/ViewSWTD";
 
+import Admin from "./pages/admin";
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
 
@@ -53,20 +54,19 @@ const App = () => {
     );
   };
 
-  const showDrawer = ["/swtd", "/dashboard", "/settings"].some((path) =>
-    location.pathname.startsWith(path)
+  const showDrawer = ["/swtd", "/dashboard", "/settings", "/admin"].some(
+    (path) => location.pathname.startsWith(path)
   );
 
   const tabNames = {
     "/login": "Login",
     "/register": "Register",
     "/dashboard": "Dashboard",
-    "/dashboard/:id": "Dashboard",
-    "/dashboard/:id/:swtd_id": "Dashboard",
     "/reset": "Reset Password",
     "/settings": "Settings",
     "/swtd": "SWTD Points Overview",
     "/swtd/form": "Add a New Record",
+    "/admin": "Admin",
   };
 
   document.title =
@@ -144,6 +144,11 @@ const App = () => {
           <Route
             path="/dashboard/:id/:swtd_id"
             element={token ? <ViewSWTD /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path="/admin"
+            element={token ? <Admin /> : <Navigate to="/login" />}
           />
         </Routes>
       </SessionUserContext.Provider>
