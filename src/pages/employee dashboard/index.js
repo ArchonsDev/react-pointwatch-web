@@ -81,18 +81,19 @@ const SWTDDashboard = () => {
             className={`ms-2`}
             variant="secondary"
             size="sm"
-            title={selectedTerm ? selectedTerm.name : "Select term"}
-          >
+            title={selectedTerm ? selectedTerm.name : "All terms"}>
             {terms.length === 0 ? (
               <Dropdown.Item disabled>No terms added.</Dropdown.Item>
             ) : (
               <>
+                <Dropdown.Item onClick={() => setSelectedTerm(null)}>
+                  All terms
+                </Dropdown.Item>
                 {terms &&
                   terms.map((term) => (
                     <Dropdown.Item
                       key={term.id}
-                      onClick={() => setSelectedTerm(term)}
-                    >
+                      onClick={() => setSelectedTerm(term)}>
                       {term.name}
                     </Dropdown.Item>
                   ))}
@@ -148,8 +149,7 @@ const SWTDDashboard = () => {
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
-                  onClick={() => handleEditRecordClick(item.id)}
-                >
+                  onClick={() => handleEditRecordClick(item.id)}>
                   <Row>
                     <Col xs={1}>{item.id}</Col>
                     <Col xs={7}>{item.title}</Col>
@@ -162,8 +162,7 @@ const SWTDDashboard = () => {
           </>
         ) : filteredSWTDs.length === 0 ? (
           <span
-            className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}
-          >
+            className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
             No records found for the selected term.
           </span>
         ) : (
@@ -183,8 +182,7 @@ const SWTDDashboard = () => {
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
-                  onClick={() => handleEditRecordClick(item.id)}
-                >
+                  onClick={() => handleEditRecordClick(item.id)}>
                   <Row>
                     <Col xs={1}>{item.id}</Col>
                     <Col xs={7}>{item.title}</Col>

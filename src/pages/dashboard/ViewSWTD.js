@@ -440,7 +440,7 @@ const ViewSWTD = () => {
                     setValidation("APPROVED");
                     openValidateModal();
                   }}>
-                  <i className="fa-solid fa-check"></i> ACCEPT
+                  <i className="fa-solid fa-check"></i> APPROVE
                 </Button>
                 <Button
                   variant="outline-danger"

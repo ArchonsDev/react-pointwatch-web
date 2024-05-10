@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
-import { Row, Col, Container, Card, Form, FloatingLabel, Button, ListGroup, Badge, Modal } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Card, Form, Button, ListGroup, Badge, Modal } from "react-bootstrap"; /* prettier-ignore */
 
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
@@ -527,9 +527,9 @@ const EditSWTD = () => {
                           <option value="" disabled>
                             Select a category
                           </option>
-                          {categories.categories.map((category, index) => (
-                            <option key={index} value={category}>
-                              {category}
+                          {categories.categories.map((category) => (
+                            <option key={category.id} value={category.name}>
+                              {category.name}
                             </option>
                           ))}
                         </Form.Select>

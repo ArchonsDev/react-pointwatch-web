@@ -1,13 +1,13 @@
 {
     "categories": [
-        "Profession/Work-Relevant Webinar",
-        "Life-Relevant Webinar",
-        "Face2Face Seminar-Workshop",
-        "Webinar with Assignments/Short Remote Courses with Assignments/Webinar Workshop",
-        "Training Participation",
-        "Speakership/Organizing of SWTD",
-        "Degree Acquisition Equivalent to an Additional Bachelor's Degree",
-        "Degree Acquisition Equivalent to a 2nd or Subsequent Master's Degree",
-        "Degree Acquisition Equivalent to a Doctoral or 2nd or Subsequent Doctoral Degree"
+        {"id": 1, "name": "Profession/Work-Relevant Webinar"},
+        {"id": 2, "name": "Life-Relevant Webinar"},
+        {"id": 3, "name": "Face2Face Seminar-Workshop"},
+        {"id": 4, "name": "Webinar with Assignments/Short Remote Courses with Assignments/Webinar Workshop"},
+        {"id": 5, "name": "Training Participation"},
+        {"id": 6, "name": "Speakership/Organizing of SWTD"},
+        {"id": 7, "name": "Degree Acquisition Equivalent to an Additional Bachelor's Degree"},
+        {"id": 8, "name": "Degree Acquisition Equivalent to a 2nd or Subsequent Master's Degree"},
+        {"id": 9, "name": "Degree Acquisition Equivalent to a Doctoral or 2nd or Subsequent Doctoral Degree"}
     ]
 }

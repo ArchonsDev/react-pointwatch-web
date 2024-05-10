@@ -108,18 +108,27 @@ const EmployeeSWTD = () => {
         <Col className="d-flex align-items-center" xs="auto">
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           <DropdownButton
-            className="ms-2"
+            className={`ms-2`}
+            variant="secondary"
             size="sm"
-            variant="success"
-            title={selectedTerm ? selectedTerm.name : "Select term"}>
-            {terms &&
-              terms.map((term) => (
-                <Dropdown.Item
-                  key={term.id}
-                  onClick={() => setSelectedTerm(term)}>
-                  {term.name}
+            title={selectedTerm ? selectedTerm.name : "All terms"}>
+            {terms.length === 0 ? (
+              <Dropdown.Item disabled>No terms added.</Dropdown.Item>
+            ) : (
+              <>
+                <Dropdown.Item onClick={() => setSelectedTerm(null)}>
+                  All terms
                 </Dropdown.Item>
-              ))}
+                {terms &&
+                  terms.map((term) => (
+                    <Dropdown.Item
+                      key={term.id}
+                      onClick={() => setSelectedTerm(term)}>
+                      {term.name}
+                    </Dropdown.Item>
+                  ))}
+              </>
+            )}
           </DropdownButton>
         </Col>
         <Col xs="auto">
@@ -158,10 +167,33 @@ const EmployeeSWTD = () => {
 
       <Row className="w-100">
         {selectedTerm === null ? (
-          <span
-            className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
-            Please select a term.
-          </span>
+          <>
+            <ListGroup className="w-100" variant="flush">
+              <ListGroup.Item className={styles.tableHeader}>
+                <Row>
+                  <Col xs={1}>No.</Col>
+                  <Col xs={7}>Title of SWTD</Col>
+                  <Col xs={2}>Points</Col>
+                  <Col xs={2}>Status</Col>
+                </Row>
+              </ListGroup.Item>
+            </ListGroup>
+            <ListGroup>
+              {userSWTDs.map((item) => (
+                <ListGroup.Item
+                  key={item.id}
+                  className={styles.tableBody}
+                  onClick={() => handleViewSWTD(item.id)}>
+                  <Row>
+                    <Col xs={1}>{item.id}</Col>
+                    <Col xs={7}>{item.title}</Col>
+                    <Col xs={2}>{item.points}</Col>
+                    <Col xs={2}>{item.validation.status}</Col>
+                  </Row>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </>
         ) : filteredSWTDs.length === 0 ? (
           <span
             className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>

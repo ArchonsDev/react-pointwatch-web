@@ -10,8 +10,10 @@ import { getTerms } from "../../api/admin";
 import { addSWTD } from "../../api/swtd";
 import { useTrigger } from "../../hooks/useTrigger";
 import { isEmpty, isValidDate } from "../../common/validation/utils";
+import { calculatePoints } from "../../common/validation/points";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
 
 const AddSWTD = () => {
@@ -37,7 +39,7 @@ const AddSWTD = () => {
     date: "",
     time_started: "",
     time_finished: "",
-    points: 50,
+    points: 0,
     proof: "",
     benefits: "",
   });
@@ -117,6 +119,14 @@ const AddSWTD = () => {
     );
   };
 
+  const getPoints = (name, start, finish) => {
+    const total = calculatePoints(name, start, finish);
+    setForm({
+      ...form,
+      points: total,
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -162,6 +172,16 @@ const AddSWTD = () => {
       }
     );
   };
+
+  useEffect(() => {
+    const isFormValid =
+      !isEmpty(form.category) &&
+      !isEmpty(form.time_started) &&
+      !isEmpty(form.time_finished);
+    if (isFormValid)
+      getPoints(form.category, form.time_started, form.time_finished);
+    else form.points = 0;
+  }, [form.category, form.time_started, form.time_finished]);
 
   useEffect(() => {
     fetchTerms();
@@ -281,9 +301,9 @@ const AddSWTD = () => {
                       <option value="" disabled>
                         Select a category
                       </option>
-                      {categories.categories.map((category, index) => (
-                        <option key={index} value={category}>
-                          {category}
+                      {categories.categories.map((category) => (
+                        <option key={category.id} value={category.name}>
+                          {category.name}
                         </option>
                       ))}
                     </Form.Select>
