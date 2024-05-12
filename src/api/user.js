@@ -132,3 +132,22 @@ export const userPoints = async (data, onSuccess, onFail, onCleanup) => {
     onCleanup && onCleanup();
   }
 };
+
+export const getClearanceStatus = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/users/${data.id}/terms/${data.term_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};

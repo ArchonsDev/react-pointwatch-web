@@ -29,14 +29,12 @@ const Drawer = () => {
         <Container fluid>
           <Navbar.Toggle
             className={`${styles.toggle} me-3`}
-            aria-controls={`offcanvasNavbar-expand`}
-          >
+            aria-controls={`offcanvasNavbar-expand`}>
             <i className="fa-solid fa-bars fa-xl"></i>
           </Navbar.Toggle>
 
           <Navbar.Brand
-            className={`${styles.header} d-flex justify-content-center align-items-center`}
-          >
+            className={`${styles.header} d-flex justify-content-center align-items-center`}>
             <div className="d-flex justify-content-center align-items-center">
               <img
                 src={logo1}
@@ -50,8 +48,7 @@ const Drawer = () => {
           <Nav className="d-flex ms-auto flex-row">
             <Nav.Link
               className="me-3"
-              onClick={() => navigate("/notifications")}
-            >
+              onClick={() => navigate("/notifications")}>
               <i className={`fa-solid fa-bell fa-lg ${styles.icon}`}></i>
               <span className={`${styles.rightNav} px-2`}>Notifications</span>
             </Nav.Link>
@@ -61,8 +58,7 @@ const Drawer = () => {
             </Nav.Link>
             <Nav.Link className="me-3" onClick={openModal}>
               <i
-                className={`fa-solid fa-arrow-right-from-bracket fa-lg ${styles.icon}`}
-              ></i>
+                className={`fa-solid fa-arrow-right-from-bracket fa-lg ${styles.icon}`}></i>
               <span className={`${styles.rightNav} px-2`}>Log out</span>
             </Nav.Link>
           </Nav>
@@ -72,8 +68,7 @@ const Drawer = () => {
             id={`offcanvasNavbar-expand`}
             aria-labelledby={`offcanvasNavbarLabel-expand`}
             className={styles.sidebar}
-            placement="start"
-          >
+            placement="start">
             {/* Profile picture */}
             <Offcanvas.Header className="d-flex justify-content-center align-items-center">
               <Offcanvas.Title id={`offcanvasNavbarLabel-expand`}>
@@ -103,11 +98,9 @@ const Drawer = () => {
                           ? styles.active
                           : styles.navItem
                       }`}
-                      onClick={(e) => navigate("/dashboard")}
-                    >
+                      onClick={(e) => navigate("/dashboard")}>
                       <i
-                        className={`fa-solid fa-house fa-lg ${styles.drawerIcon}`}
-                      ></i>
+                        className={`fa-solid fa-house fa-lg ${styles.drawerIcon}`}></i>
                       <span className="px-2">Dashboard</span>
                     </Nav.Link>
                   )}
@@ -119,11 +112,9 @@ const Drawer = () => {
                         ? styles.active
                         : styles.navItem
                     }`}
-                    onClick={(e) => navigate("/swtd")}
-                  >
+                    onClick={(e) => navigate("/swtd")}>
                     <i
-                      className={`fa-solid fa-table-list fa-lg ${styles.drawerIcon}`}
-                    ></i>
+                      className={`fa-solid fa-table-list fa-lg ${styles.drawerIcon}`}></i>
                     <span className="px-2">SWTDs</span>
                   </Nav.Link>
 
@@ -135,11 +126,9 @@ const Drawer = () => {
                           ? styles.active
                           : styles.navItem
                       }`}
-                      onClick={(e) => navigate("/admin")}
-                    >
+                      onClick={(e) => navigate("/admin")}>
                       <i
-                        className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}
-                      ></i>
+                        className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}></i>
                       <span className="px-2">Admin</span>
                     </Nav.Link>
                   )}
@@ -151,11 +140,9 @@ const Drawer = () => {
                         ? styles.active
                         : styles.navItem
                     }`}
-                    onClick={(e) => navigate("/settings")}
-                  >
+                    onClick={(e) => navigate("/settings")}>
                     <i
-                      className={`fa-solid fa-gear fa-lg ${styles.drawerIcon}`}
-                    ></i>
+                      className={`fa-solid fa-gear fa-lg ${styles.drawerIcon}`}></i>
                     <span className="px-2">Settings</span>
                   </Nav.Link>
                 </Nav>
@@ -165,11 +152,9 @@ const Drawer = () => {
               <Nav.Item className={styles.logout}>
                 <Nav.Link
                   className={`mx-3 mb-3 p-3 ${styles.navItem}`}
-                  onClick={openModal}
-                >
+                  onClick={openModal}>
                   <i
-                    className={`fa-solid fa-arrow-right-from-bracket fa-lg ${styles.drawerIcon}`}
-                  ></i>
+                    className={`fa-solid fa-arrow-right-from-bracket fa-lg ${styles.drawerIcon}`}></i>
                   <span className="px-2">Log out</span>
                 </Nav.Link>
                 <ConfirmationModal

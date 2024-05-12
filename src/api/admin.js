@@ -79,10 +79,11 @@ export const getTerms = async (data, onSuccess, onFail) => {
   }
 };
 
-export const getClearanceStatus = async (data, onSuccess, onFail) => {
+export const clearEmployee = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.get(
+    const response = await axios.post(
       `http://localhost:5000/users/${data.id}/terms/${data.term_id}`,
+      {},
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -98,9 +99,9 @@ export const getClearanceStatus = async (data, onSuccess, onFail) => {
   }
 };
 
-export const clearEmployee = async (data, onSuccess, onFail) => {
+export const revokeEmployee = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.post(
+    const response = await axios.delete(
       `http://localhost:5000/users/${data.id}/terms/${data.term_id}`,
       {
         headers: {

@@ -3,9 +3,9 @@ import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown } from "react-bootstrap"; /* prettier-ignore */
 
-import { getTerms, getClearanceStatus, clearEmployee } from "../../api/admin";
+import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
-import { getUser, userPoints } from "../../api/user";
+import { getUser, userPoints, getClearanceStatus } from "../../api/user";
 import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
@@ -28,6 +28,7 @@ const EmployeeSWTD = () => {
   const [selectedTerm, setSelectedTerm] = useState(null);
 
   const [showModal, openModal, closeModal] = useSwitch();
+  const [showRevokeModal, openRevokeModal, closeRevokeModal] = useSwitch();
 
   const fetchUser = async () => {
     await getUser(
@@ -88,15 +89,15 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const fetchClearance = async (term) => {
-    await getClearanceStatus(
+  const fetchClearance = (term) => {
+    getClearanceStatus(
       {
         id: id,
-        term_id: term?.id,
+        term_id: term.id,
         token: token,
       },
       (response) => {
-        setTermStatus(response.data);
+        setTermStatus(response);
       }
     );
   };
@@ -105,16 +106,28 @@ const EmployeeSWTD = () => {
     navigate(`/dashboard/${id}/${swtd_id}`);
   };
 
-  // TO DO
   const handleClear = (term) => {
     clearEmployee(
       {
         id: id,
-        term_id: term?.id,
+        term_id: term.id,
         token: token,
       },
       (response) => {
-        fetchClearance();
+        fetchClearance(term);
+      }
+    );
+  };
+
+  const handleRevoke = (term) => {
+    revokeEmployee(
+      {
+        id: id,
+        term_id: term.id,
+        token: token,
+      },
+      (response) => {
+        fetchClearance(term);
       }
     );
   };
@@ -168,9 +181,9 @@ const EmployeeSWTD = () => {
                     <Dropdown.Item
                       key={term.id}
                       onClick={() => {
-                        setSelectedTerm(term);
                         fetchPoints(term);
                         fetchClearance(term);
+                        setSelectedTerm(term);
                       }}>
                       {term.name}
                     </Dropdown.Item>
@@ -210,8 +223,11 @@ const EmployeeSWTD = () => {
         {selectedTerm !== null && (
           <Col className="d-flex align-items-center" xs="auto">
             <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
-            {!termStatus && "PENDING CLEARANCE"}
-            {termStatus && "CLEARED"}
+            {termStatus?.is_cleared === true ? (
+              <span className="text-success ms-2">CLEARED</span>
+            ) : (
+              <span className="text-danger ms-2">PENDING CLEARANCE</span>
+            )}
           </Col>
         )}
       </Row>
@@ -227,25 +243,47 @@ const EmployeeSWTD = () => {
         </Col>
 
         <Col className="text-end">
-          {user?.is_admin && selectedTerm !== null && (
-            <>
-              <BtnSecondary
-                onClick={openModal}
-                disabled={
-                  termPoints?.valid_points < termPoints?.required_points
-                }>
-                Grant Clearance
-              </BtnSecondary>{" "}
-            </>
-          )}
+          {user?.is_admin &&
+            selectedTerm !== null &&
+            termStatus?.is_cleared === false && (
+              <>
+                <BtnSecondary
+                  onClick={openModal}
+                  disabled={
+                    termPoints?.valid_points < termPoints?.required_points
+                  }>
+                  Grant Clearance
+                </BtnSecondary>{" "}
+              </>
+            )}
+
+          {user?.is_admin &&
+            selectedTerm !== null &&
+            termStatus?.is_cleared === true && (
+              <>
+                <BtnSecondary onClick={openRevokeModal}>
+                  Revoke Clearance
+                </BtnSecondary>{" "}
+              </>
+            )}
           <BtnPrimary onClick={() => window.print()}>Export Report</BtnPrimary>
         </Col>
         <ConfirmationModal
           show={showModal}
           onHide={closeModal}
           onConfirm={() => handleClear(selectedTerm)}
-          header={"Clear Employee"}
+          header={"Grant Clearance"}
           message={"Are you sure you want to clear this employee?"}
+        />
+
+        <ConfirmationModal
+          show={showRevokeModal}
+          onHide={closeRevokeModal}
+          onConfirm={() => handleRevoke(selectedTerm)}
+          header={"Revoke Clearance"}
+          message={
+            "Are you sure you want to revoke the clearance for this employee?"
+          }
         />
       </Row>
 

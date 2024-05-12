@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal } from "react-bootstrap"; /* prettier-ignore */
 
-import { userPoints } from "../../api/user";
+import { userPoints, getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
@@ -22,6 +22,7 @@ const SWTDDashboard = () => {
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [terms, setTerms] = useState([]);
   const [termPoints, setTermPoints] = useState(null);
+  const [termStatus, setTermStatus] = useState(null);
   const [selectedTerm, setSelectedTerm] = useState(null);
 
   const fetchAllSWTDs = async () => {
@@ -64,6 +65,19 @@ const SWTDDashboard = () => {
       },
       (response) => {
         setTermPoints(response.data);
+      }
+    );
+  };
+
+  const fetchClearance = (term) => {
+    getClearanceStatus(
+      {
+        id: id,
+        term_id: term.id,
+        token: token,
+      },
+      (response) => {
+        setTermStatus(response);
       }
     );
   };
@@ -111,8 +125,9 @@ const SWTDDashboard = () => {
                     <Dropdown.Item
                       key={term.id}
                       onClick={() => {
-                        setSelectedTerm(term);
                         fetchPoints(term);
+                        fetchClearance(term);
+                        setSelectedTerm(term);
                       }}>
                       {term.name}
                     </Dropdown.Item>
@@ -137,7 +152,26 @@ const SWTDDashboard = () => {
         {selectedTerm && (
           <Col className="d-flex align-items-center" xs="auto">
             <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
-            {termPoints?.valid_points}
+            {termPoints?.valid_points < termPoints?.required_points ? (
+              <span className="text-danger ms-1">
+                {termPoints?.valid_points}
+              </span>
+            ) : (
+              <span className="text-success ms-1">
+                {termPoints?.valid_points}
+              </span>
+            )}
+          </Col>
+        )}
+
+        {selectedTerm !== null && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
+            {termStatus?.is_cleared === true ? (
+              <span className="text-success ms-2">CLEARED</span>
+            ) : (
+              <span className="text-danger ms-2">PENDING CLEARANCE</span>
+            )}
           </Col>
         )}
       </Row>
