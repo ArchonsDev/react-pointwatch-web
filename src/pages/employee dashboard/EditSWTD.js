@@ -24,6 +24,7 @@ const EditSWTD = () => {
   const { swtd_id } = useParams();
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
+  const id = parseInt(Cookies.get("userID"), 10);
 
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
@@ -38,6 +39,7 @@ const EditSWTD = () => {
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const [selectedTermDate, setSelectedTermDate] = useState(null);
   const [terms, setTerms] = useState([]);
   const [status, setStatus] = useState({
     status: "",
@@ -71,14 +73,19 @@ const EditSWTD = () => {
       },
       (response) => {
         const data = response.data;
-        setSWTD(data);
 
+        if (id !== data.author_id) {
+          navigate("/swtd");
+          return;
+        }
+
+        setSWTD(data);
         const formattedDate = formatDate(data.date);
         setForm({
           title: data.title,
           venue: data.venue,
           category: data.category,
-          term_id: data.term_id,
+          term_id: data.term.id,
           role: data.role,
           date: formattedDate,
           time_started: data.time_started,
@@ -155,6 +162,18 @@ const EditSWTD = () => {
         points: 0,
         [e.target.name]: e.target.value,
       });
+    } else if (e.target.name === "term_id") {
+      const selectedTermId = parseInt(e.target.value);
+      const term = terms.find((term) => term.id === selectedTermId);
+
+      const formattedDate = formatDate(term.start_date);
+      setSelectedTermDate(formattedDate);
+
+      setForm({
+        ...form,
+        date: "",
+        [e.target.name]: e.target.value,
+      });
     } else {
       setForm({
         ...form,
@@ -184,13 +203,12 @@ const EditSWTD = () => {
       isTimeInvalid() ||
       !isValidDate(form.date) ||
       form.term_id === 0 ||
-      form.points === 0
+      form.points === 0 ||
+      form.date < selectedTermDate
     );
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     if (!isEmpty(form.date)) {
       const [year, month, day] = form.date.split("-");
       form.date = `${month}-${day}-${year}`;
@@ -398,8 +416,8 @@ const EditSWTD = () => {
                 </Form.Group>
               </Row>
 
-              {/* Venue */}
               <Row className="w-100">
+                {/* Venue */}
                 <Col>
                   <Form.Group as={Row} className="mb-3" controlId="inputVenue">
                     <Form.Label className={styles.formLabel} column sm="2">
@@ -427,43 +445,7 @@ const EditSWTD = () => {
                   </Form.Group>
                 </Col>
 
-                {/* Term */}
-                <Col>
-                  <Form.Group as={Row} className="mb-3" controlId="inputTerm">
-                    <Form.Label
-                      className={`${styles.formLabel} text-end`}
-                      column
-                      sm="2">
-                      Term
-                    </Form.Label>
-                    {isEditing ? (
-                      <Col sm="10">
-                        <Form.Select
-                          className={styles.formBox}
-                          name="term_id"
-                          onChange={handleChange}
-                          value={form.term_id}>
-                          <option value={0} disabled>
-                            Select a term
-                          </option>
-                          {terms.map((term, index) => (
-                            <option key={index} value={term.id}>
-                              {term.name}
-                            </option>
-                          ))}
-                        </Form.Select>
-                      </Col>
-                    ) : (
-                      <Col className="d-flex align-items-center">
-                        {swtd?.term.name}
-                      </Col>
-                    )}
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              {/* Category */}
-              <Row className="w-100">
+                {/* Category */}
                 <Col>
                   <Form.Group
                     as={Row}
@@ -496,6 +478,39 @@ const EditSWTD = () => {
                     ) : (
                       <Col className="d-flex align-items-center">
                         {swtd?.category}
+                      </Col>
+                    )}
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row className="w-100">
+                {/* Term */}
+                <Col>
+                  <Form.Group as={Row} className="mb-3" controlId="inputTerm">
+                    <Form.Label className={`${styles.formLabel}`} column sm="2">
+                      Term
+                    </Form.Label>
+                    {isEditing ? (
+                      <Col sm="10">
+                        <Form.Select
+                          className={styles.formBox}
+                          name="term_id"
+                          onChange={handleChange}
+                          value={form.term_id}>
+                          <option value={0} disabled>
+                            Select a term
+                          </option>
+                          {terms.map((term, index) => (
+                            <option key={index} value={term.id}>
+                              {term.name} ({term.start_date} to {term.end_date})
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </Col>
+                    ) : (
+                      <Col className="d-flex align-items-center">
+                        {swtd?.term.name}
                       </Col>
                     )}
                   </Form.Group>
@@ -552,6 +567,7 @@ const EditSWTD = () => {
                       <Col sm="10">
                         <Form.Control
                           type="date"
+                          min={selectedTermDate ? selectedTermDate : ""}
                           max={new Date().toISOString().slice(0, 10)}
                           className={styles.formBox}
                           name="date"
@@ -559,7 +575,8 @@ const EditSWTD = () => {
                           value={form.date}
                           isInvalid={
                             (!isEmpty(form.date) && !isValidDate(form.date)) ||
-                            isEmpty(form.date)
+                            isEmpty(form.date) ||
+                            form.date < selectedTermDate
                           }
                         />
                         {isEmpty(form.date) && (
@@ -568,9 +585,13 @@ const EditSWTD = () => {
                           </Form.Control.Feedback>
                         )}
 
-                        {!isEmpty(form.date) && !isValidDate(form?.date) && (
+                        {!isEmpty(form.date) && (
                           <Form.Control.Feedback type="invalid">
-                            Date must be valid.
+                            {!isValidDate(form?.date) ? (
+                              <>Date must be valid.</>
+                            ) : (
+                              <>Date must be within the term.</>
+                            )}
                           </Form.Control.Feedback>
                         )}
                       </Col>
@@ -752,14 +773,19 @@ const EditSWTD = () => {
               {isEditing && (
                 <Row>
                   <Col className="text-end">
-                    <BtnPrimary
-                      onClick={handleSubmit}
-                      disabled={invalidFields()}>
+                    <BtnPrimary onClick={openModal} disabled={invalidFields()}>
                       Save Changes
                     </BtnPrimary>
                   </Col>
                 </Row>
               )}
+              <ConfirmationModal
+                show={showModal}
+                onHide={closeModal}
+                onConfirm={handleSubmit}
+                header={"Update Details"}
+                message={"Do you wish to save these changes?"}
+              />
             </Form>
           </Card.Body>
         </Card>

@@ -36,7 +36,6 @@ const Term = () => {
       },
       (response) => {
         setTerms(response.terms);
-        console.log(response.terms);
       },
       (error) => {
         console.log(error.message);

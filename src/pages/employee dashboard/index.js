@@ -55,8 +55,8 @@ const SWTDDashboard = () => {
     );
   };
 
-  const fetchPoints = async (term) => {
-    await userPoints(
+  const fetchPoints = (term) => {
+    userPoints(
       {
         id: id,
         term_id: term?.id,
@@ -136,7 +136,7 @@ const SWTDDashboard = () => {
 
         {selectedTerm && (
           <Col className="d-flex align-items-center" xs="auto">
-            <i className="fa-solid fa-circle-plus me-2"></i>Points:{" "}
+            <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
             {termPoints?.valid_points}
           </Col>
         )}

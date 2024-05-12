@@ -3,12 +3,13 @@ import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown } from "react-bootstrap"; /* prettier-ignore */
 
-import { userPoints } from "../../api/user";
-import { getTerms } from "../../api/admin";
+import { getTerms, getClearanceStatus, clearEmployee } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
-import { getUser } from "../../api/user";
+import { getUser, userPoints } from "../../api/user";
+import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
+import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
@@ -22,8 +23,11 @@ const EmployeeSWTD = () => {
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [employee, setEmployee] = useState(null);
   const [termPoints, setTermPoints] = useState(null);
+  const [termStatus, setTermStatus] = useState(null);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
+
+  const [showModal, openModal, closeModal] = useSwitch();
 
   const fetchUser = async () => {
     await getUser(
@@ -32,7 +36,6 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        console.log(response.data);
         setEmployee(response.data);
       },
       (error) => {
@@ -41,8 +44,8 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const fetchAllSWTDs = async () => {
-    await getAllSWTDs(
+  const fetchAllSWTDs = () => {
+    getAllSWTDs(
       {
         author_id: id,
         token: token,
@@ -72,8 +75,8 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const fetchPoints = async (term) => {
-    await userPoints(
+  const fetchPoints = (term) => {
+    userPoints(
       {
         id: id,
         term_id: term?.id,
@@ -85,8 +88,35 @@ const EmployeeSWTD = () => {
     );
   };
 
+  const fetchClearance = async (term) => {
+    await getClearanceStatus(
+      {
+        id: id,
+        term_id: term?.id,
+        token: token,
+      },
+      (response) => {
+        setTermStatus(response.data);
+      }
+    );
+  };
+
   const handleViewSWTD = (swtd_id) => {
     navigate(`/dashboard/${id}/${swtd_id}`);
+  };
+
+  // TO DO
+  const handleClear = (term) => {
+    clearEmployee(
+      {
+        id: id,
+        term_id: term?.id,
+        token: token,
+      },
+      (response) => {
+        fetchClearance();
+      }
+    );
   };
 
   const pageTitle = employee
@@ -140,6 +170,7 @@ const EmployeeSWTD = () => {
                       onClick={() => {
                         setSelectedTerm(term);
                         fetchPoints(term);
+                        fetchClearance(term);
                       }}>
                       {term.name}
                     </Dropdown.Item>
@@ -148,21 +179,39 @@ const EmployeeSWTD = () => {
             )}
           </DropdownButton>
         </Col>
+
         <Col className="d-flex align-items-center" xs="auto">
           <i className="fa-solid fa-building me-2"></i>Department:{" "}
           {employee?.department}
         </Col>
+
         {selectedTerm === null && (
           <Col className="d-flex align-items-center" xs="auto">
             <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
-            {user?.point_balance}
+            {employee?.point_balance}
           </Col>
         )}
 
         {selectedTerm && (
           <Col className="d-flex align-items-center" xs="auto">
-            <i className="fa-solid fa-circle-plus me-2"></i>Points:{" "}
-            {termPoints?.valid_points}
+            <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
+            {termPoints?.valid_points < termPoints?.required_points ? (
+              <span className="text-danger ms-1">
+                {termPoints?.valid_points}
+              </span>
+            ) : (
+              <span className="text-success ms-1">
+                {termPoints?.valid_points}
+              </span>
+            )}
+          </Col>
+        )}
+
+        {selectedTerm !== null && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
+            {!termStatus && "PENDING CLEARANCE"}
+            {termStatus && "CLEARED"}
           </Col>
         )}
       </Row>
@@ -178,13 +227,26 @@ const EmployeeSWTD = () => {
         </Col>
 
         <Col className="text-end">
-          {user?.is_admin && (
+          {user?.is_admin && selectedTerm !== null && (
             <>
-              <BtnSecondary>Clear Employee</BtnSecondary>{" "}
+              <BtnSecondary
+                onClick={openModal}
+                disabled={
+                  termPoints?.valid_points < termPoints?.required_points
+                }>
+                Grant Clearance
+              </BtnSecondary>{" "}
             </>
           )}
           <BtnPrimary onClick={() => window.print()}>Export Report</BtnPrimary>
         </Col>
+        <ConfirmationModal
+          show={showModal}
+          onHide={closeModal}
+          onConfirm={() => handleClear(selectedTerm)}
+          header={"Clear Employee"}
+          message={"Are you sure you want to clear this employee?"}
+        />
       </Row>
 
       <Row className="w-100">

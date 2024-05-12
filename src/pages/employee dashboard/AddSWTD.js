@@ -19,18 +19,18 @@ import styles from "./style.module.css";
 
 const AddSWTD = () => {
   const { user } = useContext(SessionUserContext);
-  const accessToken = Cookies.get("userToken");
   const id = Cookies.get("userID");
+  const accessToken = Cookies.get("userToken");
   const navigate = useNavigate();
   const inputFile = useRef(null);
-  const [isProofInvalid, setIsProofInvalid] = useState(false);
 
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
-
   const [showModal, openModal, closeModal] = useSwitch();
 
+  const [isProofInvalid, setIsProofInvalid] = useState(false);
+  const [selectedTermDate, setSelectedTermDate] = useState(null);
   const [terms, setTerms] = useState([]);
   const [form, setForm] = useState({
     author_id: id,
@@ -46,6 +46,12 @@ const AddSWTD = () => {
     proof: "",
     benefits: "",
   });
+
+  const formatDate = (date) => {
+    if (!date) return "";
+    const [month, day, year] = date.split("-");
+    return `${year}-${month}-${day}`;
+  };
 
   const clearForm = () => {
     if (inputFile.current) {
@@ -76,6 +82,18 @@ const AddSWTD = () => {
         time_started: "00:00",
         time_finished: "00:00",
         points: 0,
+        [e.target.name]: e.target.value,
+      });
+    } else if (e.target.name === "term_id") {
+      const selectedTermId = parseInt(e.target.value);
+      const term = terms.find((term) => term.id === selectedTermId);
+
+      const formattedDate = formatDate(term.start_date);
+      setSelectedTermDate(formattedDate);
+
+      setForm({
+        ...form,
+        date: "",
         [e.target.name]: e.target.value,
       });
     } else {
@@ -129,7 +147,8 @@ const AddSWTD = () => {
       isTimeInvalid() ||
       form.term_id === 0 ||
       !form.proof ||
-      form.points === 0
+      form.points === 0 ||
+      form.date < selectedTermDate
     );
   };
 
@@ -292,40 +311,13 @@ const AddSWTD = () => {
                 </Form.Group>
               </Col>
 
-              {/* Term */}
+              {/* Category */}
               <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputTerm">
+                <Form.Group as={Row} className="mb-3" controlId="inputCategory">
                   <Form.Label
                     className={`${styles.formLabel} text-end`}
                     column
                     sm="2">
-                    Term
-                  </Form.Label>
-                  <Col sm="10">
-                    <Form.Select
-                      className={styles.formBox}
-                      name="term_id"
-                      onChange={handleChange}
-                      value={form.term_id}>
-                      <option value={0} disabled>
-                        Select a term
-                      </option>
-                      {terms.map((term, index) => (
-                        <option key={index} value={term.id}>
-                          {term.name}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Col>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="w-100">
-              {/* Category */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputCategory">
-                  <Form.Label className={styles.formLabel} column sm="2">
                     Category
                   </Form.Label>
                   <Col sm="10">
@@ -340,6 +332,33 @@ const AddSWTD = () => {
                       {categories.categories.map((category) => (
                         <option key={category.id} value={category.name}>
                           {category.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Col>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="w-100">
+              {/* Term */}
+              <Col>
+                <Form.Group as={Row} className="mb-3" controlId="inputTerm">
+                  <Form.Label className={`${styles.formLabel}`} column sm="2">
+                    Term
+                  </Form.Label>
+                  <Col sm="10">
+                    <Form.Select
+                      className={styles.formBox}
+                      name="term_id"
+                      onChange={handleChange}
+                      value={form.term_id}>
+                      <option value={0} disabled>
+                        Select a term
+                      </option>
+                      {terms.map((term, index) => (
+                        <option key={index} value={term.id}>
+                          {term.name} ({term.start_date} to {term.end_date})
                         </option>
                       ))}
                     </Form.Select>
@@ -386,16 +405,25 @@ const AddSWTD = () => {
                   <Col sm="10">
                     <Form.Control
                       type="date"
+                      min={selectedTermDate ? selectedTermDate : ""}
                       max={new Date().toISOString().slice(0, 10)}
                       className={styles.formBox}
                       name="date"
                       onChange={handleChange}
                       value={form.date}
-                      isInvalid={!isEmpty(form.date) && !isValidDate(form.date)}
+                      isInvalid={
+                        (!isEmpty(form.date) && !isValidDate(form.date)) ||
+                        form.date < selectedTermDate
+                      }
+                      disabled={form.term_id === 0}
                     />
-                    {!isEmpty(form.date) && !isValidDate(form?.date) && (
+                    {!isEmpty(form.date) && (
                       <Form.Control.Feedback type="invalid">
-                        Date must be valid.
+                        {!isValidDate(form?.date) ? (
+                          <>Date must be valid.</>
+                        ) : (
+                          <>Date must be within the term.</>
+                        )}
                       </Form.Control.Feedback>
                     )}
                   </Col>
