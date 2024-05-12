@@ -1,10 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal } from "react-bootstrap"; /* prettier-ignore */
 
+import { userPoints } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
+import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -16,8 +18,10 @@ const SWTDDashboard = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
+  const [showModal, openModal, closeModal] = useSwitch();
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [terms, setTerms] = useState([]);
+  const [termPoints, setTermPoints] = useState(null);
   const [selectedTerm, setSelectedTerm] = useState(null);
 
   const fetchAllSWTDs = async () => {
@@ -37,14 +41,6 @@ const SWTDDashboard = () => {
     );
   };
 
-  const handleAddRecordClick = () => {
-    navigate("/swtd/form");
-  };
-
-  const handleEditRecordClick = (id) => {
-    navigate(`/swtd/${id}`);
-  };
-
   const fetchTerms = () => {
     getTerms(
       {
@@ -57,6 +53,27 @@ const SWTDDashboard = () => {
         console.log(error.message);
       }
     );
+  };
+
+  const fetchPoints = async (term) => {
+    await userPoints(
+      {
+        id: id,
+        term_id: term?.id,
+        token: token,
+      },
+      (response) => {
+        setTermPoints(response.data);
+      }
+    );
+  };
+
+  const handleAddRecordClick = () => {
+    navigate("/swtd/form");
+  };
+
+  const handleEditRecordClick = (id) => {
+    navigate(`/swtd/${id}`);
   };
 
   const filteredSWTDs = userSWTDs?.filter(
@@ -93,7 +110,10 @@ const SWTDDashboard = () => {
                   terms.map((term) => (
                     <Dropdown.Item
                       key={term.id}
-                      onClick={() => setSelectedTerm(term)}>
+                      onClick={() => {
+                        setSelectedTerm(term);
+                        fetchPoints(term);
+                      }}>
                       {term.name}
                     </Dropdown.Item>
                   ))}
@@ -101,17 +121,25 @@ const SWTDDashboard = () => {
             )}
           </DropdownButton>
         </Col>
-        <Col xs="auto">
+
+        <Col className="d-flex align-items-center" xs="auto">
           <i className="fa-solid fa-building me-2"></i>Department:{" "}
           {user?.department}
         </Col>
-        <Col xs="auto">
-          <i className="fa-solid fa-circle-plus me-2"></i>Total Points:{" "}
-          {user?.swtd_points?.valid_points}
-        </Col>
-        <Col xs="auto">
-          <i className="fa-solid fa-plus-minus me-2"></i>Excess/Lacking Points:
-        </Col>
+
+        {selectedTerm === null && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
+            {user?.point_balance}
+          </Col>
+        )}
+
+        {selectedTerm && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-circle-plus me-2"></i>Points:{" "}
+            {termPoints?.valid_points}
+          </Col>
+        )}
       </Row>
 
       <Row className="w-100">
@@ -125,24 +153,49 @@ const SWTDDashboard = () => {
         </Col>
 
         <Col className="text-end">
-          <BtnPrimary onClick={handleAddRecordClick}>
+          <BtnPrimary
+            onClick={() =>
+              user?.department === null ? openModal() : handleAddRecordClick()
+            }>
             Add a New Record
           </BtnPrimary>
         </Col>
+
+        <Modal show={showModal} onHide={closeModal} size="md" centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Missing Required Fields</Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="d-flex justify-content-center align-items-center">
+            Department is required before adding a new record. Please proceed to
+            your settings to make this change.
+          </Modal.Body>
+          <Modal.Footer>
+            <BtnPrimary onClick={() => navigate("/settings")}>
+              Go to Settings
+            </BtnPrimary>
+          </Modal.Footer>
+        </Modal>
       </Row>
 
       <Row className="w-100">
         {selectedTerm === null ? (
           <>
             <ListGroup className="w-100" variant="flush">
-              <ListGroup.Item className={styles.tableHeader}>
-                <Row>
-                  <Col xs={1}>No.</Col>
-                  <Col xs={7}>Title of SWTD</Col>
-                  <Col xs={2}>Points</Col>
-                  <Col xs={2}>Status</Col>
-                </Row>
-              </ListGroup.Item>
+              {userSWTDs.length === 0 ? (
+                <span
+                  className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
+                  No records submitted.
+                </span>
+              ) : (
+                <ListGroup.Item className={styles.tableHeader}>
+                  <Row>
+                    <Col xs={1}>No.</Col>
+                    <Col xs={7}>Title of SWTD</Col>
+                    <Col xs={2}>Points</Col>
+                    <Col xs={2}>Status</Col>
+                  </Row>
+                </ListGroup.Item>
+              )}
             </ListGroup>
             <ListGroup>
               {userSWTDs.map((item) => (

@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown } from "react-bootstrap"; /* prettier-ignore */
 
+import { userPoints } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
 import { getUser } from "../../api/user";
@@ -20,6 +21,7 @@ const EmployeeSWTD = () => {
 
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [employee, setEmployee] = useState(null);
+  const [termPoints, setTermPoints] = useState(null);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
 
@@ -30,6 +32,7 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
+        console.log(response.data);
         setEmployee(response.data);
       },
       (error) => {
@@ -69,8 +72,17 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const handleBackClick = () => {
-    navigate("/dashboard");
+  const fetchPoints = async (term) => {
+    await userPoints(
+      {
+        id: id,
+        term_id: term?.id,
+        token: token,
+      },
+      (response) => {
+        setTermPoints(response.data);
+      }
+    );
   };
 
   const handleViewSWTD = (swtd_id) => {
@@ -84,6 +96,7 @@ const EmployeeSWTD = () => {
   const filteredSWTDs = userSWTDs?.filter(
     (swtd) => swtd?.term.id === selectedTerm?.id
   );
+
   useEffect(() => {
     if (!user?.is_admin && !user?.is_staff && !user?.is_superuser) {
       navigate("/swtd");
@@ -93,13 +106,14 @@ const EmployeeSWTD = () => {
     fetchTerms();
     fetchAllSWTDs();
   }, []);
+
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
       <Row className="mb-2">
         <h3 className={styles.label}>
           <i
             className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
-            onClick={handleBackClick}></i>{" "}
+            onClick={() => navigate("/dashboard")}></i>{" "}
           {pageTitle}
         </h3>
       </Row>
@@ -123,7 +137,10 @@ const EmployeeSWTD = () => {
                   terms.map((term) => (
                     <Dropdown.Item
                       key={term.id}
-                      onClick={() => setSelectedTerm(term)}>
+                      onClick={() => {
+                        setSelectedTerm(term);
+                        fetchPoints(term);
+                      }}>
                       {term.name}
                     </Dropdown.Item>
                   ))}
@@ -131,21 +148,27 @@ const EmployeeSWTD = () => {
             )}
           </DropdownButton>
         </Col>
-        <Col xs="auto">
+        <Col className="d-flex align-items-center" xs="auto">
           <i className="fa-solid fa-building me-2"></i>Department:{" "}
           {employee?.department}
         </Col>
-        <Col xs="auto">
-          <i className="fa-solid fa-circle-plus me-2"></i>Total Points:{" "}
-          {employee?.swtd_points.valid_points}
-        </Col>
-        <Col xs="auto">
-          <i className="fa-solid fa-plus-minus me-2"></i>Excess/Lacking Points:
-        </Col>
+        {selectedTerm === null && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
+            {user?.point_balance}
+          </Col>
+        )}
+
+        {selectedTerm && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-circle-plus me-2"></i>Points:{" "}
+            {termPoints?.valid_points}
+          </Col>
+        )}
       </Row>
 
       <Row className="w-100">
-        <Col className="text-start" md={8}>
+        <Col className="text-start" md={6}>
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
@@ -154,13 +177,12 @@ const EmployeeSWTD = () => {
           </InputGroup>
         </Col>
 
-        {user?.is_admin && (
-          <Col className="text-end">
-            <BtnSecondary>Clear Employee</BtnSecondary>
-          </Col>
-        )}
-
         <Col className="text-end">
+          {user?.is_admin && (
+            <>
+              <BtnSecondary>Clear Employee</BtnSecondary>{" "}
+            </>
+          )}
           <BtnPrimary onClick={() => window.print()}>Export Report</BtnPrimary>
         </Col>
       </Row>

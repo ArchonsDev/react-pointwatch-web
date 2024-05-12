@@ -174,7 +174,6 @@ const ViewSWTD = () => {
   };
 
   const handleValidate = async () => {
-    console.log(validation);
     await validateSWTD(
       {
         id: swtd_id,

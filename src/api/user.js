@@ -42,9 +42,9 @@ export const updateUser = async (data, onSuccess, onFail, onCleanup) => {
     const response = await axios.put(
       `http://localhost:5000/users/${data.id}`,
       {
+        employee_id: data.employee_id,
         firstname: data.firstname,
         lastname: data.lastname,
-        password: data.password,
         department: data.department,
       },
       {
@@ -98,6 +98,27 @@ export const deleteUser = async (data, onSuccess, onFail, onCleanup) => {
         headers: {
           Authorization: `Bearer ${data.token}`,
           "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};
+
+export const userPoints = async (data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/users/${data.id}/points?term_id=${data.term_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
         },
       }
     );

@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
-import { Row, Col, Container, Card, Form, Button, ListGroup, Badge, Modal } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Card, Form, Modal } from "react-bootstrap"; /* prettier-ignore */
 
+import Comments from "./Comments";
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
 
 import { isEmpty, isValidDate } from "../../common/validation/utils";
+import { calculatePoints } from "../../common/validation/points";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { getTerms } from "../../api/admin";
 import { getSWTD, getSWTDProof, getSWTDValidation, editSWTD, deleteSWTD } from "../../api/swtd"; /* prettier-ignore */
-import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
-import EditCommentModal from "../../common/modals/EditCommentModal";
 import EditProofModal from "../../common/modals/EditProofModal";
 import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import styles from "./style.module.css";
@@ -24,14 +24,11 @@ const EditSWTD = () => {
   const { swtd_id } = useParams();
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
-  const userID = parseInt(Cookies.get("userID"), 10);
 
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
 
-  const [selectedComment, setSelectedComment] = useState(null);
   const [showModal, openModal, closeModal] = useSwitch();
-  const [showCommentModal, openCommentModal, closeCommentModal] = useSwitch();
   const [showProofModal, openProofModal, closeProofModal] = useSwitch();
   const [showEditProof, openEditProof, closeEditProof] = useSwitch();
   const [showDeleteModal, openDeleteModal, closeDeleteModal] = useSwitch();
@@ -39,19 +36,14 @@ const EditSWTD = () => {
   const [isEditing, enableEditing, cancelEditing] = useSwitch();
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
-  const [showCommentError, triggerShowCommentError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const [comment, setComment] = useState("");
-  const [comments, setComments] = useState([]);
   const [terms, setTerms] = useState([]);
-
   const [status, setStatus] = useState({
     status: "",
     validated_on: "",
     validator: "",
   });
-
   const [form, setForm] = useState({
     title: "",
     venue: "",
@@ -155,10 +147,20 @@ const EditSWTD = () => {
   };
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.name === "category" && e.target.value.startsWith("Degree")) {
+      setForm({
+        ...form,
+        time_started: "00:00",
+        time_finished: "00:00",
+        points: 0,
+        [e.target.name]: e.target.value,
+      });
+    } else {
+      setForm({
+        ...form,
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   const isTimeInvalid = () => {
@@ -181,12 +183,9 @@ const EditSWTD = () => {
       requiredFields.some((field) => isEmpty(form[field])) ||
       isTimeInvalid() ||
       !isValidDate(form.date) ||
-      form.term_id === 0
+      form.term_id === 0 ||
+      form.points === 0
     );
-  };
-
-  const handleCommentChange = (e) => {
-    setComment(e.target.value);
   };
 
   const handleSubmit = async (e) => {
@@ -222,47 +221,6 @@ const EditSWTD = () => {
     );
   };
 
-  const handlePost = async (e) => {
-    e.preventDefault();
-
-    if (isEmpty(comment)) {
-      setErrorMessage("Comment cannot be empty.");
-      setComment("");
-      triggerShowCommentError(3000);
-      return;
-    }
-
-    postComment(
-      {
-        id: swtd_id,
-        token: token,
-        message: comment,
-      },
-      (response) => {
-        fetchComments();
-        setComment("");
-      },
-      (error) => {
-        console.log("Error: ", error.message);
-      }
-    );
-  };
-
-  const fetchComments = () => {
-    getComments(
-      {
-        id: swtd_id,
-        token: token,
-      },
-      (response) => {
-        setComments(response.data.comments);
-      },
-      (error) => {
-        console.log("Error: ", error.message);
-      }
-    );
-  };
-
   const proofSuccess = async () => {
     triggerShowSuccess(3000);
     fetchSWTDProof();
@@ -272,26 +230,6 @@ const EditSWTD = () => {
   const proofError = (message) => {
     setErrorMessage(message);
     triggerShowError(3000);
-  };
-
-  const editSuccess = async () => {
-    await fetchComments();
-  };
-
-  const handleDelete = async () => {
-    await deleteComment(
-      {
-        swtd_id: swtd_id,
-        comment_id: selectedComment.id,
-        token: token,
-      },
-      (response) => {
-        fetchComments();
-      },
-      (error) => {
-        console.log("Error: ", error.message);
-      }
-    );
   };
 
   const handleDeleteRecord = async () => {
@@ -309,10 +247,28 @@ const EditSWTD = () => {
     );
   };
 
+  const getPoints = (name, start, finish) => {
+    const total = calculatePoints(name, start, finish);
+    setForm({
+      ...form,
+      points: total,
+    });
+  };
+
+  useEffect(() => {
+    const isFormValid =
+      !isEmpty(form.category) &&
+      !form.category.startsWith("Degree") &&
+      !isEmpty(form.time_started) &&
+      !isEmpty(form.time_finished);
+    if (isFormValid)
+      getPoints(form.category, form.time_started, form.time_finished);
+    else form.points = 0;
+  }, [form.category, form.time_started, form.time_finished]);
+
   useEffect(() => {
     fetchSWTD();
     fetchTerms();
-    fetchComments();
     fetchSWTDValidation();
   }, []);
 
@@ -645,6 +601,7 @@ const EditSWTD = () => {
                             onChange={handleChange}
                             value={form.time_started}
                             isInvalid={isTimeInvalid()}
+                            disabled={form?.category.startsWith("Degree")}
                           />
                           <Form.Control.Feedback type="invalid">
                             Time must be valid.
@@ -662,6 +619,7 @@ const EditSWTD = () => {
                             name="time_finished"
                             onChange={handleChange}
                             value={form.time_finished}
+                            disabled={form?.category.startsWith("Degree")}
                           />
                         </Col>
                       </>
@@ -715,11 +673,51 @@ const EditSWTD = () => {
                     <Form.Label className={styles.formLabel} column sm="2">
                       Points
                     </Form.Label>
-                    <Col
-                      className={`${styles.points} d-flex justify-content-start align-items-center`}
-                      sm="2">
-                      {swtd?.points}
-                    </Col>
+                    {isEditing ? (
+                      <>
+                        {form?.category.startsWith("Degree") ? (
+                          <>
+                            <Col sm="2">
+                              <Form.Control
+                                type="number"
+                                className={`${styles.pointsBox} text-center`}
+                                name="points"
+                                onChange={handleChange}
+                                value={form.points}
+                              />
+                            </Col>
+                            <Col className="d-flex align-items-center">
+                              <Form.Text muted>
+                                Enter the points for this submission.
+                              </Form.Text>
+                            </Col>
+                          </>
+                        ) : (
+                          <>
+                            <Col sm="2">
+                              <Form.Control
+                                className={`${styles.pointsBox} text-center`}
+                                name="points"
+                                onChange={handleChange}
+                                value={form.points}
+                                readOnly
+                              />
+                            </Col>
+                            <Col className="d-flex align-items-center">
+                              <Form.Text muted>
+                                Points will be calculated automatically.
+                              </Form.Text>
+                            </Col>
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      <Col
+                        className={`${styles.points} d-flex justify-content-start align-items-center`}
+                        sm="2">
+                        {swtd?.points}
+                      </Col>
+                    )}
                   </Form.Group>
                 </Col>
               </Row>
@@ -767,107 +765,7 @@ const EditSWTD = () => {
         </Card>
 
         {/* Comments */}
-        {!isEditing && (
-          <Card className="mb-3 w-100">
-            <Card.Header className={styles.cardHeader}>Comments</Card.Header>
-            {comments.length !== 0 ? (
-              <Card.Body
-                className={`${styles.cardBody} d-flex justify-content-center align-items center p-1`}>
-                {showCommentError && (
-                  <div className="alert alert-danger mb-3" role="alert">
-                    {errorMessage}
-                  </div>
-                )}
-
-                <Row className="w-100">
-                  <ListGroup variant="flush">
-                    {comments &&
-                      comments.map((item) => (
-                        <ListGroup.Item
-                          key={item.id}
-                          className={styles.commentBox}>
-                          <Row>
-                            <Col xs={2}>
-                              {item.author.firstname} {item.author.lastname}
-                            </Col>
-                            <Col xs={6}>{item.message}</Col>
-                            <Col xs={2}>{item.date_modified}</Col>
-                            <Col className="text-end" xs={1}>
-                              {item.author.id === userID && (
-                                <i
-                                  className={`${styles.commentEdit} fa-solid fa-pen-to-square`}
-                                  onClick={() => {
-                                    openCommentModal();
-                                    setSelectedComment(item);
-                                  }}></i>
-                              )}
-                            </Col>
-                            <Col className="text-end" xs={1}>
-                              <i
-                                className={`${styles.commentDelete} fa-solid fa-trash-can`}
-                                onClick={() => {
-                                  openModal();
-                                  setSelectedComment(item);
-                                }}></i>
-                            </Col>
-                          </Row>
-                          {item.is_edited && (
-                            <Badge bg="secondary" pill>
-                              Edited
-                            </Badge>
-                          )}
-                        </ListGroup.Item>
-                      ))}
-                    <EditCommentModal
-                      show={showCommentModal}
-                      onHide={closeCommentModal}
-                      data={selectedComment}
-                      editSuccess={editSuccess}
-                    />
-
-                    <ConfirmationModal
-                      show={showModal}
-                      onHide={closeModal}
-                      onConfirm={handleDelete}
-                      header={"Delete Comment"}
-                      message={"Do you wish to delete this comment?"}
-                    />
-                  </ListGroup>
-                </Row>
-              </Card.Body>
-            ) : (
-              <Card.Subtitle
-                className={`${styles.comment} d-flex justify-content-center align-items center p-4 text-muted`}>
-                No comments yet.
-              </Card.Subtitle>
-            )}
-
-            <Card.Footer className="p-3">
-              <Form noValidate onSubmit={(e) => e.preventDefault()}>
-                <Row className="w-100">
-                  <Col sm="11">
-                    <Form.Group>
-                      <Form.Control
-                        type="text"
-                        className={styles.formBox}
-                        name="comment"
-                        onChange={handleCommentChange}
-                        value={comment}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col className="text-end" sm="1">
-                    <Button
-                      className={`${styles.button} w-100`}
-                      onClick={handlePost}>
-                      <i className="fa-solid fa-paper-plane fa-lg"></i>
-                    </Button>
-                  </Col>
-                </Row>
-              </Form>
-            </Card.Footer>
-          </Card>
-        )}
+        {!isEditing && <Comments />}
       </Container>
     </div>
   );
