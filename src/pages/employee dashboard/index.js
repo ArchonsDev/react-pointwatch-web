@@ -199,9 +199,12 @@ const SWTDDashboard = () => {
 
         <Modal show={showModal} onHide={closeModal} size="md" centered>
           <Modal.Header closeButton>
-            <Modal.Title>Missing Required Fields</Modal.Title>
+            <Modal.Title className={styles.formLabel}>
+              Missing Required Fields
+            </Modal.Title>
           </Modal.Header>
-          <Modal.Body className="d-flex justify-content-center align-items-center">
+          <Modal.Body
+            className={`${styles.filterText} d-flex justify-content-center align-items-center`}>
             Department is required before adding a new record. Please proceed to
             your settings to make this change.
           </Modal.Body>
