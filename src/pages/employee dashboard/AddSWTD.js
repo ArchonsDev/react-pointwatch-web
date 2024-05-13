@@ -218,6 +218,8 @@ const AddSWTD = () => {
   }, [form.category, form.time_started, form.time_finished]);
 
   useEffect(() => {
+    if (user?.department === null) navigate("/swtd");
+
     fetchTerms();
     setForm((prevForm) => ({
       ...prevForm,

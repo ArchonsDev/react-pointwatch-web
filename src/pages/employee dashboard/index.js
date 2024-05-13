@@ -110,7 +110,9 @@ const SWTDDashboard = () => {
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           <DropdownButton
             className={`ms-2`}
-            variant="secondary"
+            variant={
+              selectedTerm?.is_ongoing === true ? "success" : "secondary"
+            }
             size="sm"
             title={selectedTerm ? selectedTerm.name : "All terms"}>
             {terms.length === 0 ? (
