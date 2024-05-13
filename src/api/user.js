@@ -42,9 +42,9 @@ export const updateUser = async (data, onSuccess, onFail, onCleanup) => {
     const response = await axios.put(
       `http://localhost:5000/users/${data.id}`,
       {
+        employee_id: data.employee_id,
         firstname: data.firstname,
         lastname: data.lastname,
-        password: data.password,
         department: data.department,
       },
       {
@@ -109,5 +109,45 @@ export const deleteUser = async (data, onSuccess, onFail, onCleanup) => {
     onFail && onFail(error);
   } finally {
     onCleanup && onCleanup();
+  }
+};
+
+export const userPoints = async (data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/users/${data.id}/points?term_id=${data.term_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};
+
+export const getClearanceStatus = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.get(
+      `http://localhost:5000/users/${data.id}/terms/${data.term_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
   }
 };

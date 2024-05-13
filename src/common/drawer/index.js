@@ -72,8 +72,10 @@ const Drawer = () => {
             {/* Profile picture */}
             <Offcanvas.Header className="d-flex justify-content-center align-items-center">
               <Offcanvas.Title id={`offcanvasNavbarLabel-expand`}>
-                <div className={`${styles.circle} mb-3`}></div>
                 <Row className="flex-column">
+                  <Col className="d-flex justify-content-center align-items-center">
+                    <div className={`${styles.circle} mb-3`}></div>
+                  </Col>
                   <Col className={`${styles.name} text-center`}>
                     {user?.firstname} {user?.lastname}
                   </Col>

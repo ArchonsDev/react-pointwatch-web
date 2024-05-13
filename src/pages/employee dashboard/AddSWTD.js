@@ -1,31 +1,36 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, Card, Form } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Card, Form, Modal } from "react-bootstrap"; /* prettier-ignore */
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
 import { getTerms } from "../../api/admin";
 import { addSWTD } from "../../api/swtd";
+import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { isEmpty, isValidDate } from "../../common/validation/utils";
+import { calculatePoints } from "../../common/validation/points";
 
+import SWTDInfo from "./SWTDInfo";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
 
 const AddSWTD = () => {
   const { user } = useContext(SessionUserContext);
-  const accessToken = Cookies.get("userToken");
   const id = Cookies.get("userID");
+  const accessToken = Cookies.get("userToken");
   const navigate = useNavigate();
   const inputFile = useRef(null);
-  const [isProofInvalid, setIsProofInvalid] = useState(false);
 
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [showModal, openModal, closeModal] = useSwitch();
 
+  const [isProofInvalid, setIsProofInvalid] = useState(false);
+  const [selectedTermDate, setSelectedTermDate] = useState(null);
   const [terms, setTerms] = useState([]);
   const [form, setForm] = useState({
     author_id: id,
@@ -37,10 +42,16 @@ const AddSWTD = () => {
     date: "",
     time_started: "",
     time_finished: "",
-    points: 50,
+    points: 0,
     proof: "",
     benefits: "",
   });
+
+  const formatDate = (date) => {
+    if (!date) return "";
+    const [month, day, year] = date.split("-");
+    return `${year}-${month}-${day}`;
+  };
 
   const clearForm = () => {
     if (inputFile.current) {
@@ -65,10 +76,32 @@ const AddSWTD = () => {
   };
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.name === "category" && e.target.value.startsWith("Degree")) {
+      setForm({
+        ...form,
+        time_started: "00:00",
+        time_finished: "00:00",
+        points: 0,
+        [e.target.name]: e.target.value,
+      });
+    } else if (e.target.name === "term_id") {
+      const selectedTermId = parseInt(e.target.value);
+      const term = terms.find((term) => term.id === selectedTermId);
+
+      const formattedDate = formatDate(term.start_date);
+      setSelectedTermDate(formattedDate);
+
+      setForm({
+        ...form,
+        date: "",
+        [e.target.name]: e.target.value,
+      });
+    } else {
+      setForm({
+        ...form,
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   const handleProof = (e) => {
@@ -113,8 +146,18 @@ const AddSWTD = () => {
       requiredFields.some((field) => isEmpty(form[field])) ||
       isTimeInvalid() ||
       form.term_id === 0 ||
-      !form.proof
+      !form.proof ||
+      form.points === 0 ||
+      form.date < selectedTermDate
     );
+  };
+
+  const getPoints = (name, start, finish) => {
+    const total = calculatePoints(name, start, finish);
+    setForm({
+      ...form,
+      points: total,
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -164,6 +207,19 @@ const AddSWTD = () => {
   };
 
   useEffect(() => {
+    const isFormValid =
+      !isEmpty(form.category) &&
+      !form.category.startsWith("Degree") &&
+      !isEmpty(form.time_started) &&
+      !isEmpty(form.time_finished);
+    if (isFormValid)
+      getPoints(form.category, form.time_started, form.time_finished);
+    else form.points = 0;
+  }, [form.category, form.time_started, form.time_finished]);
+
+  useEffect(() => {
+    if (user?.department === null) navigate("/swtd");
+
     fetchTerms();
     setForm((prevForm) => ({
       ...prevForm,
@@ -174,6 +230,18 @@ const AddSWTD = () => {
   return (
     <Container
       className={`${styles.container} d-flex flex-column justify-content-center align-items-start`}>
+      {/* View Terms Modal */}
+      <Modal show={showModal} onHide={closeModal} size="lg" centered>
+        <Modal.Header closeButton>
+          <Modal.Title className={styles.formLabel}>
+            Required Points & Compliance Schedule
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <SWTDInfo />
+        </Modal.Body>
+      </Modal>
+
       <Row className="mb-2">
         <h3 className={styles.label}>
           <i
@@ -184,7 +252,16 @@ const AddSWTD = () => {
       </Row>
 
       <Card className="mb-3" style={{ width: "80rem" }}>
-        <Card.Header className={styles.cardHeader}>SWTD Details</Card.Header>
+        <Card.Header className={styles.cardHeader}>
+          <Row>
+            <Col>SWTD Details</Col>
+            <Col className="text-end">
+              <i
+                className={`${styles.commentEdit} fa-solid fa-circle-info fa-lg`}
+                onClick={openModal}></i>
+            </Col>
+          </Row>
+        </Card.Header>
         <Card.Body className={`${styles.cardBody} p-4`}>
           {showError && (
             <div className="alert alert-danger mb-3" role="alert">
@@ -236,13 +313,40 @@ const AddSWTD = () => {
                 </Form.Group>
               </Col>
 
-              {/* Term */}
+              {/* Category */}
               <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputTerm">
+                <Form.Group as={Row} className="mb-3" controlId="inputCategory">
                   <Form.Label
                     className={`${styles.formLabel} text-end`}
                     column
                     sm="2">
+                    Category
+                  </Form.Label>
+                  <Col sm="10">
+                    <Form.Select
+                      className={styles.formBox}
+                      name="category"
+                      onChange={handleChange}
+                      value={form.category}>
+                      <option value="" disabled>
+                        Select a category
+                      </option>
+                      {categories.categories.map((category) => (
+                        <option key={category.id} value={category.name}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Col>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="w-100">
+              {/* Term */}
+              <Col>
+                <Form.Group as={Row} className="mb-3" controlId="inputTerm">
+                  <Form.Label className={`${styles.formLabel}`} column sm="2">
                     Term
                   </Form.Label>
                   <Col sm="10">
@@ -256,34 +360,7 @@ const AddSWTD = () => {
                       </option>
                       {terms.map((term, index) => (
                         <option key={index} value={term.id}>
-                          {term.name}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Col>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="w-100">
-              {/* Category */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputCategory">
-                  <Form.Label className={styles.formLabel} column sm="2">
-                    Category
-                  </Form.Label>
-                  <Col sm="10">
-                    <Form.Select
-                      className={styles.formBox}
-                      name="category"
-                      onChange={handleChange}
-                      value={form.category}>
-                      <option value="" disabled>
-                        Select a category
-                      </option>
-                      {categories.categories.map((category, index) => (
-                        <option key={index} value={category}>
-                          {category}
+                          {term.name} ({term.start_date} to {term.end_date})
                         </option>
                       ))}
                     </Form.Select>
@@ -330,16 +407,25 @@ const AddSWTD = () => {
                   <Col sm="10">
                     <Form.Control
                       type="date"
+                      min={selectedTermDate ? selectedTermDate : ""}
                       max={new Date().toISOString().slice(0, 10)}
                       className={styles.formBox}
                       name="date"
                       onChange={handleChange}
                       value={form.date}
-                      isInvalid={!isEmpty(form.date) && !isValidDate(form.date)}
+                      isInvalid={
+                        (!isEmpty(form.date) && !isValidDate(form.date)) ||
+                        form.date < selectedTermDate
+                      }
+                      disabled={form.term_id === 0}
                     />
-                    {!isEmpty(form.date) && !isValidDate(form?.date) && (
+                    {!isEmpty(form.date) && (
                       <Form.Control.Feedback type="invalid">
-                        Date must be valid.
+                        {!isValidDate(form?.date) ? (
+                          <>Date must be valid.</>
+                        ) : (
+                          <>Date must be within the term.</>
+                        )}
                       </Form.Control.Feedback>
                     )}
                   </Col>
@@ -363,6 +449,7 @@ const AddSWTD = () => {
                       onChange={handleChange}
                       value={form.time_started}
                       isInvalid={isTimeInvalid()}
+                      disabled={form?.category.startsWith("Degree")}
                     />
                     <Form.Control.Feedback type="invalid">
                       Time must be valid.
@@ -380,6 +467,7 @@ const AddSWTD = () => {
                       name="time_finished"
                       onChange={handleChange}
                       value={form.time_finished}
+                      disabled={form?.category.startsWith("Degree")}
                     />
                   </Col>
                 </Form.Group>
@@ -393,7 +481,7 @@ const AddSWTD = () => {
                   <Form.Label className={`${styles.formLabel}`} column sm="2">
                     Proof
                   </Form.Label>
-                  <Col sm="10">
+                  <Col sm="6">
                     <Form.Control
                       type="file"
                       className={styles.formBox}
@@ -402,9 +490,9 @@ const AddSWTD = () => {
                       ref={inputFile}
                       isInvalid={isProofInvalid}
                     />
-                    <Form.Text muted>
-                      Only upload PDFs, PNG, JPG/JPEG.
-                    </Form.Text>
+                  </Col>
+                  <Col className="d-flex align-items-center">
+                    <Form.Text muted>PDFs, PNG, JPG/JPEG only.</Form.Text>
                   </Col>
                 </Form.Group>
               </Col>
@@ -418,15 +506,42 @@ const AddSWTD = () => {
                     sm="2">
                     Points
                   </Form.Label>
-                  <Col sm="2">
-                    <Form.Control
-                      className={`${styles.pointsBox} text-center`}
-                      name="points"
-                      onChange={handleChange}
-                      value={form.points}
-                      readOnly
-                    />
-                  </Col>
+
+                  {form?.category.startsWith("Degree") ? (
+                    <>
+                      <Col sm="2">
+                        <Form.Control
+                          type="number"
+                          className={`${styles.pointsBox} text-center`}
+                          name="points"
+                          onChange={handleChange}
+                          value={form.points}
+                        />
+                      </Col>
+                      <Col className="d-flex align-items-center">
+                        <Form.Text muted>
+                          Enter the points for this submission.
+                        </Form.Text>
+                      </Col>
+                    </>
+                  ) : (
+                    <>
+                      <Col sm="2">
+                        <Form.Control
+                          className={`${styles.pointsBox} text-center`}
+                          name="points"
+                          onChange={handleChange}
+                          value={form.points}
+                          readOnly
+                        />
+                      </Col>
+                      <Col className="d-flex align-items-center">
+                        <Form.Text muted>
+                          Points will be calculated automatically.
+                        </Form.Text>
+                      </Col>
+                    </>
+                  )}
                 </Form.Group>
               </Col>
             </Row>

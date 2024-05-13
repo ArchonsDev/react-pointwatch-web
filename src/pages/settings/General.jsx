@@ -23,60 +23,35 @@ const General = () => {
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [isClicked, setIsClicked] = useState(false);
 
   const [form, setForm] = useState({
+    employee_id: user?.employee_id ? user.employee_id : "",
     firstname: user?.firstname,
     lastname: user?.lastname,
-    department: user?.department,
+    department: user?.department ? user?.department : "",
   });
 
   const handleChange = (e) => {
+    if (e.target.name === "employee_id" && user?.employee_id !== null) {
+      return;
+    }
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
   };
 
-  const isFirstnameValid = () => {
-    if (!isClicked) return false;
-    return isEmpty(form.firstname) || !isValidLength(form.firstname, 1);
-  };
+  const invalidFields = () => {
+    const emptyFields = ["employee_id", "firstname", "lastname", "department"];
+    const lengthFields = ["employee_id", "firstname", "lastname"];
 
-  const isLastnameValid = () => {
-    if (!isClicked) return false;
-    return isEmpty(form.lastname) || !isValidLength(form.lastname, 1);
-  };
-
-  const handleDefaultError = () => {
-    setErrorMessage(<>An error occurred.</>);
+    return (
+      emptyFields.some((field) => isEmpty(form[field])) ||
+      lengthFields.some((field) => isValidLength(form[field]), 1)
+    );
   };
 
   const handleSubmit = async () => {
-    setIsClicked(true);
-    if (isEmpty(form.firstname) || isEmpty(form.lastname)) {
-      setErrorMessage("Fields cannot be empty.");
-      setForm({
-        firstname: user?.firstname,
-        lastname: user?.lastname,
-        department: user?.department,
-      });
-      triggerShowError(4500);
-      return;
-    } else if (
-      !isValidLength(form.firstname, 1) ||
-      !isValidLength(form.lastname, 1)
-    ) {
-      setErrorMessage("Fields must be valid.");
-      setForm({
-        firstname: user?.firstname,
-        lastname: user?.lastname,
-        department: user?.department,
-      });
-      triggerShowError(4500);
-      return;
-    }
-
     await updateUser(
       {
         id: user.id,
@@ -86,6 +61,7 @@ const General = () => {
       (response) => {
         setUser({
           ...user,
+          employee_id: form.employee_id,
           firstname: form.firstname,
           lastname: form.lastname,
           department: form.department,
@@ -94,23 +70,8 @@ const General = () => {
         triggerShowSuccess(4500);
       },
       (error) => {
-        if (error.response) {
-          let errorMessage = <b>{error.response.data.error}</b>;
-          let statusCode = error.response.status;
-
-          switch (statusCode) {
-            case 401:
-            case 404:
-            case 403:
-              setErrorMessage(errorMessage);
-              break;
-            default:
-              handleDefaultError();
-              break;
-          }
-        } else {
-          handleDefaultError();
-        }
+        setErrorMessage(error.message);
+        triggerShowError(4500);
       }
     );
   };
@@ -155,6 +116,29 @@ const General = () => {
               <Form.Label className={styles.formLabel} column sm="3">
                 Employee ID
               </Form.Label>
+              {user?.employee_id === null && isEditing && (
+                <Col sm="9">
+                  <Form.Control
+                    className={styles.formBox}
+                    name="employee_id"
+                    onChange={handleChange}
+                    value={form.employee_id}
+                    isInvalid={isEmpty(form.employee_id)}
+                  />
+
+                  <Form.Control.Feedback type="invalid">
+                    Employee ID is required.
+                  </Form.Control.Feedback>
+
+                  {!isEmpty(form.employee_id) && (
+                    <Form.Text muted>
+                      Ensure that your employee ID is correct. You will not be
+                      able to change this again.
+                    </Form.Text>
+                  )}
+                </Col>
+              )}
+
               <Col
                 className="d-flex justify-content-start align-items-center"
                 sm="9">
@@ -188,17 +172,7 @@ const General = () => {
                     name="firstname"
                     onChange={handleChange}
                     value={form.firstname}
-                    isInvalid={isFirstnameValid()}
                   />
-                  {isClicked && (
-                    <Form.Control.Feedback type="invalid">
-                      {isEmpty(form.firstname) ? (
-                        <>First name is required.</>
-                      ) : (
-                        <>First name is too short.</>
-                      )}
-                    </Form.Control.Feedback>
-                  )}
                 </Col>
               ) : (
                 <Col
@@ -215,7 +189,6 @@ const General = () => {
               <Form.Label className={styles.formLabel} column sm="3">
                 Last name
               </Form.Label>
-
               {isEditing ? (
                 <Col sm="9">
                   <Form.Control
@@ -224,17 +197,7 @@ const General = () => {
                     name="lastname"
                     onChange={handleChange}
                     value={form.lastname}
-                    isInvalid={isLastnameValid()}
                   />
-                  {isClicked && (
-                    <Form.Control.Feedback type="invalid">
-                      {isEmpty(form.lastname) ? (
-                        <>Last name is required.</>
-                      ) : (
-                        <>Last name is too short.</>
-                      )}
-                    </Form.Control.Feedback>
-                  )}
                 </Col>
               ) : (
                 <Col
@@ -254,17 +217,23 @@ const General = () => {
               {isEditing ? (
                 <Col sm="9">
                   <Form.Select
-                    aria-label="Example"
                     name="department"
                     className={styles.formBox}
                     onChange={handleChange}
-                    value={form.department}>
+                    value={form.department}
+                    isInvalid={isEmpty(form.department)}>
+                    <option value="" disabled>
+                      Departments
+                    </option>
                     {departments.departments.map((department, index) => (
                       <option key={index} value={department}>
                         {department}
                       </option>
                     ))}
                   </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    Department is required.
+                  </Form.Control.Feedback>
                 </Col>
               ) : (
                 <Col
@@ -282,10 +251,18 @@ const General = () => {
         <Col sm="3"></Col>
         <Col className="text-end" sm="9">
           {!isEditing ? (
-            <BtnSecondary onClick={enableEditing}>Edit</BtnSecondary>
+            <BtnSecondary
+              onClick={() => {
+                enableEditing();
+                setForm({ ...form });
+              }}>
+              Edit
+            </BtnSecondary>
           ) : (
             <>
-              <BtnPrimary onClick={openModal}>Save Changes</BtnPrimary>{" "}
+              <BtnPrimary onClick={openModal} disabled={invalidFields()}>
+                Save Changes
+              </BtnPrimary>{" "}
               <BtnSecondary onClick={handleCancel}>Cancel</BtnSecondary>
             </>
           )}

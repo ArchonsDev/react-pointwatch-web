@@ -138,10 +138,6 @@ const Login = () => {
     }
   };
 
-  const openRegister = () => {
-    window.open("/register", "_blank");
-  };
-
   return (
     <div className={`${styles.Login} d-flex`}>
       <div
@@ -338,7 +334,7 @@ const Login = () => {
                     </Col>
                     <Col>
                       <BtnSecondary
-                        onClick={openRegister}
+                        onClick={() => navigate("/register")}
                         className={styles.button}>
                         Register
                       </BtnSecondary>

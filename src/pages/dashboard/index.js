@@ -103,7 +103,7 @@ const Dashboard = () => {
                       {item.firstname} {item.lastname}
                     </Col>
                     <Col xs={3}>{item.department}</Col>
-                    <Col xs={1}>{item.swtd_points.valid_points}</Col>
+                    <Col xs={1}>{item.point_balance}</Col>
                   </Row>
                 </ListGroup.Item>
               ))}

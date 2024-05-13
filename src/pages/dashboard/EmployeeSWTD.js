@@ -3,11 +3,13 @@ import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown } from "react-bootstrap"; /* prettier-ignore */
 
-import { getTerms } from "../../api/admin";
+import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
-import { getUser } from "../../api/user";
+import { getUser, userPoints, getClearanceStatus } from "../../api/user";
+import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
+import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
@@ -20,8 +22,13 @@ const EmployeeSWTD = () => {
 
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [employee, setEmployee] = useState(null);
+  const [termPoints, setTermPoints] = useState(null);
+  const [termStatus, setTermStatus] = useState(null);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
+
+  const [showModal, openModal, closeModal] = useSwitch();
+  const [showRevokeModal, openRevokeModal, closeRevokeModal] = useSwitch();
 
   const fetchUser = async () => {
     await getUser(
@@ -38,8 +45,8 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const fetchAllSWTDs = async () => {
-    await getAllSWTDs(
+  const fetchAllSWTDs = () => {
+    getAllSWTDs(
       {
         author_id: id,
         token: token,
@@ -69,12 +76,60 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const handleBackClick = () => {
-    navigate("/dashboard");
+  const fetchPoints = (term) => {
+    userPoints(
+      {
+        id: id,
+        term_id: term?.id,
+        token: token,
+      },
+      (response) => {
+        setTermPoints(response.data);
+      }
+    );
+  };
+
+  const fetchClearance = (term) => {
+    getClearanceStatus(
+      {
+        id: id,
+        term_id: term.id,
+        token: token,
+      },
+      (response) => {
+        setTermStatus(response);
+      }
+    );
   };
 
   const handleViewSWTD = (swtd_id) => {
     navigate(`/dashboard/${id}/${swtd_id}`);
+  };
+
+  const handleClear = (term) => {
+    clearEmployee(
+      {
+        id: id,
+        term_id: term.id,
+        token: token,
+      },
+      (response) => {
+        fetchClearance(term);
+      }
+    );
+  };
+
+  const handleRevoke = (term) => {
+    revokeEmployee(
+      {
+        id: id,
+        term_id: term.id,
+        token: token,
+      },
+      (response) => {
+        fetchClearance(term);
+      }
+    );
   };
 
   const pageTitle = employee
@@ -84,6 +139,7 @@ const EmployeeSWTD = () => {
   const filteredSWTDs = userSWTDs?.filter(
     (swtd) => swtd?.term.id === selectedTerm?.id
   );
+
   useEffect(() => {
     if (!user?.is_admin && !user?.is_staff && !user?.is_superuser) {
       navigate("/swtd");
@@ -93,13 +149,14 @@ const EmployeeSWTD = () => {
     fetchTerms();
     fetchAllSWTDs();
   }, []);
+
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
       <Row className="mb-2">
         <h3 className={styles.label}>
           <i
             className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
-            onClick={handleBackClick}></i>{" "}
+            onClick={() => navigate("/dashboard")}></i>{" "}
           {pageTitle}
         </h3>
       </Row>
@@ -108,35 +165,75 @@ const EmployeeSWTD = () => {
         <Col className="d-flex align-items-center" xs="auto">
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           <DropdownButton
-            className="ms-2"
+            className={`ms-2`}
+            variant="secondary"
             size="sm"
-            variant="success"
-            title={selectedTerm ? selectedTerm.name : "Select term"}>
-            {terms &&
-              terms.map((term) => (
-                <Dropdown.Item
-                  key={term.id}
-                  onClick={() => setSelectedTerm(term)}>
-                  {term.name}
+            title={selectedTerm ? selectedTerm.name : "All terms"}>
+            {terms.length === 0 ? (
+              <Dropdown.Item disabled>No terms added.</Dropdown.Item>
+            ) : (
+              <>
+                <Dropdown.Item onClick={() => setSelectedTerm(null)}>
+                  All terms
                 </Dropdown.Item>
-              ))}
+                {terms &&
+                  terms.map((term) => (
+                    <Dropdown.Item
+                      key={term.id}
+                      onClick={() => {
+                        fetchPoints(term);
+                        fetchClearance(term);
+                        setSelectedTerm(term);
+                      }}>
+                      {term.name}
+                    </Dropdown.Item>
+                  ))}
+              </>
+            )}
           </DropdownButton>
         </Col>
-        <Col xs="auto">
+
+        <Col className="d-flex align-items-center" xs="auto">
           <i className="fa-solid fa-building me-2"></i>Department:{" "}
           {employee?.department}
         </Col>
-        <Col xs="auto">
-          <i className="fa-solid fa-circle-plus me-2"></i>Total Points:{" "}
-          {employee?.swtd_points.valid_points}
-        </Col>
-        <Col xs="auto">
-          <i className="fa-solid fa-plus-minus me-2"></i>Excess/Lacking Points:
-        </Col>
+
+        {selectedTerm === null && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
+            {employee?.point_balance}
+          </Col>
+        )}
+
+        {selectedTerm && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
+            {termPoints?.valid_points < termPoints?.required_points ? (
+              <span className="text-danger ms-1">
+                {termPoints?.valid_points}
+              </span>
+            ) : (
+              <span className="text-success ms-1">
+                {termPoints?.valid_points}
+              </span>
+            )}
+          </Col>
+        )}
+
+        {selectedTerm !== null && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
+            {termStatus?.is_cleared === true ? (
+              <span className="text-success ms-2">CLEARED</span>
+            ) : (
+              <span className="text-danger ms-2">PENDING CLEARANCE</span>
+            )}
+          </Col>
+        )}
       </Row>
 
       <Row className="w-100">
-        <Col className="text-start" md={8}>
+        <Col className="text-start" md={6}>
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
@@ -145,23 +242,80 @@ const EmployeeSWTD = () => {
           </InputGroup>
         </Col>
 
-        {user?.is_admin && (
-          <Col className="text-end">
-            <BtnSecondary>Clear Employee</BtnSecondary>
-          </Col>
-        )}
-
         <Col className="text-end">
+          {user?.is_admin &&
+            selectedTerm !== null &&
+            termStatus?.is_cleared === false && (
+              <>
+                <BtnSecondary
+                  onClick={openModal}
+                  disabled={
+                    termPoints?.valid_points < termPoints?.required_points
+                  }>
+                  Grant Clearance
+                </BtnSecondary>{" "}
+              </>
+            )}
+
+          {user?.is_admin &&
+            selectedTerm !== null &&
+            termStatus?.is_cleared === true && (
+              <>
+                <BtnSecondary onClick={openRevokeModal}>
+                  Revoke Clearance
+                </BtnSecondary>{" "}
+              </>
+            )}
           <BtnPrimary onClick={() => window.print()}>Export Report</BtnPrimary>
         </Col>
+        <ConfirmationModal
+          show={showModal}
+          onHide={closeModal}
+          onConfirm={() => handleClear(selectedTerm)}
+          header={"Grant Clearance"}
+          message={"Are you sure you want to clear this employee?"}
+        />
+
+        <ConfirmationModal
+          show={showRevokeModal}
+          onHide={closeRevokeModal}
+          onConfirm={() => handleRevoke(selectedTerm)}
+          header={"Revoke Clearance"}
+          message={
+            "Are you sure you want to revoke the clearance for this employee?"
+          }
+        />
       </Row>
 
       <Row className="w-100">
         {selectedTerm === null ? (
-          <span
-            className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
-            Please select a term.
-          </span>
+          <>
+            <ListGroup className="w-100" variant="flush">
+              <ListGroup.Item className={styles.tableHeader}>
+                <Row>
+                  <Col xs={1}>No.</Col>
+                  <Col xs={7}>Title of SWTD</Col>
+                  <Col xs={2}>Points</Col>
+                  <Col xs={2}>Status</Col>
+                </Row>
+              </ListGroup.Item>
+            </ListGroup>
+            <ListGroup>
+              {userSWTDs.map((item) => (
+                <ListGroup.Item
+                  key={item.id}
+                  className={styles.tableBody}
+                  onClick={() => handleViewSWTD(item.id)}>
+                  <Row>
+                    <Col xs={1}>{item.id}</Col>
+                    <Col xs={7}>{item.title}</Col>
+                    <Col xs={2}>{item.points}</Col>
+                    <Col xs={2}>{item.validation.status}</Col>
+                  </Row>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </>
         ) : filteredSWTDs.length === 0 ? (
           <span
             className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>

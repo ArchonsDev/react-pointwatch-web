@@ -1,10 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal } from "react-bootstrap"; /* prettier-ignore */
 
+import { userPoints, getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
+import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -16,8 +18,11 @@ const SWTDDashboard = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
+  const [showModal, openModal, closeModal] = useSwitch();
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [terms, setTerms] = useState([]);
+  const [termPoints, setTermPoints] = useState(null);
+  const [termStatus, setTermStatus] = useState(null);
   const [selectedTerm, setSelectedTerm] = useState(null);
 
   const fetchAllSWTDs = async () => {
@@ -37,14 +42,6 @@ const SWTDDashboard = () => {
     );
   };
 
-  const handleAddRecordClick = () => {
-    navigate("/swtd/form");
-  };
-
-  const handleEditRecordClick = (id) => {
-    navigate(`/swtd/${id}`);
-  };
-
   const fetchTerms = () => {
     getTerms(
       {
@@ -57,6 +54,40 @@ const SWTDDashboard = () => {
         console.log(error.message);
       }
     );
+  };
+
+  const fetchPoints = (term) => {
+    userPoints(
+      {
+        id: id,
+        term_id: term?.id,
+        token: token,
+      },
+      (response) => {
+        setTermPoints(response.data);
+      }
+    );
+  };
+
+  const fetchClearance = (term) => {
+    getClearanceStatus(
+      {
+        id: id,
+        term_id: term.id,
+        token: token,
+      },
+      (response) => {
+        setTermStatus(response);
+      }
+    );
+  };
+
+  const handleAddRecordClick = () => {
+    navigate("/swtd/form");
+  };
+
+  const handleEditRecordClick = (id) => {
+    navigate(`/swtd/${id}`);
   };
 
   const filteredSWTDs = userSWTDs?.filter(
@@ -78,31 +109,73 @@ const SWTDDashboard = () => {
         <Col className="d-flex align-items-center" xs="auto">
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           <DropdownButton
-            className="ms-2"
+            className={`ms-2`}
+            variant={
+              selectedTerm?.is_ongoing === true ? "success" : "secondary"
+            }
             size="sm"
-            variant="success"
-            title={selectedTerm ? selectedTerm.name : "Select term"}>
-            {terms &&
-              terms.map((term) => (
-                <Dropdown.Item
-                  key={term.id}
-                  onClick={() => setSelectedTerm(term)}>
-                  {term.name}
+            title={selectedTerm ? selectedTerm.name : "All terms"}>
+            {terms.length === 0 ? (
+              <Dropdown.Item disabled>No terms added.</Dropdown.Item>
+            ) : (
+              <>
+                <Dropdown.Item onClick={() => setSelectedTerm(null)}>
+                  All terms
                 </Dropdown.Item>
-              ))}
+                {terms &&
+                  terms.map((term) => (
+                    <Dropdown.Item
+                      key={term.id}
+                      onClick={() => {
+                        fetchPoints(term);
+                        fetchClearance(term);
+                        setSelectedTerm(term);
+                      }}>
+                      {term.name}
+                    </Dropdown.Item>
+                  ))}
+              </>
+            )}
           </DropdownButton>
         </Col>
-        <Col xs="auto">
+
+        <Col className="d-flex align-items-center" xs="auto">
           <i className="fa-solid fa-building me-2"></i>Department:{" "}
           {user?.department}
         </Col>
-        <Col xs="auto">
-          <i className="fa-solid fa-circle-plus me-2"></i>Total Points:{" "}
-          {user?.swtd_points?.valid_points}
-        </Col>
-        <Col xs="auto">
-          <i className="fa-solid fa-plus-minus me-2"></i>Excess/Lacking Points:
-        </Col>
+
+        {selectedTerm === null && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
+            {user?.point_balance}
+          </Col>
+        )}
+
+        {selectedTerm && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
+            {termPoints?.valid_points < termPoints?.required_points ? (
+              <span className="text-danger ms-1">
+                {termPoints?.valid_points}
+              </span>
+            ) : (
+              <span className="text-success ms-1">
+                {termPoints?.valid_points}
+              </span>
+            )}
+          </Col>
+        )}
+
+        {selectedTerm !== null && (
+          <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
+            {termStatus?.is_cleared === true ? (
+              <span className="text-success ms-2">CLEARED</span>
+            ) : (
+              <span className="text-danger ms-2">PENDING CLEARANCE</span>
+            )}
+          </Col>
+        )}
       </Row>
 
       <Row className="w-100">
@@ -116,18 +189,69 @@ const SWTDDashboard = () => {
         </Col>
 
         <Col className="text-end">
-          <BtnPrimary onClick={handleAddRecordClick}>
+          <BtnPrimary
+            onClick={() =>
+              user?.department === null ? openModal() : handleAddRecordClick()
+            }>
             Add a New Record
           </BtnPrimary>
         </Col>
+
+        <Modal show={showModal} onHide={closeModal} size="md" centered>
+          <Modal.Header closeButton>
+            <Modal.Title className={styles.formLabel}>
+              Missing Required Fields
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body
+            className={`${styles.filterText} d-flex justify-content-center align-items-center`}>
+            Department is required before adding a new record. Please proceed to
+            your settings to make this change.
+          </Modal.Body>
+          <Modal.Footer>
+            <BtnPrimary onClick={() => navigate("/settings")}>
+              Go to Settings
+            </BtnPrimary>
+          </Modal.Footer>
+        </Modal>
       </Row>
 
       <Row className="w-100">
         {selectedTerm === null ? (
-          <span
-            className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
-            Please select a term.
-          </span>
+          <>
+            <ListGroup className="w-100" variant="flush">
+              {userSWTDs.length === 0 ? (
+                <span
+                  className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
+                  No records submitted.
+                </span>
+              ) : (
+                <ListGroup.Item className={styles.tableHeader}>
+                  <Row>
+                    <Col xs={1}>No.</Col>
+                    <Col xs={7}>Title of SWTD</Col>
+                    <Col xs={2}>Points</Col>
+                    <Col xs={2}>Status</Col>
+                  </Row>
+                </ListGroup.Item>
+              )}
+            </ListGroup>
+            <ListGroup>
+              {userSWTDs.map((item) => (
+                <ListGroup.Item
+                  key={item.id}
+                  className={styles.tableBody}
+                  onClick={() => handleEditRecordClick(item.id)}>
+                  <Row>
+                    <Col xs={1}>{item.id}</Col>
+                    <Col xs={7}>{item.title}</Col>
+                    <Col xs={2}>{item.points}</Col>
+                    <Col xs={2}>{item.validation.status}</Col>
+                  </Row>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </>
         ) : filteredSWTDs.length === 0 ? (
           <span
             className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>

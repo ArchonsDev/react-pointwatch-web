@@ -75,7 +75,7 @@ const App = () => {
       ? "Training Information"
       : location.pathname.startsWith("/dashboard")
       ? "Dashboard"
-      : tabNames[location.pathname] || "WildPark";
+      : tabNames[location.pathname] || "PointWatch";
 
   useEffect(() => {
     const isTokenExpired = (token) => {
