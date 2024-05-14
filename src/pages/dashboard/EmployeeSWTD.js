@@ -97,6 +97,7 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
+        console.log(response);
         setTermStatus(response);
       }
     );
@@ -115,6 +116,7 @@ const EmployeeSWTD = () => {
       },
       (response) => {
         fetchClearance(term);
+        fetchUser();
       }
     );
   };
@@ -128,6 +130,7 @@ const EmployeeSWTD = () => {
       },
       (response) => {
         fetchClearance(term);
+        fetchUser();
       }
     );
   };
@@ -166,14 +169,19 @@ const EmployeeSWTD = () => {
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           <DropdownButton
             className={`ms-2`}
-            variant="secondary"
+            variant={
+              selectedTerm?.is_ongoing === true ? "success" : "secondary"
+            }
             size="sm"
             title={selectedTerm ? selectedTerm.name : "All terms"}>
             {terms.length === 0 ? (
               <Dropdown.Item disabled>No terms added.</Dropdown.Item>
             ) : (
               <>
-                <Dropdown.Item onClick={() => setSelectedTerm(null)}>
+                <Dropdown.Item
+                  onClick={() => {
+                    setSelectedTerm(null);
+                  }}>
                   All terms
                 </Dropdown.Item>
                 {terms &&
@@ -207,16 +215,22 @@ const EmployeeSWTD = () => {
 
         {selectedTerm && (
           <Col className="d-flex align-items-center" xs="auto">
+            <i className="fa-solid fa-asterisk me-2"></i>Required Points:{" "}
+            {termPoints?.required_points}
+          </Col>
+        )}
+
+        {selectedTerm && (
+          <Col className="d-flex align-items-center" xs="auto">
             <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
-            {termPoints?.valid_points < termPoints?.required_points ? (
-              <span className="text-danger ms-1">
-                {termPoints?.valid_points}
-              </span>
-            ) : (
-              <span className="text-success ms-1">
-                {termPoints?.valid_points}
-              </span>
-            )}
+            <span
+              className={`ms-1 ${
+                termPoints?.valid_points < termPoints?.required_points
+                  ? "text-danger"
+                  : "text-success"
+              }`}>
+              {termPoints?.valid_points}
+            </span>
           </Col>
         )}
 
@@ -245,7 +259,13 @@ const EmployeeSWTD = () => {
         <Col className="text-end">
           {user?.is_admin &&
             selectedTerm !== null &&
-            termStatus?.is_cleared === false && (
+            (termStatus?.is_cleared ? (
+              <>
+                <BtnSecondary onClick={openRevokeModal}>
+                  Revoke Clearance
+                </BtnSecondary>{" "}
+              </>
+            ) : (
               <>
                 <BtnSecondary
                   onClick={openModal}
@@ -255,19 +275,10 @@ const EmployeeSWTD = () => {
                   Grant Clearance
                 </BtnSecondary>{" "}
               </>
-            )}
-
-          {user?.is_admin &&
-            selectedTerm !== null &&
-            termStatus?.is_cleared === true && (
-              <>
-                <BtnSecondary onClick={openRevokeModal}>
-                  Revoke Clearance
-                </BtnSecondary>{" "}
-              </>
-            )}
+            ))}
           <BtnPrimary onClick={() => window.print()}>Export Report</BtnPrimary>
         </Col>
+
         <ConfirmationModal
           show={showModal}
           onHide={closeModal}
@@ -319,7 +330,7 @@ const EmployeeSWTD = () => {
         ) : filteredSWTDs.length === 0 ? (
           <span
             className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
-            No records found for the selected term.
+            No records found for this term.
           </span>
         ) : (
           <>

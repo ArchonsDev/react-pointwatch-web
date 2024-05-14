@@ -254,15 +254,18 @@ const ViewSWTD = () => {
       <Card className="mb-3 w-100">
         <Card.Header className={styles.cardHeader}>
           Status:{" "}
-          {swtdStatus?.status === "PENDING" && (
-            <span className="text-muted">{swtdStatus?.status}</span>
-          )}
-          {swtdStatus?.status === "APPROVED" && (
-            <span className="text-success">{swtdStatus?.status}</span>
-          )}
-          {swtdStatus?.status === "REJECTED" && (
-            <span className="text-danger">{swtdStatus?.status}</span>
-          )}
+          <span
+            className={
+              swtdStatus?.status === "PENDING"
+                ? "text-muted"
+                : swtdStatus?.status === "APPROVED"
+                ? "text-success"
+                : swtdStatus?.status === "REJECTED"
+                ? "text-danger"
+                : ""
+            }>
+            {swtdStatus?.status}
+          </span>
         </Card.Header>
         <Card.Body className={`${styles.cardBody} p-4`}>
           <Form noValidate>

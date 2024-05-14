@@ -83,8 +83,10 @@ const Dashboard = () => {
             <Row>
               <Col xs={3}>ID No.</Col>
               <Col xs={5}>Name</Col>
-              <Col xs={3}>Department</Col>
-              <Col xs={1}>Points</Col>
+              <Col xs={2}>Department</Col>
+              <Col className="text-center" xs={2}>
+                Point Balance
+              </Col>
             </Row>
           </ListGroup.Item>
         </ListGroup>
@@ -102,8 +104,10 @@ const Dashboard = () => {
                     <Col xs={5}>
                       {item.firstname} {item.lastname}
                     </Col>
-                    <Col xs={3}>{item.department}</Col>
-                    <Col xs={1}>{item.point_balance}</Col>
+                    <Col xs={2}>{item.department}</Col>
+                    <Col className="text-center" xs={2}>
+                      {item.point_balance}
+                    </Col>
                   </Row>
                 </ListGroup.Item>
               ))}

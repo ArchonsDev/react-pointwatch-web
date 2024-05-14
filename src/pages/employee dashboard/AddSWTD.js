@@ -10,7 +10,8 @@ import { getTerms } from "../../api/admin";
 import { addSWTD } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
-import { isEmpty, isValidDate } from "../../common/validation/utils";
+import { formatDate, formatTermDate } from "../../common/format/date";
+import { isEmpty, isValidSWTDDate } from "../../common/validation/utils";
 import { calculatePoints } from "../../common/validation/points";
 
 import SWTDInfo from "./SWTDInfo";
@@ -30,7 +31,11 @@ const AddSWTD = () => {
   const [showModal, openModal, closeModal] = useSwitch();
 
   const [isProofInvalid, setIsProofInvalid] = useState(false);
-  const [selectedTermDate, setSelectedTermDate] = useState(null);
+  const [selectedTerm, setSelectedTerm] = useState({
+    start: "",
+    end: "",
+    ongoing: false,
+  });
   const [terms, setTerms] = useState([]);
   const [form, setForm] = useState({
     author_id: id,
@@ -46,12 +51,6 @@ const AddSWTD = () => {
     proof: "",
     benefits: "",
   });
-
-  const formatDate = (date) => {
-    if (!date) return "";
-    const [month, day, year] = date.split("-");
-    return `${year}-${month}-${day}`;
-  };
 
   const clearForm = () => {
     if (inputFile.current) {
@@ -88,8 +87,14 @@ const AddSWTD = () => {
       const selectedTermId = parseInt(e.target.value);
       const term = terms.find((term) => term.id === selectedTermId);
 
-      const formattedDate = formatDate(term.start_date);
-      setSelectedTermDate(formattedDate);
+      const formattedStartDate = formatDate(term.start_date);
+      const formattedEndDate = formatDate(term.end_date);
+
+      setSelectedTerm({
+        start: formattedStartDate,
+        end: formattedEndDate,
+        ongoing: term.is_ongoing,
+      });
 
       setForm({
         ...form,
@@ -145,10 +150,10 @@ const AddSWTD = () => {
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       isTimeInvalid() ||
+      !isValidSWTDDate(form.date, selectedTerm) ||
       form.term_id === 0 ||
       !form.proof ||
-      form.points === 0 ||
-      form.date < selectedTermDate
+      form.points <= 0
     );
   };
 
@@ -360,7 +365,8 @@ const AddSWTD = () => {
                       </option>
                       {terms.map((term, index) => (
                         <option key={index} value={term.id}>
-                          {term.name} ({term.start_date} to {term.end_date})
+                          {term.name} ({formatTermDate(term.start_date)} to{" "}
+                          {formatTermDate(term.end_date)})
                         </option>
                       ))}
                     </Form.Select>
@@ -407,27 +413,25 @@ const AddSWTD = () => {
                   <Col sm="10">
                     <Form.Control
                       type="date"
-                      min={selectedTermDate ? selectedTermDate : ""}
-                      max={new Date().toISOString().slice(0, 10)}
+                      min={selectedTerm ? selectedTerm.start : ""}
+                      max={
+                        selectedTerm?.ongoing
+                          ? new Date().toISOString().slice(0, 10)
+                          : selectedTerm.end
+                      }
                       className={styles.formBox}
                       name="date"
                       onChange={handleChange}
                       value={form.date}
                       isInvalid={
-                        (!isEmpty(form.date) && !isValidDate(form.date)) ||
-                        form.date < selectedTermDate
+                        !isEmpty(form.date) &&
+                        !isValidSWTDDate(form.date, selectedTerm)
                       }
                       disabled={form.term_id === 0}
                     />
-                    {!isEmpty(form.date) && (
-                      <Form.Control.Feedback type="invalid">
-                        {!isValidDate(form?.date) ? (
-                          <>Date must be valid.</>
-                        ) : (
-                          <>Date must be within the term.</>
-                        )}
-                      </Form.Control.Feedback>
-                    )}
+                    <Form.Control.Feedback type="invalid">
+                      Date must be valid and within the selected term.
+                    </Form.Control.Feedback>
                   </Col>
                 </Form.Group>
               </Col>
@@ -456,7 +460,7 @@ const AddSWTD = () => {
                     </Form.Control.Feedback>
                   </Col>
                   <Col
-                    className="d-flex justify-content-center align-items-center text-center"
+                    className="d-flex justify-content-center align-items-center"
                     sm="1">
                     to
                   </Col>
@@ -467,6 +471,7 @@ const AddSWTD = () => {
                       name="time_finished"
                       onChange={handleChange}
                       value={form.time_finished}
+                      isInvalid={isTimeInvalid()}
                       disabled={form?.category.startsWith("Degree")}
                     />
                   </Col>
@@ -509,13 +514,14 @@ const AddSWTD = () => {
 
                   {form?.category.startsWith("Degree") ? (
                     <>
-                      <Col sm="2">
+                      <Col sm="3">
                         <Form.Control
                           type="number"
                           className={`${styles.pointsBox} text-center`}
                           name="points"
                           onChange={handleChange}
                           value={form.points}
+                          isInvalid={form.points <= 0}
                         />
                       </Col>
                       <Col className="d-flex align-items-center">
