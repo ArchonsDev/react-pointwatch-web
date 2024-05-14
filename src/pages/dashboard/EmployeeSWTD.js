@@ -167,38 +167,33 @@ const EmployeeSWTD = () => {
       <Row className={`${styles.employeeDetails} w-100 mb-3`}>
         <Col className="d-flex align-items-center" xs="auto">
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
-          <DropdownButton
-            className={`ms-2`}
-            variant={
-              selectedTerm?.is_ongoing === true ? "success" : "secondary"
-            }
-            size="sm"
-            title={selectedTerm ? selectedTerm.name : "All terms"}>
-            {terms.length === 0 ? (
-              <Dropdown.Item disabled>No terms added.</Dropdown.Item>
-            ) : (
-              <>
-                <Dropdown.Item
-                  onClick={() => {
-                    setSelectedTerm(null);
-                  }}>
-                  All terms
-                </Dropdown.Item>
-                {terms &&
-                  terms.map((term) => (
-                    <Dropdown.Item
-                      key={term.id}
-                      onClick={() => {
-                        fetchPoints(term);
-                        fetchClearance(term);
-                        setSelectedTerm(term);
-                      }}>
-                      {term.name}
-                    </Dropdown.Item>
-                  ))}
-              </>
-            )}
-          </DropdownButton>
+          {terms.length === 0 ? (
+            <>No terms were added yet.</>
+          ) : (
+            <DropdownButton
+              className={`ms-2`}
+              variant={
+                selectedTerm?.is_ongoing === true ? "success" : "secondary"
+              }
+              size="sm"
+              title={selectedTerm ? selectedTerm.name : "All terms"}>
+              <Dropdown.Item onClick={() => setSelectedTerm(null)}>
+                All terms
+              </Dropdown.Item>
+              {terms &&
+                terms.map((term) => (
+                  <Dropdown.Item
+                    key={term.id}
+                    onClick={() => {
+                      fetchPoints(term);
+                      fetchClearance(term);
+                      setSelectedTerm(term);
+                    }}>
+                    {term.name}
+                  </Dropdown.Item>
+                ))}
+            </DropdownButton>
+          )}
         </Col>
 
         <Col className="d-flex align-items-center" xs="auto">
