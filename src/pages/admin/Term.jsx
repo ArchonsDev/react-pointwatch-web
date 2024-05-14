@@ -62,7 +62,6 @@ const Term = () => {
     const requiredFields = ["name", "start_date", "end_date"];
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
-      !isValidDate(form.start_date) ||
       form.end_date < form.start_date
     );
   };

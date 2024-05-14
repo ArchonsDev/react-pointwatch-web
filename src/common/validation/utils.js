@@ -21,6 +21,16 @@ export const isValidPassword = (password) => {
   );
 };
 
+export const isValidSWTDDate = (date, term) => {
+  const selectedDate = new Date(date);
+  const startTerm = new Date(term.start);
+  const endTerm = new Date(term.end);
+  const today = new Date();
+
+  if (term.ongoing) return startTerm <= selectedDate && today >= selectedDate;
+  else return startTerm <= selectedDate && endTerm >= selectedDate;
+};
+
 export const isValidDate = (date) => {
   const selectedDate = new Date(date);
   const today = new Date();

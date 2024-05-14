@@ -7,10 +7,12 @@ import Comments from "./Comments";
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
 
-import { isEmpty, isValidDate } from "../../common/validation/utils";
+import { formatDate, formatTermDate } from "../../common/format/date";
+import { isEmpty, isValidSWTDDate } from "../../common/validation/utils";
 import { calculatePoints } from "../../common/validation/points";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
+import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getSWTD, getSWTDProof, getSWTDValidation, editSWTD, deleteSWTD } from "../../api/swtd"; /* prettier-ignore */
 
@@ -39,8 +41,13 @@ const EditSWTD = () => {
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const [selectedTermDate, setSelectedTermDate] = useState(null);
+  const [selectedTerm, setSelectedTerm] = useState({
+    start: "",
+    end: "",
+    ongoing: false,
+  });
   const [terms, setTerms] = useState([]);
+  const [termStatus, setTermStatus] = useState(false);
   const [status, setStatus] = useState({
     status: "",
     validated_on: "",
@@ -59,10 +66,17 @@ const EditSWTD = () => {
     benefits: "",
   });
 
-  const formatDate = (date) => {
-    if (!date) return "";
-    const [month, day, year] = date.split("-");
-    return `${year}-${month}-${day}`;
+  const setTerm = (term_id) => {
+    if (!term_id) return "";
+    const term = terms.find((term) => term.id === term_id);
+    const formattedStartDate = formatDate(term?.start_date);
+    const formattedEndDate = formatDate(term?.end_date);
+
+    setSelectedTerm({
+      start: formattedStartDate,
+      end: formattedEndDate,
+      ongoing: term?.is_ongoing,
+    });
   };
 
   const fetchSWTD = () => {
@@ -73,12 +87,10 @@ const EditSWTD = () => {
       },
       (response) => {
         const data = response.data;
-
         if (id !== data.author_id) {
           navigate("/swtd");
           return;
         }
-
         setSWTD(data);
         const formattedDate = formatDate(data.date);
         setForm({
@@ -93,9 +105,24 @@ const EditSWTD = () => {
           points: data.points,
           benefits: data.benefits,
         });
+        setTerm(data.term.id);
+        fetchClearance(data.term.id);
       },
       (error) => {
         console.log("Error fetching SWTD data: ", error);
+      }
+    );
+  };
+
+  const fetchClearance = (term_id) => {
+    getClearanceStatus(
+      {
+        id: id,
+        term_id: term_id,
+        token: token,
+      },
+      (response) => {
+        setTermStatus(response.is_cleared);
       }
     );
   };
@@ -164,11 +191,7 @@ const EditSWTD = () => {
       });
     } else if (e.target.name === "term_id") {
       const selectedTermId = parseInt(e.target.value);
-      const term = terms.find((term) => term.id === selectedTermId);
-
-      const formattedDate = formatDate(term.start_date);
-      setSelectedTermDate(formattedDate);
-
+      setTerm(selectedTermId);
       setForm({
         ...form,
         date: "",
@@ -201,10 +224,9 @@ const EditSWTD = () => {
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       isTimeInvalid() ||
-      !isValidDate(form.date) ||
+      !isValidSWTDDate(form.date, selectedTerm) ||
       form.term_id === 0 ||
-      form.points === 0 ||
-      form.date < selectedTermDate
+      form.points === 0
     );
   };
 
@@ -341,32 +363,43 @@ const EditSWTD = () => {
             <Row>
               <Col>
                 Status:{" "}
-                {status?.status === "PENDING" && (
-                  <span className="text-muted">{status?.status}</span>
-                )}
-                {status?.status === "APPROVED" && (
-                  <span className="text-success">{status?.status}</span>
-                )}
-                {status?.status === "REJECTED" && (
-                  <span className="text-danger">{status?.status}</span>
-                )}
+                <span
+                  className={
+                    status?.status === "PENDING"
+                      ? "text-muted"
+                      : status?.status === "APPROVED"
+                      ? "text-success"
+                      : status?.status === "REJECTED"
+                      ? "text-danger"
+                      : ""
+                  }>
+                  {status?.status}
+                </span>
               </Col>
-              <Col className="text-end">
-                {isEditing ? (
-                  <BtnSecondary
-                    onClick={() => {
-                      cancelEditing();
-                      fetchSWTD();
-                    }}>
-                    Cancel Editing
-                  </BtnSecondary>
-                ) : (
-                  <>
-                    <BtnSecondary onClick={enableEditing}>Edit</BtnSecondary>{" "}
-                    <BtnPrimary onClick={openDeleteModal}>Delete</BtnPrimary>
-                  </>
-                )}
-              </Col>
+              {!termStatus && (
+                <Col className="text-end">
+                  {isEditing ? (
+                    <BtnSecondary
+                      onClick={() => {
+                        cancelEditing();
+                        fetchSWTD();
+                      }}>
+                      Cancel Editing
+                    </BtnSecondary>
+                  ) : (
+                    <>
+                      <BtnSecondary
+                        onClick={() => {
+                          fetchSWTD();
+                          enableEditing();
+                        }}>
+                        Edit
+                      </BtnSecondary>{" "}
+                      <BtnPrimary onClick={openDeleteModal}>Delete</BtnPrimary>
+                    </>
+                  )}
+                </Col>
+              )}
               <ConfirmationModal
                 show={showDeleteModal}
                 onHide={closeDeleteModal}
@@ -503,7 +536,8 @@ const EditSWTD = () => {
                           </option>
                           {terms.map((term, index) => (
                             <option key={index} value={term.id}>
-                              {term.name} ({term.start_date} to {term.end_date})
+                              {term.name} ({formatTermDate(term.start_date)} to{" "}
+                              {formatTermDate(term.end_date)})
                             </option>
                           ))}
                         </Form.Select>
@@ -567,33 +601,32 @@ const EditSWTD = () => {
                       <Col sm="10">
                         <Form.Control
                           type="date"
-                          min={selectedTermDate ? selectedTermDate : ""}
-                          max={new Date().toISOString().slice(0, 10)}
+                          min={selectedTerm ? selectedTerm.start : ""}
+                          max={
+                            selectedTerm?.ongoing
+                              ? new Date().toISOString().slice(0, 10)
+                              : selectedTerm.end
+                          }
                           className={styles.formBox}
                           name="date"
                           onChange={handleChange}
                           value={form.date}
                           isInvalid={
-                            (!isEmpty(form.date) && !isValidDate(form.date)) ||
                             isEmpty(form.date) ||
-                            form.date < selectedTermDate
+                            (!isEmpty(form.date) &&
+                              !isValidSWTDDate(form.date, selectedTerm))
                           }
                         />
-                        {isEmpty(form.date) && (
-                          <Form.Control.Feedback type="invalid">
-                            Date is required.
-                          </Form.Control.Feedback>
-                        )}
 
-                        {!isEmpty(form.date) && (
-                          <Form.Control.Feedback type="invalid">
-                            {!isValidDate(form?.date) ? (
-                              <>Date must be valid.</>
-                            ) : (
-                              <>Date must be within the term.</>
-                            )}
-                          </Form.Control.Feedback>
-                        )}
+                        <Form.Control.Feedback type="invalid">
+                          {isEmpty(form.date) ? (
+                            <>Date is required.</>
+                          ) : (
+                            <>
+                              Date must be valid and within the selected term.
+                            </>
+                          )}
+                        </Form.Control.Feedback>
                       </Col>
                     ) : (
                       <Col className="d-flex align-items-center">
@@ -621,12 +654,8 @@ const EditSWTD = () => {
                             name="time_started"
                             onChange={handleChange}
                             value={form.time_started}
-                            isInvalid={isTimeInvalid()}
                             disabled={form?.category.startsWith("Degree")}
                           />
-                          <Form.Control.Feedback type="invalid">
-                            Time must be valid.
-                          </Form.Control.Feedback>
                         </Col>
                         <Col
                           className="d-flex justify-content-center align-items-center text-center"
@@ -640,8 +669,12 @@ const EditSWTD = () => {
                             name="time_finished"
                             onChange={handleChange}
                             value={form.time_finished}
+                            isInvalid={isTimeInvalid()}
                             disabled={form?.category.startsWith("Degree")}
                           />
+                          <Form.Control.Feedback type="invalid">
+                            Time must be valid.
+                          </Form.Control.Feedback>
                         </Col>
                       </>
                     ) : (
