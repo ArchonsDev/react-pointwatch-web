@@ -1,14 +1,15 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal } from "react-bootstrap"; /* prettier-ignore */
 
 import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
-import { getUser, userPoints, getClearanceStatus } from "../../api/user";
+import { getUser, getClearanceStatus } from "../../api/user";
 import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
+import SWTDInfo from "../employee dashboard/SWTDInfo";
 import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
@@ -22,13 +23,15 @@ const EmployeeSWTD = () => {
 
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [employee, setEmployee] = useState(null);
-  const [termPoints, setTermPoints] = useState(null);
   const [termStatus, setTermStatus] = useState(null);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [showModal, openModal, closeModal] = useSwitch();
   const [showRevokeModal, openRevokeModal, closeRevokeModal] = useSwitch();
+  const [showPointsModal, openPointsModal, closePointsModal] = useSwitch();
 
   const fetchUser = async () => {
     await getUser(
@@ -76,20 +79,7 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const fetchPoints = (term) => {
-    userPoints(
-      {
-        id: id,
-        term_id: term?.id,
-        token: token,
-      },
-      (response) => {
-        setTermPoints(response.data);
-      }
-    );
-  };
-
-  const fetchClearance = (term) => {
+  const fetchClearanceStatus = (term) => {
     getClearanceStatus(
       {
         id: id,
@@ -97,7 +87,6 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        console.log(response);
         setTermStatus(response);
       }
     );
@@ -115,7 +104,7 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        fetchClearance(term);
+        fetchClearanceStatus(term);
         fetchUser();
       }
     );
@@ -129,7 +118,7 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        fetchClearance(term);
+        fetchClearanceStatus(term);
         fetchUser();
       }
     );
@@ -141,6 +130,15 @@ const EmployeeSWTD = () => {
 
   const filteredSWTDs = userSWTDs?.filter(
     (swtd) => swtd?.term.id === selectedTerm?.id
+  );
+
+  const displayedSWTDs = (selectedTerm ? filteredSWTDs : userSWTDs)?.filter(
+    (swtd) =>
+      (selectedStatus === "" || swtd.validation.status === selectedStatus) &&
+      (swtd.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        swtd.validation.status
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()))
   );
 
   useEffect(() => {
@@ -161,7 +159,24 @@ const EmployeeSWTD = () => {
             className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
             onClick={() => navigate("/dashboard")}></i>{" "}
           {pageTitle}
+          <i
+            className={`${styles.commentEdit} fa-solid fa-circle-info fa-xs ms-2`}
+            onClick={openPointsModal}></i>
         </h3>
+        <Modal
+          show={showPointsModal}
+          onHide={closePointsModal}
+          size="lg"
+          centered>
+          <Modal.Header closeButton>
+            <Modal.Title className={styles.formLabel}>
+              Required Points & Compliance Schedule
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <SWTDInfo />
+          </Modal.Body>
+        </Modal>
       </Row>
 
       <Row className={`${styles.employeeDetails} w-100 mb-3`}>
@@ -185,8 +200,7 @@ const EmployeeSWTD = () => {
                   <Dropdown.Item
                     key={term.id}
                     onClick={() => {
-                      fetchPoints(term);
-                      fetchClearance(term);
+                      fetchClearanceStatus(term);
                       setSelectedTerm(term);
                     }}>
                     {term.name}
@@ -210,21 +224,15 @@ const EmployeeSWTD = () => {
 
         {selectedTerm && (
           <Col className="d-flex align-items-center" xs="auto">
-            <i className="fa-solid fa-asterisk me-2"></i>Required Points:{" "}
-            {termPoints?.required_points}
-          </Col>
-        )}
-
-        {selectedTerm && (
-          <Col className="d-flex align-items-center" xs="auto">
             <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
             <span
               className={`ms-1 ${
-                termPoints?.valid_points < termPoints?.required_points
+                termStatus?.points?.valid_points <
+                termStatus?.points?.required_points
                   ? "text-danger"
                   : "text-success"
               }`}>
-              {termPoints?.valid_points}
+              {termStatus?.points?.valid_points}
             </span>
           </Col>
         )}
@@ -232,23 +240,50 @@ const EmployeeSWTD = () => {
         {selectedTerm !== null && (
           <Col className="d-flex align-items-center" xs="auto">
             <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
-            {termStatus?.is_cleared === true ? (
-              <span className="text-success ms-2">CLEARED</span>
-            ) : (
-              <span className="text-danger ms-2">PENDING CLEARANCE</span>
-            )}
+            <span
+              className={`ms-2 text-${
+                termStatus?.is_cleared ? "success" : "danger"
+              }`}>
+              {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
+            </span>
           </Col>
         )}
       </Row>
 
       <Row className="w-100">
-        <Col className="text-start" md={6}>
+        <Col className="text-start" md={5}>
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
             </InputGroup.Text>
-            <Form.Control type="search" placeholder="Search" />
+            <Form.Control
+              type="search"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </InputGroup>
+        </Col>
+
+        <Col>
+          <Form.Group as={Row} controlId="inputFilter">
+            <Form.Label className={styles.filterText} column sm="2">
+              Status
+            </Form.Label>
+            <Col sm="8">
+              <Form.Select
+                className={styles.filterOption}
+                name="filter"
+                onChange={(e) => {
+                  setSelectedStatus(e.target.value);
+                }}>
+                <option value="">All Statuses</option>
+                <option value="PENDING">PENDING</option>
+                <option value="APPROVED">APPROVED</option>
+                <option value="REJECTED">REJECTED</option>
+              </Form.Select>
+            </Col>
+          </Form.Group>
         </Col>
 
         <Col className="text-end">
@@ -265,7 +300,8 @@ const EmployeeSWTD = () => {
                 <BtnSecondary
                   onClick={openModal}
                   disabled={
-                    termPoints?.valid_points < termPoints?.required_points
+                    termStatus?.points?.valid_points <
+                    termStatus?.points?.required_points
                   }>
                   Grant Clearance
                 </BtnSecondary>{" "}
@@ -297,17 +333,24 @@ const EmployeeSWTD = () => {
         {selectedTerm === null ? (
           <>
             <ListGroup className="w-100" variant="flush">
-              <ListGroup.Item className={styles.tableHeader}>
-                <Row>
-                  <Col xs={1}>No.</Col>
-                  <Col xs={7}>Title of SWTD</Col>
-                  <Col xs={2}>Points</Col>
-                  <Col xs={2}>Status</Col>
-                </Row>
-              </ListGroup.Item>
+              {userSWTDs.length === 0 ? (
+                <span
+                  className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
+                  No records submitted.
+                </span>
+              ) : (
+                <ListGroup.Item className={styles.tableHeader}>
+                  <Row>
+                    <Col xs={1}>No.</Col>
+                    <Col xs={7}>Title of SWTD</Col>
+                    <Col xs={2}>Points</Col>
+                    <Col xs={2}>Status</Col>
+                  </Row>
+                </ListGroup.Item>
+              )}
             </ListGroup>
             <ListGroup>
-              {userSWTDs.map((item) => (
+              {displayedSWTDs.map((item) => (
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
@@ -322,10 +365,10 @@ const EmployeeSWTD = () => {
               ))}
             </ListGroup>
           </>
-        ) : filteredSWTDs.length === 0 ? (
+        ) : displayedSWTDs.length === 0 ? (
           <span
             className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
-            No records found for this term.
+            No records found.
           </span>
         ) : (
           <>
@@ -340,7 +383,7 @@ const EmployeeSWTD = () => {
               </ListGroup.Item>
             </ListGroup>
             <ListGroup>
-              {filteredSWTDs.map((item) => (
+              {displayedSWTDs.map((item) => (
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
