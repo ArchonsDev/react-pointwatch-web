@@ -3,12 +3,13 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal } from "react-bootstrap"; /* prettier-ignore */
 
-import { userPoints, getClearanceStatus } from "../../api/user";
+import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
+import SWTDInfo from "./SWTDInfo";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
 
@@ -19,11 +20,14 @@ const SWTDDashboard = () => {
   const navigate = useNavigate();
 
   const [showModal, openModal, closeModal] = useSwitch();
+  const [showPointsModal, openPointsModal, closePointsModal] = useSwitch();
+
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [terms, setTerms] = useState([]);
-  const [termPoints, setTermPoints] = useState(null);
+
   const [termStatus, setTermStatus] = useState(null);
   const [selectedTerm, setSelectedTerm] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchAllSWTDs = async () => {
     await getAllSWTDs(
@@ -56,20 +60,7 @@ const SWTDDashboard = () => {
     );
   };
 
-  const fetchPoints = (term) => {
-    userPoints(
-      {
-        id: id,
-        term_id: term?.id,
-        token: token,
-      },
-      (response) => {
-        setTermPoints(response.data);
-      }
-    );
-  };
-
-  const fetchClearance = (term) => {
+  const fetchClearanceStatus = (term) => {
     getClearanceStatus(
       {
         id: id,
@@ -94,6 +85,12 @@ const SWTDDashboard = () => {
     (swtd) => swtd?.term.id === selectedTerm?.id
   );
 
+  const displayedSWTDs = (selectedTerm ? filteredSWTDs : userSWTDs)?.filter(
+    (swtd) =>
+      swtd.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      swtd.validation.status.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   useEffect(() => {
     fetchTerms();
     fetchAllSWTDs();
@@ -101,8 +98,29 @@ const SWTDDashboard = () => {
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
-      <Row className="mb-2">
-        <h3 className={styles.label}>SWTD Points Overview</h3>
+      <Row className="w-100 mb-2">
+        <Col>
+          <h3 className={`${styles.label} d-flex align-items-center`}>
+            SWTD Points Overview
+            <i
+              className={`${styles.commentEdit} fa-solid fa-circle-info fa-xs ms-2`}
+              onClick={openPointsModal}></i>
+          </h3>
+          <Modal
+            show={showPointsModal}
+            onHide={closePointsModal}
+            size="lg"
+            centered>
+            <Modal.Header closeButton>
+              <Modal.Title className={styles.formLabel}>
+                Required Points & Compliance Schedule
+              </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <SWTDInfo />
+            </Modal.Body>
+          </Modal>
+        </Col>
       </Row>
 
       <Row className={`${styles.employeeDetails} w-100 mb-3`}>
@@ -126,8 +144,7 @@ const SWTDDashboard = () => {
                   <Dropdown.Item
                     key={term.id}
                     onClick={() => {
-                      fetchPoints(term);
-                      fetchClearance(term);
+                      fetchClearanceStatus(term);
                       setSelectedTerm(term);
                     }}>
                     {term.name}
@@ -151,21 +168,15 @@ const SWTDDashboard = () => {
 
         {selectedTerm && (
           <Col className="d-flex align-items-center" xs="auto">
-            <i className="fa-solid fa-asterisk me-2"></i>Required Points:{" "}
-            {termPoints?.required_points}
-          </Col>
-        )}
-
-        {selectedTerm && (
-          <Col className="d-flex align-items-center" xs="auto">
             <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
             <span
               className={`ms-1 ${
-                termPoints?.valid_points < termPoints?.required_points
+                termStatus?.points?.valid_points <
+                termStatus?.points?.required_points
                   ? "text-danger"
                   : "text-success"
               }`}>
-              {termPoints?.valid_points}
+              {termStatus?.points?.valid_points}
             </span>
           </Col>
         )}
@@ -173,11 +184,12 @@ const SWTDDashboard = () => {
         {selectedTerm !== null && (
           <Col className="d-flex align-items-center" xs="auto">
             <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
-            {termStatus?.is_cleared === true ? (
-              <span className="text-success ms-2">CLEARED</span>
-            ) : (
-              <span className="text-danger ms-2">PENDING CLEARANCE</span>
-            )}
+            <span
+              className={`ms-2 text-${
+                termStatus?.is_cleared ? "success" : "danger"
+              }`}>
+              {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
+            </span>
           </Col>
         )}
       </Row>
@@ -188,7 +200,12 @@ const SWTDDashboard = () => {
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
             </InputGroup.Text>
-            <Form.Control type="search" placeholder="Search" />
+            <Form.Control
+              type="search"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </InputGroup>
         </Col>
 
@@ -241,7 +258,7 @@ const SWTDDashboard = () => {
               )}
             </ListGroup>
             <ListGroup>
-              {userSWTDs.map((item) => (
+              {displayedSWTDs.map((item) => (
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
@@ -256,10 +273,10 @@ const SWTDDashboard = () => {
               ))}
             </ListGroup>
           </>
-        ) : filteredSWTDs.length === 0 ? (
+        ) : displayedSWTDs.length === 0 ? (
           <span
             className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
-            No records found for this term.
+            No records found.
           </span>
         ) : (
           <>
@@ -274,7 +291,7 @@ const SWTDDashboard = () => {
               </ListGroup.Item>
             </ListGroup>
             <ListGroup>
-              {filteredSWTDs.map((item) => (
+              {displayedSWTDs.map((item) => (
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
