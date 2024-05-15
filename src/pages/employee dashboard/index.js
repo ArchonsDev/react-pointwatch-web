@@ -26,6 +26,7 @@ const SWTDDashboard = () => {
   const [terms, setTerms] = useState([]);
 
   const [termStatus, setTermStatus] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -87,8 +88,11 @@ const SWTDDashboard = () => {
 
   const displayedSWTDs = (selectedTerm ? filteredSWTDs : userSWTDs)?.filter(
     (swtd) =>
-      swtd.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      swtd.validation.status.toLowerCase().includes(searchQuery.toLowerCase())
+      (selectedStatus === "" || swtd.validation.status === selectedStatus) &&
+      (swtd.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        swtd.validation.status
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()))
   );
 
   useEffect(() => {
@@ -195,7 +199,7 @@ const SWTDDashboard = () => {
       </Row>
 
       <Row className="w-100">
-        <Col className="text-start" md={8}>
+        <Col className="text-start" md={5}>
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
@@ -207,6 +211,27 @@ const SWTDDashboard = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </InputGroup>
+        </Col>
+
+        <Col>
+          <Form.Group as={Row} controlId="inputFilter">
+            <Form.Label className={styles.filterText} column sm="2">
+              Status
+            </Form.Label>
+            <Col sm="8">
+              <Form.Select
+                className={styles.cardBody}
+                name="filter"
+                onChange={(e) => {
+                  setSelectedStatus(e.target.value);
+                }}>
+                <option value="">All Statuses</option>
+                <option value="PENDING">PENDING</option>
+                <option value="APPROVED">APPROVED</option>
+                <option value="REJECTED">REJECTED</option>
+              </Form.Select>
+            </Col>
+          </Form.Group>
         </Col>
 
         <Col className="text-end">
