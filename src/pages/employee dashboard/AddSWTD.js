@@ -25,6 +25,7 @@ const AddSWTD = () => {
   const navigate = useNavigate();
   const inputFile = useRef(null);
 
+  const [loading, setLoading] = useState(false);
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);

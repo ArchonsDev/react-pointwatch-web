@@ -11,6 +11,7 @@ const Admin = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("term");
 
   const handleSelectTab = (selectedTab) => {
@@ -28,10 +29,14 @@ const Admin = () => {
   };
 
   useEffect(() => {
-    if (!user?.is_admin && !user?.is_superuser) {
-      navigate("/swtd");
+    if (!user) setLoading(true);
+    else {
+      setLoading(false);
+      if (!user?.is_admin && !user?.is_superuser) navigate("/swtd");
     }
-  });
+  }, [user, navigate]);
+
+  if (loading) return null;
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">

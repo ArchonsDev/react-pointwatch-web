@@ -28,6 +28,7 @@ const EditSWTD = () => {
   const token = Cookies.get("userToken");
   const id = parseInt(Cookies.get("userID"), 10);
 
+  const [loading, setLoading] = useState(true);
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
 
@@ -107,9 +108,11 @@ const EditSWTD = () => {
         });
         setTerm(data.term.id);
         fetchClearance(data.term.id);
+        setLoading(false);
       },
       (error) => {
         console.log("Error fetching SWTD data: ", error);
+        setLoading(false);
       }
     );
   };
@@ -310,7 +313,10 @@ const EditSWTD = () => {
     fetchSWTD();
     fetchTerms();
     fetchSWTDValidation();
+    if (swtd) setLoading(false);
   }, []);
+
+  if (loading) return null;
 
   return (
     <div className={styles.background}>

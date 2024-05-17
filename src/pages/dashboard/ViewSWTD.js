@@ -23,6 +23,7 @@ const ViewSWTD = () => {
   const token = Cookies.get("userToken");
   const userID = parseInt(Cookies.get("userID"), 10);
 
+  const [loading, setLoading] = useState(false);
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
 
@@ -192,14 +193,20 @@ const ViewSWTD = () => {
   };
 
   useEffect(() => {
-    if (!user?.is_admin && !user?.is_staff && !user?.is_superuser) {
-      navigate("/swtd");
+    if (!user) setLoading(true);
+    else {
+      setLoading(false);
+      if (!user?.is_admin && !user?.is_staff && !user?.is_superuser)
+        navigate("/swtd");
+      else {
+        fetchSWTD();
+        fetchSWTDValidation();
+        fetchComments();
+      }
     }
+  }, [user, navigate]);
 
-    fetchSWTD();
-    fetchSWTDValidation();
-    fetchComments();
-  }, []);
+  if (loading) return null;
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
