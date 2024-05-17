@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Container, Row, Nav, Card } from "react-bootstrap";
 
 import Term from "./Term";
-import Logs from "./Logs";
+import ValidationActivity from "./ValidationActivity";
+import ClearanceActivity from "./ClearanceActivity";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import styles from "./style.module.css";
@@ -22,8 +23,10 @@ const Admin = () => {
     switch (activeTab) {
       case "term":
         return <Term />;
-      case "logs":
-        return <Logs />;
+      case "validation":
+        return <ValidationActivity />;
+      case "clearance":
+        return <ClearanceActivity />;
       default:
     }
   };
@@ -57,11 +60,24 @@ const Admin = () => {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link
-              eventKey="logs"
+              eventKey="validation"
               className={`${styles.navHeader} ${
-                activeTab === "logs" ? styles.activeTab : styles.inactiveTab
+                activeTab === "validation"
+                  ? styles.activeTab
+                  : styles.inactiveTab
               }`}>
-              Logs
+              Validation Activity
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link
+              eventKey="clearance"
+              className={`${styles.navHeader} ${
+                activeTab === "clearance"
+                  ? styles.activeTab
+                  : styles.inactiveTab
+              }`}>
+              Clearance Activity
             </Nav.Link>
           </Nav.Item>
         </Nav>

@@ -6,10 +6,12 @@ import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropd
 import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
+import { exportSWTDList } from "../../api/export";
 import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import SWTDInfo from "./SWTDInfo";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
 
@@ -80,6 +82,23 @@ const SWTDDashboard = () => {
 
   const handleEditRecordClick = (id) => {
     navigate(`/swtd/${id}`);
+  };
+
+  const handlePrint = () => {
+    exportSWTDList(
+      {
+        id: id,
+        token: token,
+      },
+      (response) => {
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const blobURL = URL.createObjectURL(blob);
+        window.open(blobURL, "_blank");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   };
 
   const filteredSWTDs = userSWTDs?.filter(
@@ -255,6 +274,9 @@ const SWTDDashboard = () => {
         </Col>
 
         <Col className="text-end">
+          {selectedTerm === null && (
+            <BtnSecondary onClick={handlePrint}>Export PDF</BtnSecondary>
+          )}{" "}
           <BtnPrimary
             onClick={() =>
               user?.department === null ? openModal() : handleAddRecordClick()
