@@ -6,6 +6,7 @@ import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropd
 import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
 import { getUser, getClearanceStatus } from "../../api/user";
+import { exportSWTDList } from "../../api/export";
 import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
@@ -125,6 +126,23 @@ const EmployeeSWTD = () => {
     );
   };
 
+  const handlePrint = () => {
+    exportSWTDList(
+      {
+        id: id,
+        token: token,
+      },
+      (response) => {
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const blobURL = URL.createObjectURL(blob);
+        window.open(blobURL, "_blank");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  };
+
   const pageTitle = employee
     ? `${employee.firstname} ${employee.lastname}'s SWTDs`
     : "SWTDs";
@@ -139,7 +157,8 @@ const EmployeeSWTD = () => {
       (swtd.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         swtd.validation.status
           .toLowerCase()
-          .includes(searchQuery.toLowerCase()))
+          .includes(searchQuery.toLowerCase()) ||
+        String(swtd.id) === searchQuery)
   );
 
   useEffect(() => {
@@ -338,7 +357,11 @@ const EmployeeSWTD = () => {
                 </BtnSecondary>{" "}
               </>
             ))}
-          <BtnPrimary onClick={() => window.print()}>Export Report</BtnPrimary>
+          {selectedTerm === null && (
+            <BtnPrimary onClick={handlePrint} disabled={userSWTDs.length === 0}>
+              Export PDF
+            </BtnPrimary>
+          )}
         </Col>
 
         <ConfirmationModal

@@ -38,3 +38,9 @@
 .table {
   font-family: "Poppins-Regular";
 }
+
+.searchBar {
+  font-family: "Poppins-Regular";
+  border-radius: 7px;
+  border: none;
+}

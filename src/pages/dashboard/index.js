@@ -86,7 +86,7 @@ const Dashboard = () => {
             <Form.Label className={styles.filterText} column sm="4">
               Department
             </Form.Label>
-            <Col sm="8">
+            <Col>
               <Form.Select
                 className={styles.filterOption}
                 name="filter"
@@ -102,9 +102,6 @@ const Dashboard = () => {
               </Form.Select>
             </Col>
           </Form.Group>
-        </Col>
-        <Col className="text-end" md={3}>
-          <BtnPrimary onClick={() => window.print()}>Export Report</BtnPrimary>
         </Col>
       </Row>
 
