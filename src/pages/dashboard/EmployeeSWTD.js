@@ -21,6 +21,7 @@ const EmployeeSWTD = () => {
   const token = Cookies.get("userToken");
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(false);
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [employee, setEmployee] = useState(null);
   const [termStatus, setTermStatus] = useState(null);
@@ -142,14 +143,20 @@ const EmployeeSWTD = () => {
   );
 
   useEffect(() => {
-    if (!user?.is_admin && !user?.is_staff && !user?.is_superuser) {
-      navigate("/swtd");
+    if (!user) setLoading(true);
+    else {
+      setLoading(false);
+      if (!user?.is_admin && !user?.is_staff && !user?.is_superuser)
+        navigate("/swtd");
+      else {
+        fetchUser();
+        fetchTerms();
+        fetchAllSWTDs();
+      }
     }
+  }, [user, navigate]);
 
-    fetchUser();
-    fetchTerms();
-    fetchAllSWTDs();
-  }, []);
+  if (loading) return null;
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
@@ -180,72 +187,96 @@ const EmployeeSWTD = () => {
       </Row>
 
       <Row className={`${styles.employeeDetails} w-100 mb-3`}>
-        <Col className="d-flex align-items-center" xs="auto">
-          <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
-          {terms.length === 0 ? (
-            <>No terms were added yet.</>
-          ) : (
-            <DropdownButton
-              className={`ms-2`}
-              variant={
-                selectedTerm?.is_ongoing === true ? "success" : "secondary"
-              }
-              size="sm"
-              title={selectedTerm ? selectedTerm.name : "All terms"}>
-              <Dropdown.Item onClick={() => setSelectedTerm(null)}>
-                All terms
-              </Dropdown.Item>
-              {terms &&
-                terms.map((term) => (
-                  <Dropdown.Item
-                    key={term.id}
-                    onClick={() => {
-                      fetchClearanceStatus(term);
-                      setSelectedTerm(term);
-                    }}>
-                    {term.name}
+        <Col className="d-flex align-items-center">
+          <Row>
+            <Col className="d-flex align-items-center" xs="auto">
+              <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
+              {terms.length === 0 ? (
+                <>No terms were added yet.</>
+              ) : (
+                <DropdownButton
+                  className={`ms-2`}
+                  variant={
+                    selectedTerm?.is_ongoing === true ? "success" : "secondary"
+                  }
+                  size="sm"
+                  title={selectedTerm ? selectedTerm.name : "All terms"}>
+                  <Dropdown.Item onClick={() => setSelectedTerm(null)}>
+                    All terms
                   </Dropdown.Item>
-                ))}
-            </DropdownButton>
-          )}
+                  {terms &&
+                    terms.map((term) => (
+                      <Dropdown.Item
+                        key={term.id}
+                        onClick={() => {
+                          fetchClearanceStatus(term);
+                          setSelectedTerm(term);
+                        }}>
+                        {term.name}
+                      </Dropdown.Item>
+                    ))}
+                </DropdownButton>
+              )}
+            </Col>
+            <Col className="d-flex align-items-center" xs="auto">
+              <i className="fa-solid fa-building me-2"></i>Department:{" "}
+              {employee?.department}
+            </Col>
+            {selectedTerm === null && (
+              <Col className="d-flex align-items-center" xs="auto">
+                <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
+                {employee?.point_balance}
+              </Col>
+            )}
+
+            {/* {selectedTerm && (
+              <Col className="d-flex align-items-center" xs="auto">
+                <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
+                <span
+                  className={`ms-1 ${
+                    termStatus?.points?.valid_points <
+                    termStatus?.points?.required_points
+                      ? "text-danger"
+                      : "text-success"
+                  }`}>
+                  {termStatus?.points?.valid_points} /{" "}
+                  {termStatus?.points?.required_points}
+                </span>
+              </Col>
+            )} */}
+
+            {selectedTerm !== null && (
+              <Col className="d-flex align-items-center" xs="auto">
+                <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
+                <span
+                  className={`ms-2 text-${
+                    termStatus?.is_cleared ? "success" : "danger"
+                  }`}>
+                  {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
+                </span>
+              </Col>
+            )}
+          </Row>
         </Col>
-
-        <Col className="d-flex align-items-center" xs="auto">
-          <i className="fa-solid fa-building me-2"></i>Department:{" "}
-          {employee?.department}
-        </Col>
-
-        {selectedTerm === null && (
-          <Col className="d-flex align-items-center" xs="auto">
-            <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
-            {employee?.point_balance}
-          </Col>
-        )}
-
-        {selectedTerm && (
-          <Col className="d-flex align-items-center" xs="auto">
-            <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
-            <span
-              className={`ms-1 ${
-                termStatus?.points?.valid_points <
-                termStatus?.points?.required_points
-                  ? "text-danger"
-                  : "text-success"
-              }`}>
-              {termStatus?.points?.valid_points}
-            </span>
-          </Col>
-        )}
 
         {selectedTerm !== null && (
-          <Col className="d-flex align-items-center" xs="auto">
-            <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
-            <span
-              className={`ms-2 text-${
-                termStatus?.is_cleared ? "success" : "danger"
-              }`}>
-              {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
-            </span>
+          <Col className={`${styles.termPoints} text-end`} md={2}>
+            <div>
+              <span
+                className={`${styles.validPoints} ${
+                  termStatus?.points?.valid_points <
+                  termStatus?.points?.required_points
+                    ? "text-danger"
+                    : "text-success"
+                }`}>
+                {termStatus?.points?.valid_points}
+              </span>
+              <span className={styles.requiredPoints}>
+                {" "}
+                / {termStatus?.points?.required_points}
+              </span>
+            </div>
+            <span className={styles.pointsLabel}>points</span>
           </Col>
         )}
       </Row>

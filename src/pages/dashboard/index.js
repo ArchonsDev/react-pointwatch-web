@@ -17,6 +17,7 @@ const Dashboard = () => {
   const token = Cookies.get("userToken");
   const userID = Cookies.get("userID");
 
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState(null);
 
@@ -34,14 +35,6 @@ const Dashboard = () => {
     );
   };
 
-  useEffect(() => {
-    if (!user?.is_admin && !user?.is_staff && !user?.is_superuser) {
-      navigate("/swtd");
-    }
-
-    fetchAllUsers();
-  }, []);
-
   const handleEmployeeSWTDClick = (id) => {
     navigate(`/dashboard/${id}`);
   };
@@ -54,6 +47,18 @@ const Dashboard = () => {
         user.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.employee_id.includes(searchQuery))
   );
+
+  useEffect(() => {
+    if (!user) setLoading(true);
+    else {
+      setLoading(false);
+      if (!user?.is_admin && !user?.is_staff && !user?.is_superuser)
+        navigate("/swtd");
+      else fetchAllUsers();
+    }
+  }, [user, navigate]);
+
+  if (loading) return null;
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">

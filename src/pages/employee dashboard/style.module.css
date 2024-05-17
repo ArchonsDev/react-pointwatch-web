@@ -99,3 +99,16 @@
   font-family: "Poppins-SemiBold";
   color: #d80085;
 }
+
+.termPoints {
+  font-family: "Degradasi";
+  line-height: 1.3em;
+}
+
+.validPoints {
+  font-size: 2.3em;
+}
+
+.requiredPoints {
+  font-size: 1.3em;
+}
