@@ -16,6 +16,9 @@ const Registration = () => {
   const [showToast, setShowToast] = useState(false);
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const toggleShow = () => setShowToast(!showToast);
 
   const [form, setForm] = useState({
@@ -294,14 +297,15 @@ const Registration = () => {
                 <Row>
                   <Col>
                     <Form.Group className="mb-3" controlId="inputPassword">
-                      <InputGroup hasValidation>
+                      <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
                             className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           value={form.password}
+                          className={styles.passwordBox}
                           name="password"
                           onChange={handleChange}
                           placeholder="Password"
@@ -310,6 +314,15 @@ const Registration = () => {
                             !isValidPassword(form.password)
                           }
                         />
+                        <InputGroup.Text className={styles.iconEye}>
+                          <i
+                            className={`${styles.icon} ${
+                              showPassword
+                                ? "fa-solid fa-eye fa-lg"
+                                : "fa-solid fa-eye-slash fa-lg"
+                            }`}
+                            onClick={() => setShowPassword(!showPassword)}></i>
+                        </InputGroup.Text>
                         {!isEmpty(form.password) &&
                           !isValidPassword(form.password) && (
                             <Form.Control.Feedback type="invalid">
@@ -326,19 +339,30 @@ const Registration = () => {
                     <Form.Group
                       className="mb-3"
                       controlId="inputConfirmPassword">
-                      <InputGroup hasValidation>
+                      <InputGroup>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
                             className={`${styles.formIcon} fa-solid fa-lock fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Control
-                          type="password"
+                          type={showConfirmPassword ? "text" : "password"}
+                          className={styles.passwordBox}
                           placeholder="Confirm Password"
                           name="confirmPassword"
                           onChange={handleChange}
                           isInvalid={!passwordsMatch()}
                         />
-
+                        <InputGroup.Text className={styles.iconEye}>
+                          <i
+                            className={`${styles.icon} ${
+                              showConfirmPassword
+                                ? "fa-solid fa-eye fa-lg"
+                                : "fa-solid fa-eye-slash fa-lg"
+                            }`}
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }></i>
+                        </InputGroup.Text>
                         {!isEmpty(form.password) && (
                           <Form.Control.Feedback type="invalid">
                             Passwords do not match.

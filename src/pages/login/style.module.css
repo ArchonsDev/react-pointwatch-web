@@ -31,11 +31,22 @@
   font-family: "Poppins-Regular";
 }
 
+.passwordBox {
+  background-color: #e8b4bc !important;
+  border: none !important;
+  font-family: "Poppins-Regular";
+}
+
 .iconBox {
   background-color: #e8b4bc !important;
   border: none !important;
   border-top-right-radius: 0px !important;
   border-bottom-right-radius: 0px !important;
+}
+
+.iconEye {
+  background-color: #e8b4bc !important;
+  border: none !important;
 }
 
 .password {
