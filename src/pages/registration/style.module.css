@@ -56,3 +56,11 @@
   font-family: "Poppins-Regular" !important;
   color: #b22222 !important;
 }
+
+.passwordBox {
+  border-right: none !important;
+}
+
+.iconEye {
+  background-color: white !important;
+}

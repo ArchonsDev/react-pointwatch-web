@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import Cookies from "js-cookie";
-import { Row, Col, Form, Container } from "react-bootstrap";
+import { Row, Col, Form, Container, InputGroup } from "react-bootstrap";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import { login } from "../../api/auth";
@@ -16,6 +16,10 @@ import styles from "./style.module.css";
 const Password = () => {
   const { user, setUser } = useContext(SessionUserContext);
   const token = Cookies.get("userToken");
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [showModal, openModal, closeModal] = useSwitch();
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
@@ -120,13 +124,26 @@ const Password = () => {
               Current Password
             </Form.Label>
             <Col sm="10">
-              <Form.Control
-                type="password"
-                name="currentPassword"
-                className={styles.formBox}
-                value={form.currentPassword}
-                onChange={handleChange}
-              />
+              <InputGroup>
+                <Form.Control
+                  type={showCurrentPassword ? "text" : "password"}
+                  name="currentPassword"
+                  className={styles.formPasswordBox}
+                  value={form.currentPassword}
+                  onChange={handleChange}
+                />
+                <InputGroup.Text className={styles.iconEye}>
+                  <i
+                    className={`${styles.icon} ${
+                      showCurrentPassword
+                        ? "fa-solid fa-eye fa-lg"
+                        : "fa-solid fa-eye-slash fa-lg"
+                    }`}
+                    onClick={() =>
+                      setShowCurrentPassword(!showCurrentPassword)
+                    }></i>
+                </InputGroup.Text>
+              </InputGroup>
             </Col>
           </Form.Group>
         </Row>
@@ -137,24 +154,35 @@ const Password = () => {
               New Password
             </Form.Label>
             <Col sm="10">
-              <Form.Control
-                type="password"
-                name="newPassword"
-                className={styles.formBox}
-                value={form.newPassword}
-                onChange={handleChange}
-                isInvalid={isPasswordValid()}
-              />
-              <Form.Control.Feedback type="invalid">
-                {isEmpty(form.newPassword) ? (
-                  <>Password is required.</>
-                ) : (
-                  <>
-                    Must have at least 8 characters, one special character, and
-                    one number.
-                  </>
-                )}
-              </Form.Control.Feedback>
+              <InputGroup hasValidation>
+                <Form.Control
+                  type={showPassword ? "text" : "password"}
+                  name="newPassword"
+                  className={styles.formPasswordBox}
+                  value={form.newPassword}
+                  onChange={handleChange}
+                  isInvalid={isPasswordValid()}
+                />
+                <InputGroup.Text className={styles.iconEye}>
+                  <i
+                    className={`${styles.icon} ${
+                      showPassword
+                        ? "fa-solid fa-eye fa-lg"
+                        : "fa-solid fa-eye-slash fa-lg"
+                    }`}
+                    onClick={() => setShowPassword(!showPassword)}></i>
+                </InputGroup.Text>
+                <Form.Control.Feedback type="invalid">
+                  {isEmpty(form.newPassword) ? (
+                    <>Password is required.</>
+                  ) : (
+                    <>
+                      Must have at least 8 characters, one special character,
+                      and one number.
+                    </>
+                  )}
+                </Form.Control.Feedback>
+              </InputGroup>
             </Col>
           </Form.Group>
         </Row>
@@ -168,18 +196,30 @@ const Password = () => {
               Confirm Password
             </Form.Label>
             <Col sm="10">
-              <Form.Control
-                type="password"
-                name="confirmPassword"
-                className={styles.formBox}
-                value={form.confirmPassword}
-                onChange={handleChange}
-                isInvalid={!passwordsMatch()}
-              />
-
-              <Form.Control.Feedback type="invalid">
-                Passwords do not match.
-              </Form.Control.Feedback>
+              <InputGroup hasValidation>
+                <Form.Control
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  className={styles.formPasswordBox}
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  isInvalid={!passwordsMatch()}
+                />
+                <InputGroup.Text className={styles.iconEye}>
+                  <i
+                    className={`${styles.icon} ${
+                      showConfirmPassword
+                        ? "fa-solid fa-eye fa-lg"
+                        : "fa-solid fa-eye-slash fa-lg"
+                    }`}
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }></i>
+                </InputGroup.Text>
+                <Form.Control.Feedback type="invalid">
+                  Passwords do not match.
+                </Form.Control.Feedback>
+              </InputGroup>
             </Col>
           </Form.Group>
         </Row>

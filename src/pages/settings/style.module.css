@@ -31,6 +31,11 @@
   border: grey 1px solid !important;
 }
 
+.formPasswordBox {
+  border: grey 1px solid !important;
+  border-right: none !important;
+}
+
 .circle {
   width: 10em;
   height: 10em;
@@ -40,4 +45,11 @@
 
 .card {
   border-top-left-radius: 0 !important;
+}
+
+.iconEye {
+  background-color: white !important;
+  border-top: grey 1px solid !important;
+  border-right: grey 1px solid !important;
+  border-bottom: grey 1px solid !important;
 }

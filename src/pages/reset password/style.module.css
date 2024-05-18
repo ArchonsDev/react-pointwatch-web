@@ -57,3 +57,11 @@
   vertical-align: middle;
   margin-right: 10px;
 }
+
+.iconEye {
+  background-color: white !important;
+}
+
+.formBox {
+  border-right: none !important;
+}

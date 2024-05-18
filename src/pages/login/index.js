@@ -28,6 +28,7 @@ const Login = () => {
 
   const [isClicked, setIsClicked] = useState(false);
   const [show, setShow] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const handleClose = () => {
     setShow(false);
     setEmail("");
@@ -71,13 +72,11 @@ const Login = () => {
     await login(
       form,
       (response) => {
-        setTimeout(() => {
-          setUser(response.data.user);
-          if (user?.is_admin || user?.is_staff) navigate("/dashboard");
-          else navigate("/swtd");
-          setIsLoading(false);
-          clearForm();
-        }, 4500);
+        setUser(response.data.user);
+        if (user?.is_admin || user?.is_staff) navigate("/dashboard");
+        else navigate("/swtd");
+        setIsLoading(false);
+        clearForm();
       },
       (error) => {
         if (error.response) {
@@ -284,21 +283,30 @@ const Login = () => {
               </Form.Group>
 
               <Form.Group className="mb-3" controlId="inputPassword">
-                <InputGroup hasValidation>
+                <InputGroup>
                   <InputGroup.Text className={styles.iconBox}>
                     <i className={`${styles.icon} fa-solid fa-lock fa-lg`}></i>
                   </InputGroup.Text>
                   <Form.Control
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     size="lg"
                     value={form.password}
                     name="password"
                     onChange={handleChange}
-                    className={styles.formBox}
+                    className={styles.passwordBox}
                     placeholder="Password"
                     required
                     isInvalid={isClicked && isEmpty(form.password)}
                   />
+                  <InputGroup.Text className={styles.iconEye}>
+                    <i
+                      className={`${styles.icon} ${
+                        showPassword
+                          ? "fa-solid fa-eye fa-lg"
+                          : "fa-solid fa-eye-slash fa-lg"
+                      }`}
+                      onClick={() => setShowPassword(!showPassword)}></i>
+                  </InputGroup.Text>
                 </InputGroup>
               </Form.Group>
 
