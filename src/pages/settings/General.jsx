@@ -47,7 +47,7 @@ const General = () => {
 
     return (
       emptyFields.some((field) => isEmpty(form[field])) ||
-      lengthFields.some((field) => isValidLength(form[field]), 1)
+      lengthFields.some((field) => !isValidLength(form[field], 1))
     );
   };
 
