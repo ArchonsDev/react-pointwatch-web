@@ -70,6 +70,13 @@ const ViewSWTD = () => {
     );
   };
 
+  const truncateTitle = (title) => {
+    if (title?.length > 100) {
+      return title.substring(0, 100) + "...";
+    }
+    return title;
+  };
+
   const fetchSWTDProof = () => {
     getSWTDProof(
       {
@@ -283,7 +290,7 @@ const ViewSWTD = () => {
                   Title
                 </Form.Label>
                 <Col className="d-flex align-items-center">
-                  <Form.Control value={swtd?.title || ""} disabled readOnly />
+                  {truncateTitle(swtd?.title)}
                 </Col>
               </Form.Group>
             </Row>
@@ -295,9 +302,7 @@ const ViewSWTD = () => {
                   <Form.Label className={styles.formLabel} column sm="2">
                     Venue
                   </Form.Label>
-                  <Col className="d-flex align-items-center">
-                    <Form.Control value={swtd?.venue || ""} disabled readOnly />
-                  </Col>
+                  <Col className="d-flex align-items-center">{swtd?.venue}</Col>
                 </Form.Group>
               </Col>
 
@@ -311,11 +316,7 @@ const ViewSWTD = () => {
                     Term
                   </Form.Label>
                   <Col className="d-flex align-items-center">
-                    <Form.Control
-                      value={swtd?.term.name || ""}
-                      disabled
-                      readOnly
-                    />
+                    {swtd?.term.name}
                   </Col>
                 </Form.Group>
               </Col>
@@ -329,11 +330,7 @@ const ViewSWTD = () => {
                     Category
                   </Form.Label>
                   <Col className="d-flex align-items-center">
-                    <Form.Control
-                      value={swtd?.category || ""}
-                      disabled
-                      readOnly
-                    />
+                    {swtd?.category}
                   </Col>
                 </Form.Group>
               </Col>
@@ -347,9 +344,7 @@ const ViewSWTD = () => {
                     sm="2">
                     Role
                   </Form.Label>
-                  <Col className="d-flex align-items-center">
-                    <Form.Control value={swtd?.role || ""} disabled readOnly />
-                  </Col>
+                  <Col className="d-flex align-items-center">{swtd?.role}</Col>
                 </Form.Group>
               </Col>
             </Row>
@@ -361,9 +356,7 @@ const ViewSWTD = () => {
                   <Form.Label className={styles.formLabel} column sm="2">
                     Date
                   </Form.Label>
-                  <Col className="d-flex align-items-center">
-                    <Form.Control value={swtd?.date || ""} disabled readOnly />
-                  </Col>
+                  <Col className="d-flex align-items-center">{swtd?.date}</Col>
                 </Form.Group>
               </Col>
 
@@ -377,13 +370,7 @@ const ViewSWTD = () => {
                     Time
                   </Form.Label>
                   <Col className="d-flex align-items-center" sm="10">
-                    <Form.Control
-                      value={`${swtd?.time_started || ""} to ${
-                        swtd?.time_finished || ""
-                      }`}
-                      disabled
-                      readOnly
-                    />
+                    {swtd?.time_started} to {swtd?.time_finished}
                   </Col>
                 </Form.Group>
               </Col>
@@ -428,12 +415,10 @@ const ViewSWTD = () => {
                 <Form.Label className={styles.formLabel} column sm="1">
                   Benefits
                 </Form.Label>
-                <Col className="d-flex align-items-center">
-                  <Form.Control
-                    value={swtd?.benefits || ""}
-                    disabled
-                    readOnly
-                  />
+                <Col
+                  className="d-flex align-items-center w-100"
+                  style={{ wordWrap: "break-word" }}>
+                  {swtd?.benefits}
                 </Col>
               </Form.Group>
             </Row>
