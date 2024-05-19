@@ -7,7 +7,6 @@ import departments from "../../data/departments.json";
 import { getAllUsers } from "../../api/admin";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
-import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
 
 const Dashboard = () => {

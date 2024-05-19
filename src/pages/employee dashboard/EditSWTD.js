@@ -183,6 +183,13 @@ const EditSWTD = () => {
     );
   };
 
+  const truncateTitle = (title) => {
+    if (title.length > 100) {
+      return title.substring(0, 100) + "...";
+    }
+    return title;
+  };
+
   const handleChange = (e) => {
     if (e.target.name === "category" && e.target.value.startsWith("Degree")) {
       setForm({
@@ -449,7 +456,7 @@ const EditSWTD = () => {
                     </Col>
                   ) : (
                     <Col className="d-flex align-items-center">
-                      {swtd?.title}
+                      {truncateTitle(swtd?.title)}
                     </Col>
                   )}
                 </Form.Group>
@@ -803,7 +810,9 @@ const EditSWTD = () => {
                       </Form.Control.Feedback>
                     </Col>
                   ) : (
-                    <Col className="d-flex align-items-center">
+                    <Col
+                      className="d-flex align-items-center w-100"
+                      style={{ wordWrap: "break-word" }}>
                       {swtd?.benefits}
                     </Col>
                   )}

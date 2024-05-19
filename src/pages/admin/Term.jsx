@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Form, Row, Col, Table } from "react-bootstrap";
 
 import { addTerm, getTerms } from "../../api/admin";
-import { isEmpty, isValidDate } from "../../common/validation/utils";
+import { isEmpty } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import SessionUserContext from "../../contexts/SessionUserContext";

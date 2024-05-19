@@ -1,5 +1,5 @@
 import React from "react";
-import { Table, Modal } from "react-bootstrap";
+import { Table } from "react-bootstrap";
 
 import styles from "./style.module.css";
 
