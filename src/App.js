@@ -18,6 +18,7 @@ import ViewSWTD from "./pages/dashboard/ViewSWTD";
 import Admin from "./pages/admin";
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
+import Notifications from "./pages/notifications";
 
 import SessionUserContext from "./contexts/SessionUserContext";
 import { getUser } from "./api/user";
@@ -54,10 +55,16 @@ const App = () => {
     );
   };
 
-  const showDrawer = ["/swtd", "/dashboard", "/settings", "/admin"].some(
-    (path) => location.pathname.startsWith(path)
-  );
+  // Pages where Drawer/Navbar is displayed
+  const showDrawer = [
+    "/swtd",
+    "/dashboard",
+    "/settings",
+    "/admin",
+    "/notifications",
+  ].some((path) => location.pathname.startsWith(path));
 
+  // Changing of tabnames in Browser
   const tabNames = {
     "/login": "Login",
     "/register": "Register",
@@ -67,6 +74,7 @@ const App = () => {
     "/swtd": "SWTD Points Overview",
     "/swtd/form": "Add a New Record",
     "/admin": "Admin",
+    "/notifications": "Notifications",
   };
 
   document.title =
@@ -78,6 +86,7 @@ const App = () => {
       : tabNames[location.pathname] || "PointWatch";
 
   useEffect(() => {
+    // Check if token is expired
     const isTokenExpired = (token) => {
       const decodedToken = jwtDecode(token);
       return decodedToken.exp * 1000 <= Date.now();
@@ -100,7 +109,8 @@ const App = () => {
     <div
       className={`${styles.App} ${
         location.pathname === "/login" ? styles.bg : styles["no-bg"]
-      }`}>
+      }`}
+    >
       <SessionUserContext.Provider value={{ user, setUser }}>
         {showDrawer && <Drawer />}
         <Routes>
@@ -149,6 +159,11 @@ const App = () => {
           <Route
             path="/admin"
             element={token ? <Admin /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path="/notifications"
+            element={token ? <Notifications /> : <Navigate to="/login" />}
           />
         </Routes>
       </SessionUserContext.Provider>
