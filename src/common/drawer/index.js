@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import Cookies from "js-cookie";
-import { Nav, Navbar, Offcanvas, Row, Col, Container } from "react-bootstrap";
+import { Nav, Navbar, Offcanvas, Row, Col, Container } from "react-bootstrap"; /* prettier-ignore */
 import { useNavigate, useLocation } from "react-router";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
@@ -40,6 +40,7 @@ const Drawer = () => {
                 src={logo1}
                 height={40}
                 className="d-inline-block align-top me-2"
+                alt="PointWatch logo"
               />
               PointWatch
             </div>
@@ -52,10 +53,12 @@ const Drawer = () => {
               <i className={`fa-solid fa-bell fa-lg ${styles.icon}`}></i>
               <span className={`${styles.rightNav} px-2`}>Notifications</span>
             </Nav.Link>
+
             <Nav.Link className="me-3" onClick={() => navigate("/settings")}>
               <i className={`fa-solid fa-gear fa-lg ${styles.icon}`}></i>
               <span className={`${styles.rightNav} px-2`}>Settings</span>
             </Nav.Link>
+
             <Nav.Link className="me-3" onClick={openModal}>
               <i
                 className={`fa-solid fa-arrow-right-from-bracket fa-lg ${styles.icon}`}></i>

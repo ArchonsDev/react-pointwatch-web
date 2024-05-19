@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
+import { io } from "socket.io-client";
 import { jwtDecode } from "jwt-decode";
 import { Routes, Route, useLocation, Navigate, useNavigate } from "react-router-dom"; /* prettier-ignore */
 
@@ -30,8 +31,8 @@ const App = () => {
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
   const cookieID = Cookies.get("userID");
-
   const [user, setUser] = useState(null);
+  const [notifs, setNotifs] = useState([]);
 
   let id = null;
   if (cookieID !== undefined) {
@@ -105,12 +106,45 @@ const App = () => {
     }
   }, [data.token, data.id]);
 
+  // Handles notifications
+  useEffect(() => {
+    const socket = io("http://localhost:5000/notifications", {
+      transports: ["websocket"],
+      auth: {
+        token: data.token,
+      },
+    });
+
+    socket.on("connect", () => {
+      console.log("Connected to WebSocket server");
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from WebSocket server");
+    });
+
+    socket.on("swtd_validation_update", (data) => {
+      console.log("Received SWTD Validation Update:", data);
+      const notif = { ...data, type: "SWTD Validation Update" };
+      setNotifs((prev) => [...prev, notif]);
+    });
+
+    socket.on("term_clearing_update", (data) => {
+      console.log("Received Clearance Update:", data);
+      const notif = { ...data, type: "Received Clearance Update" };
+      setNotifs((prev) => [...prev, notif]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [data.token]);
+
   return (
     <div
       className={`${styles.App} ${
         location.pathname === "/login" ? styles.bg : styles["no-bg"]
-      }`}
-    >
+      }`}>
       <SessionUserContext.Provider value={{ user, setUser }}>
         {showDrawer && <Drawer />}
         <Routes>
@@ -163,7 +197,13 @@ const App = () => {
 
           <Route
             path="/notifications"
-            element={token ? <Notifications /> : <Navigate to="/login" />}
+            element={
+              token ? (
+                <Notifications notifs={notifs} />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
           />
         </Routes>
       </SessionUserContext.Provider>
