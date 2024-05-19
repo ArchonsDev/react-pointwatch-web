@@ -35,7 +35,6 @@ const ClearanceActivity = () => {
         token: token,
       },
       (response) => {
-        console.log(response);
         const blob = new Blob([response.data], { type: "application/pdf" });
         const blobURL = URL.createObjectURL(blob);
         window.open(blobURL, "_blank");

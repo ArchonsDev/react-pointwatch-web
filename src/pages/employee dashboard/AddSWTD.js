@@ -6,6 +6,7 @@ import { Row, Col, Container, Card, Form, Modal } from "react-bootstrap"; /* pre
 import SessionUserContext from "../../contexts/SessionUserContext";
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
+import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { addSWTD } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
@@ -37,6 +38,7 @@ const AddSWTD = () => {
     ongoing: false,
   });
   const [terms, setTerms] = useState([]);
+  const [invalidTerm, setInvalidTerm] = useState(false);
   const [form, setForm] = useState({
     author_id: id,
     title: "",
@@ -87,14 +89,18 @@ const AddSWTD = () => {
       const selectedTermId = parseInt(e.target.value);
       const term = terms.find((term) => term.id === selectedTermId);
 
-      const formattedStartDate = formatDate(term.start_date);
-      const formattedEndDate = formatDate(term.end_date);
+      if (term) {
+        const formattedStartDate = formatDate(term.start_date);
+        const formattedEndDate = formatDate(term.end_date);
 
-      setSelectedTerm({
-        start: formattedStartDate,
-        end: formattedEndDate,
-        ongoing: term.is_ongoing,
-      });
+        setSelectedTerm({
+          start: formattedStartDate,
+          end: formattedEndDate,
+          ongoing: term.is_ongoing,
+        });
+
+        fetchClearanceStatus(term);
+      }
 
       setForm({
         ...form,
@@ -107,6 +113,23 @@ const AddSWTD = () => {
         [e.target.name]: e.target.value,
       });
     }
+  };
+
+  const fetchClearanceStatus = (term) => {
+    getClearanceStatus(
+      {
+        id: id,
+        term_id: term.id,
+        token: accessToken,
+      },
+      (response) => {
+        if (response.is_cleared === true) {
+          setInvalidTerm(true);
+        } else {
+          setInvalidTerm(false);
+        }
+      }
+    );
   };
 
   const handleProof = (e) => {
@@ -153,7 +176,8 @@ const AddSWTD = () => {
       !isValidSWTDDate(form.date, selectedTerm) ||
       form.term_id === 0 ||
       !form.proof ||
-      form.points <= 0
+      form.points <= 0 ||
+      invalidTerm
     );
   };
 
@@ -359,7 +383,8 @@ const AddSWTD = () => {
                       className={styles.formBox}
                       name="term_id"
                       onChange={handleChange}
-                      value={form.term_id}>
+                      value={form.term_id}
+                      isInvalid={invalidTerm}>
                       <option value={0} disabled>
                         Select a term
                       </option>
@@ -370,6 +395,10 @@ const AddSWTD = () => {
                         </option>
                       ))}
                     </Form.Select>
+                    <Form.Control.Feedback type="invalid">
+                      You are already cleared for this term. Please select
+                      another.
+                    </Form.Control.Feedback>
                   </Col>
                 </Form.Group>
               </Col>
