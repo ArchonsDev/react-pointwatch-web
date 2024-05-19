@@ -49,6 +49,7 @@ const EditSWTD = () => {
   });
   const [terms, setTerms] = useState([]);
   const [termStatus, setTermStatus] = useState(false);
+  const [invalidTerm, setInvalidTerm] = useState(false);
   const [status, setStatus] = useState({
     status: "",
     validated_on: "",
@@ -92,22 +93,16 @@ const EditSWTD = () => {
           navigate("/swtd");
           return;
         }
+        fetchClearance(data.term.id);
         setSWTD(data);
+        getClearance(data.term.id);
         const formattedDate = formatDate(data.date);
         setForm({
-          title: data.title,
-          venue: data.venue,
-          category: data.category,
+          ...data,
           term_id: data.term.id,
-          role: data.role,
           date: formattedDate,
-          time_started: data.time_started,
-          time_finished: data.time_finished,
-          points: data.points,
-          benefits: data.benefits,
         });
         setTerm(data.term.id);
-        fetchClearance(data.term.id);
         setLoading(false);
       },
       (error) => {
@@ -126,6 +121,19 @@ const EditSWTD = () => {
       },
       (response) => {
         setTermStatus(response.is_cleared);
+      }
+    );
+  };
+
+  const getClearance = (term_id) => {
+    getClearanceStatus(
+      {
+        id: id,
+        term_id: term_id,
+        token: token,
+      },
+      (response) => {
+        setInvalidTerm(response.is_cleared);
       }
     );
   };
@@ -202,6 +210,7 @@ const EditSWTD = () => {
     } else if (e.target.name === "term_id") {
       const selectedTermId = parseInt(e.target.value);
       setTerm(selectedTermId);
+      getClearance(selectedTermId);
       setForm({
         ...form,
         date: "",
@@ -236,7 +245,8 @@ const EditSWTD = () => {
       isTimeInvalid() ||
       !isValidSWTDDate(form.date, selectedTerm) ||
       form.term_id === 0 ||
-      form.points === 0
+      form.points === 0 ||
+      invalidTerm
     );
   };
 
@@ -389,30 +399,35 @@ const EditSWTD = () => {
                   {status?.status}
                 </span>
               </Col>
-              {!termStatus && (
-                <Col className="text-end">
-                  {isEditing ? (
+
+              <Col className="text-end">
+                {isEditing ? (
+                  <BtnSecondary
+                    onClick={() => {
+                      cancelEditing();
+                      fetchSWTD();
+                    }}>
+                    Cancel Editing
+                  </BtnSecondary>
+                ) : (
+                  <>
                     <BtnSecondary
                       onClick={() => {
-                        cancelEditing();
                         fetchSWTD();
-                      }}>
-                      Cancel Editing
-                    </BtnSecondary>
-                  ) : (
-                    <>
-                      <BtnSecondary
-                        onClick={() => {
-                          fetchSWTD();
-                          enableEditing();
-                        }}>
-                        Edit
-                      </BtnSecondary>{" "}
-                      <BtnPrimary onClick={openDeleteModal}>Delete</BtnPrimary>
-                    </>
-                  )}
-                </Col>
-              )}
+                        enableEditing();
+                      }}
+                      disabled={termStatus === true}>
+                      Edit
+                    </BtnSecondary>{" "}
+                    <BtnPrimary
+                      onClick={openDeleteModal}
+                      disabled={termStatus === true}>
+                      Delete
+                    </BtnPrimary>
+                  </>
+                )}
+              </Col>
+
               <ConfirmationModal
                 show={showDeleteModal}
                 onHide={closeDeleteModal}
@@ -543,7 +558,8 @@ const EditSWTD = () => {
                           className={styles.formBox}
                           name="term_id"
                           onChange={handleChange}
-                          value={form.term_id}>
+                          value={form.term_id}
+                          isInvalid={invalidTerm === true}>
                           <option value={0} disabled>
                             Select a term
                           </option>
@@ -554,6 +570,10 @@ const EditSWTD = () => {
                             </option>
                           ))}
                         </Form.Select>
+                        <Form.Control.Feedback type="invalid">
+                          You are already cleared for this term. Please select
+                          another.
+                        </Form.Control.Feedback>
                       </Col>
                     ) : (
                       <Col className="d-flex align-items-center">
