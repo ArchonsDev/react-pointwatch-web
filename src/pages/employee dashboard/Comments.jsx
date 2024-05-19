@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Cookies from "js-cookie";
 import { useParams } from "react-router-dom";
 import { Card, Row, Col, Badge, ListGroup, Form, Button } from "react-bootstrap"; /* prettier-ignore */
@@ -7,12 +7,14 @@ import { isEmpty } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
+import SessionUserContext from "../../contexts/SessionUserContext";
 
 import EditCommentModal from "../../common/modals/EditCommentModal";
 import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import styles from "./style.module.css";
 
 const Comments = () => {
+  const { user } = useContext(SessionUserContext);
   const { swtd_id } = useParams();
   const token = Cookies.get("userToken");
   const userID = parseInt(Cookies.get("userID"), 10);
@@ -28,6 +30,10 @@ const Comments = () => {
   const [showCommentSuccess, triggerShowCommentSuccess] = useTrigger(false);
 
   const [errorMessage, setErrorMessage] = useState(null);
+
+  const hasPermissions = () => {
+    return user?.is_admin || user?.is_staff || user?.is_superuser;
+  };
 
   const fetchComments = () => {
     getComments(
@@ -138,12 +144,14 @@ const Comments = () => {
                         )}
                       </Col>
                       <Col className="text-end" xs={1}>
-                        <i
-                          className={`${styles.commentDelete} fa-solid fa-trash-can`}
-                          onClick={() => {
-                            openModal();
-                            setSelectedComment(item);
-                          }}></i>
+                        {(item.author.id === userID || hasPermissions()) && (
+                          <i
+                            className={`${styles.commentDelete} fa-solid fa-trash-can`}
+                            onClick={() => {
+                              openModal();
+                              setSelectedComment(item);
+                            }}></i>
+                        )}
                       </Col>
                     </Row>
                     {item.is_edited && (
