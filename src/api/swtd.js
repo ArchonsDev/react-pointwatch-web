@@ -1,9 +1,10 @@
 import axios from "axios";
+import config from "../config.json";
 
 export const getAllSWTDs = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.get(
-      `http://localhost:5000/swtds/?author_id=${data.author_id}`,
+      `http://${config.apiUrl}:5000/swtds/?author_id=${data.author_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -22,7 +23,7 @@ export const getAllSWTDs = async (data, onSuccess, onFail) => {
 export const addSWTD = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      "http://localhost:5000/swtds/",
+      `http://${config.apiUrl}:5000/swtds/`,
       {
         author_id: data.author_id,
         title: data.title,
@@ -58,7 +59,7 @@ export const addSWTD = async (data, onSuccess, onFail, onCleanup) => {
 export const getSWTD = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `http://localhost:5000/swtds/${data.form_id}`,
+      `http://${config.apiUrl}:5000/swtds/${data.form_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -80,7 +81,7 @@ export const getSWTD = async (data, onSuccess, onFail, onCleanup) => {
 export const getSWTDProof = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `http://localhost:5000/swtds/${data.form_id}/validation/proof`,
+      `http://${config.apiUrl}:5000/swtds/${data.form_id}/validation/proof`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -102,7 +103,7 @@ export const getSWTDProof = async (data, onSuccess, onFail, onCleanup) => {
 export const getSWTDValidation = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `http://localhost:5000/swtds/${data.form_id}/validation`,
+      `http://${config.apiUrl}:5000/swtds/${data.form_id}/validation`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -123,7 +124,7 @@ export const getSWTDValidation = async (data, onSuccess, onFail, onCleanup) => {
 export const editSWTD = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.put(
-      `http://localhost:5000/swtds/${data.id}`,
+      `http://${config.apiUrl}:5000/swtds/${data.id}`,
       {
         title: data.title,
         venue: data.venue,
@@ -157,7 +158,7 @@ export const editSWTD = async (data, onSuccess, onFail, onCleanup) => {
 export const editProof = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.put(
-      `http://localhost:5000/swtds/${data.id}/validation/proof`,
+      `http://${config.apiUrl}:5000/swtds/${data.id}/validation/proof`,
       {
         proof: data.proof,
       },
@@ -182,7 +183,7 @@ export const editProof = async (data, onSuccess, onFail, onCleanup) => {
 export const deleteSWTD = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.delete(
-      `http://localhost:5000/swtds/${data.id}`,
+      `http://${config.apiUrl}:5000/swtds/${data.id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
