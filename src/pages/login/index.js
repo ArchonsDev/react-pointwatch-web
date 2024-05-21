@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button, Container, Row, Col, Form, InputGroup, Modal, ToastContainer, Toast, Spinner } from "react-bootstrap"; /* prettier-ignore */
 import styles from "./style.module.css";
+import config from "../../config.json";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import { login, recovery } from "../../api/auth";
@@ -105,7 +106,7 @@ const Login = () => {
 
   // I modified this function to set the current tab URL to the backend endpopint for MS auth. THis initiates the sign in process
   const handleMicrosoftLogin = async () => {
-    window.location.href = "http://localhost:5000/auth/microsoft";
+    window.location.href = `http://${config.oauthUrl}:5000/auth/microsoft`;
   };
 
   const handleSendEmail = async (e) => {
