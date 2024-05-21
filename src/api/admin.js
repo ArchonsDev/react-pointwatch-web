@@ -1,9 +1,8 @@
 import axios from "axios";
-import config from "../config.json";
 
 export const getAllUsers = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.get(`http://${config.apiUrl}:5000/users/`, {
+    const response = await axios.get(`http://localhost:5000/users/`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
@@ -20,7 +19,7 @@ export const getAllUsers = async (data, onSuccess, onFail) => {
 export const validateSWTD = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.put(
-      `http://${config.apiUrl}:5000/swtds/${data.id}/validation`,
+      `http://localhost:5000/swtds/${data.id}/validation`,
       {
         status: data.response,
       },
@@ -42,7 +41,7 @@ export const validateSWTD = async (data, onSuccess, onFail) => {
 export const addTerm = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.post(
-      `http://${config.apiUrl}:5000/terms/`,
+      `http://localhost:5000/terms/`,
       {
         name: data.name,
         start_date: data.start_date,
@@ -68,7 +67,7 @@ export const addTerm = async (data, onSuccess, onFail) => {
 export const updateTerm = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.put(
-      `http://${config.apiUrl}:5000/terms/${data.id}`,
+      `http://localhost:5000/terms/${data.id}`,
       {
         name: data.name,
         start_date: data.start_date,
@@ -94,7 +93,7 @@ export const updateTerm = async (data, onSuccess, onFail) => {
 export const deleteTerm = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.delete(
-      `http://${config.apiUrl}:5000/terms/${data.id}`,
+      `http://localhost:5000/terms/${data.id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -112,7 +111,7 @@ export const deleteTerm = async (data, onSuccess, onFail) => {
 
 export const getTerms = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.get(`http://${config.apiUrl}:5000/terms/`, {
+    const response = await axios.get(`http://localhost:5000/terms/`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
@@ -129,7 +128,7 @@ export const getTerms = async (data, onSuccess, onFail) => {
 export const clearEmployee = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.post(
-      `http://${config.apiUrl}:5000/users/${data.id}/terms/${data.term_id}`,
+      `http://localhost:5000/users/${data.id}/terms/${data.term_id}`,
       {},
       {
         headers: {
@@ -149,7 +148,7 @@ export const clearEmployee = async (data, onSuccess, onFail) => {
 export const revokeEmployee = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.delete(
-      `http://${config.apiUrl}:5000/users/${data.id}/terms/${data.term_id}`,
+      `http://localhost:5000/users/${data.id}/terms/${data.term_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
