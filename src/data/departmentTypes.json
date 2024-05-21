@@ -1,0 +1,7 @@
+{
+    "College": ["SEMESTER", "MIDYEAR"],
+    "Senior High School": ["SEMESTER", "MIDYEAR"],
+    "Junior High School": ["SCHOOLYEAR", "MIDYEAR"],
+    "Elementary": ["SCHOOLYEAR", "MIDYEAR"],
+    "Administrative": ["SCHOOLYEAR"]
+}

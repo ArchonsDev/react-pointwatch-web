@@ -46,12 +46,12 @@ const Drawer = () => {
           </Navbar.Brand>
 
           <Nav className="d-flex ms-auto flex-row">
-            <Nav.Link
+            {/* <Nav.Link
               className="me-3"
               onClick={() => navigate("/notifications")}>
               <i className={`fa-solid fa-bell fa-lg ${styles.icon}`}></i>
               <span className={`${styles.rightNav} px-2`}>Notifications</span>
-            </Nav.Link>
+            </Nav.Link> */}
             <Nav.Link className="me-3" onClick={() => navigate("/settings")}>
               <i className={`fa-solid fa-gear fa-lg ${styles.icon}`}></i>
               <span className={`${styles.rightNav} px-2`}>Settings</span>

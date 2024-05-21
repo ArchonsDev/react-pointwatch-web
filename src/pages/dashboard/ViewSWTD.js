@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
-import { Row, Col, Container, Card, Form, Button, ListGroup, Badge, Modal } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Card, Form, Button, ListGroup, Badge, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
 
 import { isEmpty } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
@@ -221,22 +221,32 @@ const ViewSWTD = () => {
       <Modal show={showProofModal} onHide={closeProofModal} size="lg" centered>
         <Modal.Body className="d-flex justify-content-center align-items-center">
           <Row className="w-100">
-            {swtdProof?.type.startsWith("image") && (
-              <img
-                src={swtdProof?.src}
-                title="SWTD Proof"
-                className={styles.imgProof}
-                alt="SWTD Proof"
-              />
-            )}
-            {swtdProof?.type === "application/pdf" && (
-              <iframe
-                src={swtdProof?.src}
-                type="application/pdf"
-                width="100%"
-                height="650px"
-                title="SWTD Proof PDF"
-                aria-label="SWTD Proof PDF"></iframe>
+            {!swtdProof ? (
+              <div
+                className={`${styles.msg} d-flex justify-content-center align-items-center`}>
+                <Spinner className={`me-2`} animation="border" />
+                Loading proof...
+              </div>
+            ) : (
+              <>
+                {swtdProof?.type.startsWith("image") && (
+                  <img
+                    src={swtdProof?.src}
+                    title="SWTD Proof"
+                    className={styles.imgProof}
+                    alt="SWTD Proof"
+                  />
+                )}
+                {swtdProof?.type === "application/pdf" && (
+                  <iframe
+                    src={swtdProof?.src}
+                    type="application/pdf"
+                    width="100%"
+                    height="650px"
+                    title="SWTD Proof PDF"
+                    aria-label="SWTD Proof PDF"></iframe>
+                )}
+              </>
             )}
           </Row>
         </Modal.Body>

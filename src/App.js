@@ -10,7 +10,7 @@ import Authorized from "./pages/authorized";
 
 import SWTDDashboard from "./pages/employee dashboard";
 import AddSWTD from "./pages/employee dashboard/AddSWTD";
-import EditSWTD from "./pages/employee dashboard/EditSWTD";
+import SWTDDetails from "./pages/employee dashboard/SWTDDetails";
 import Dashboard from "./pages/dashboard";
 import EmployeeSWTD from "./pages/dashboard/EmployeeSWTD";
 import ViewSWTD from "./pages/dashboard/ViewSWTD";
@@ -125,7 +125,7 @@ const App = () => {
           />
           <Route
             path="/swtd/:swtd_id"
-            element={token ? <EditSWTD /> : <Navigate to="/login" />}
+            element={token ? <SWTDDetails /> : <Navigate to="/login" />}
           />
           <Route
             path="/settings"
