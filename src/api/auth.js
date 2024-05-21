@@ -1,10 +1,11 @@
 import axios from "axios";
 import Cookies from "js-cookie";
+import config from "../config.json";
 
 export const register = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      "http://localhost:5000/auth/register",
+      `http://${config.apiUrl}:5000/auth/register`,
       {
         employee_id: data.employee_id,
         email: data.email,
@@ -31,9 +32,10 @@ export const register = async (data, onSuccess, onFail, onCleanup) => {
 };
 
 export const login = async (data, onSuccess, onFail, onCleanup) => {
+  console.log(`http://${config.apiUrl}:5000/auth/login`);
   try {
     const response = await axios.post(
-      "http://localhost:5000/auth/login",
+      `http://${config.apiUrl}:5000/auth/login`,
       {
         email: data.email,
         password: data.password,
@@ -60,7 +62,7 @@ export const login = async (data, onSuccess, onFail, onCleanup) => {
 export const recovery = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      "http://localhost:5000/auth/recovery",
+      `http://${config.apiUrl}:5000/auth/recovery`,
       {
         email: data.email,
       },
@@ -84,7 +86,7 @@ export const recovery = async (data, onSuccess, onFail, onCleanup) => {
 export const reset = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      "http://localhost:5000/auth/resetpassword",
+      `http://${config.apiUrl}:5000/auth/resetpassword`,
       {
         password: data.password,
       },
