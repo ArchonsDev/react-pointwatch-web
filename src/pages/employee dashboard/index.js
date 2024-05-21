@@ -384,7 +384,7 @@ const SWTDDashboard = () => {
                   onClick={() => handleEditRecordClick(item.id)}>
                   <Row>
                     <Col xs={1}>{item.id}</Col>
-                    <Col xs={7}>{item.title}</Col>
+                    <Col xs={7}>{truncateTitle(item.title)}</Col>
                     <Col xs={2}>{item.points}</Col>
                     <Col xs={2}>{item.validation.status}</Col>
                   </Row>
