@@ -32,7 +32,6 @@ export const register = async (data, onSuccess, onFail, onCleanup) => {
 };
 
 export const login = async (data, onSuccess, onFail, onCleanup) => {
-  console.log(`http://${config.apiUrl}:5000/auth/login`);
   try {
     const response = await axios.post(
       `http://${config.apiUrl}:5000/auth/login`,
