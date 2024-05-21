@@ -1,8 +1,9 @@
 import axios from "axios";
+import config from "../config.json";
 
 export const getUser = async (data, onSuccess, onFail, onCleanup) => {
   try {
-    const response = await axios.get(`http://localhost:5000/users/${data.id}`, {
+    const response = await axios.get(`http://${config.apiUrl}:5000/users/${data.id}`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
@@ -20,7 +21,7 @@ export const getUser = async (data, onSuccess, onFail, onCleanup) => {
 
 export const getAllUsers = async (data, onSuccess, onFail, onCleanup) => {
   try {
-    const response = await axios.get("http://localhost:5000/users/", {
+    const response = await axios.get(`http://${config.apiUrl}:5000/users/`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
         "Content-Type": "application/json",
@@ -40,7 +41,7 @@ export const getAllUsers = async (data, onSuccess, onFail, onCleanup) => {
 export const updateUser = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.put(
-      `http://localhost:5000/users/${data.id}`,
+      `http://${config.apiUrl}:5000/users/${data.id}`,
       {
         employee_id: data.employee_id,
         firstname: data.firstname,
@@ -68,7 +69,7 @@ export const updateUser = async (data, onSuccess, onFail, onCleanup) => {
 export const updatePassword = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.put(
-      `http://localhost:5000/users/${data.id}`,
+      `http://${config.apiUrl}:5000/users/${data.id}`,
       {
         password: data.password,
       },
@@ -93,7 +94,7 @@ export const updatePassword = async (data, onSuccess, onFail, onCleanup) => {
 export const deleteUser = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.delete(
-      `http://localhost:5000/users/${data.id}`,
+      `http://${config.apiUrl}:5000/users/${data.id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -115,7 +116,7 @@ export const deleteUser = async (data, onSuccess, onFail, onCleanup) => {
 export const userPoints = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `http://localhost:5000/users/${data.id}/points?term_id=${data.term_id}`,
+      `http://${config.apiUrl}:5000/users/${data.id}/points?term_id=${data.term_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -136,7 +137,7 @@ export const userPoints = async (data, onSuccess, onFail, onCleanup) => {
 export const getClearanceStatus = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.get(
-      `http://localhost:5000/users/${data.id}/terms/${data.term_id}`,
+      `http://${config.apiUrl}:5000/users/${data.id}/terms/${data.term_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
