@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal } from "react-bootstrap"; /* prettier-ignore */
 
+import departmentTypes from "../../data/departmentTypes.json";
 import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
@@ -31,6 +32,7 @@ const SWTDDashboard = () => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const fetchAllSWTDs = async () => {
     await getAllSWTDs(
@@ -57,12 +59,16 @@ const SWTDDashboard = () => {
   };
 
   const fetchTerms = () => {
+    const allowedTerm = departmentTypes[user?.department];
     getTerms(
       {
         token: token,
       },
       (response) => {
-        setTerms(response.terms);
+        const filteredTerms = response.terms.filter((term) =>
+          allowedTerm.includes(term.type)
+        );
+        setTerms(filteredTerms);
       },
       (error) => {
         console.log(error.message);
@@ -122,9 +128,15 @@ const SWTDDashboard = () => {
   );
 
   useEffect(() => {
-    fetchTerms();
-    fetchAllSWTDs();
+    if (!user) setLoading(true);
+    else {
+      setLoading(false);
+      fetchTerms();
+      fetchAllSWTDs();
+    }
   }, []);
+
+  if (loading) return null;
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">

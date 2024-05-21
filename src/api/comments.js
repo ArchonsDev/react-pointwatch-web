@@ -75,7 +75,6 @@ export const deleteComment = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.delete(
       `http://localhost:5000/swtds/${data.swtd_id}/comments/${data.comment_id}`,
-
       {
         headers: {
           Authorization: `Bearer ${data.token}`,

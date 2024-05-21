@@ -112,3 +112,8 @@
 .requiredPoints {
   font-size: 1.3em;
 }
+
+.loading {
+  color: #d80085;
+  font-family: "Poppins-Medium";
+}

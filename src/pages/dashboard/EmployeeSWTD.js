@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal } from "react-bootstrap"; /* prettier-ignore */
 
+import departmentTypes from "../../data/departmentTypes.json";
 import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
 import { getUser, getClearanceStatus } from "../../api/user";
@@ -43,6 +44,8 @@ const EmployeeSWTD = () => {
       },
       (response) => {
         setEmployee(response.data);
+        fetchTerms(response.data.department);
+        fetchAllSWTDs(response.data.id);
       },
       (error) => {
         console.log(error.response);
@@ -50,10 +53,10 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const fetchAllSWTDs = () => {
+  const fetchAllSWTDs = (empID) => {
     getAllSWTDs(
       {
-        author_id: id,
+        author_id: empID,
         token: token,
       },
       (response) => {
@@ -67,13 +70,17 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const fetchTerms = () => {
+  const fetchTerms = (dept) => {
+    const allowedTerm = departmentTypes[dept];
     getTerms(
       {
         token: token,
       },
       (response) => {
-        setTerms(response.terms);
+        const filteredTerms = response.terms.filter((term) =>
+          allowedTerm.includes(term?.type)
+        );
+        setTerms(filteredTerms);
       },
       (error) => {
         console.log(error.message);
@@ -176,8 +183,6 @@ const EmployeeSWTD = () => {
         navigate("/swtd");
       else {
         fetchUser();
-        fetchTerms();
-        fetchAllSWTDs();
       }
     }
   }, [user, navigate]);

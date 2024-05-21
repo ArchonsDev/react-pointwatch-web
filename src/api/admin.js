@@ -46,11 +46,57 @@ export const addTerm = async (data, onSuccess, onFail) => {
         name: data.name,
         start_date: data.start_date,
         end_date: data.end_date,
+        type: data.type,
       },
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
           "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};
+
+export const updateTerm = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.put(
+      `http://localhost:5000/terms/${data.id}`,
+      {
+        name: data.name,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        type: data.type,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};
+
+export const deleteTerm = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.delete(
+      `http://localhost:5000/terms/${data.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
         },
       }
     );

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, Card, Form, Modal } from "react-bootstrap"; /* prettier-ignore */
 
 import SessionUserContext from "../../contexts/SessionUserContext";
+import departmentTypes from "../../data/departmentTypes.json";
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
 import { getClearanceStatus } from "../../api/user";
@@ -222,12 +223,16 @@ const AddSWTD = () => {
   };
 
   const fetchTerms = () => {
+    const allowedTerm = departmentTypes[user?.department];
     getTerms(
       {
         token: accessToken,
       },
       (response) => {
-        setTerms(response.terms);
+        const filteredTerms = response.terms.filter((term) =>
+          allowedTerm.includes(term.type)
+        );
+        setTerms(filteredTerms);
       },
       (error) => {
         console.log(error.message);
