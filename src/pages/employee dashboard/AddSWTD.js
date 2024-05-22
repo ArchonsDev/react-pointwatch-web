@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, Card, Form, Modal } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Card, Form, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import departmentTypes from "../../data/departmentTypes.json";
@@ -12,7 +12,7 @@ import { getTerms } from "../../api/admin";
 import { addSWTD } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
-import { formatDate, formatTermDate } from "../../common/format/date";
+import { formatDate, wordDate } from "../../common/format/date";
 import { isEmpty, isValidSWTDDate } from "../../common/validation/utils";
 import { calculatePoints } from "../../common/validation/points";
 
@@ -32,6 +32,7 @@ const AddSWTD = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [showModal, openModal, closeModal] = useSwitch();
 
+  const [loading, setLoading] = useState(false);
   const [isProofInvalid, setIsProofInvalid] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState({
     start: "",
@@ -190,9 +191,7 @@ const AddSWTD = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     if (!isEmpty(form.date)) {
       const [year, month, day] = form.date.split("-");
       form.date = `${month}-${day}-${year}`;
@@ -204,6 +203,7 @@ const AddSWTD = () => {
         setTimeout(() => {
           triggerShowSuccess(4500);
           clearForm();
+          setLoading(false);
         });
       },
       (error) => {
@@ -214,9 +214,11 @@ const AddSWTD = () => {
             ...form,
             date: "",
           });
+          setLoading(false);
         } else {
           setErrorMessage(<>An error occurred.</>);
           triggerShowError(4500);
+          setLoading(false);
         }
       }
     );
@@ -323,6 +325,7 @@ const AddSWTD = () => {
                     name="title"
                     onChange={handleChange}
                     value={form.title}
+                    disabled={loading}
                   />
                 </Col>
               </Form.Group>
@@ -342,6 +345,7 @@ const AddSWTD = () => {
                       name="venue"
                       onChange={handleChange}
                       value={form.venue}
+                      disabled={loading}
                     />
                   </Col>
                 </Form.Group>
@@ -361,7 +365,8 @@ const AddSWTD = () => {
                       className={styles.formBox}
                       name="category"
                       onChange={handleChange}
-                      value={form.category}>
+                      value={form.category}
+                      disabled={loading}>
                       <option value="" disabled>
                         Select a category
                       </option>
@@ -389,14 +394,15 @@ const AddSWTD = () => {
                       name="term_id"
                       onChange={handleChange}
                       value={form.term_id}
-                      isInvalid={invalidTerm}>
+                      isInvalid={invalidTerm}
+                      disabled={loading}>
                       <option value={0} disabled>
                         Select a term
                       </option>
                       {terms.map((term, index) => (
                         <option key={index} value={term.id}>
-                          {term.name} ({formatTermDate(term.start_date)} to{" "}
-                          {formatTermDate(term.end_date)})
+                          {term.name} ({wordDate(term.start_date)} to{" "}
+                          {wordDate(term.end_date)})
                         </option>
                       ))}
                     </Form.Select>
@@ -422,7 +428,8 @@ const AddSWTD = () => {
                       className={styles.formBox}
                       name="role"
                       onChange={handleChange}
-                      value={form.role}>
+                      value={form.role}
+                      disabled={loading}>
                       <option value="" disabled>
                         Select a role
                       </option>
@@ -461,7 +468,7 @@ const AddSWTD = () => {
                         !isEmpty(form.date) &&
                         !isValidSWTDDate(form.date, selectedTerm)
                       }
-                      disabled={form.term_id === 0}
+                      disabled={form.term_id === 0 || loading}
                     />
                     <Form.Control.Feedback type="invalid">
                       Date must be valid and within the selected term.
@@ -487,7 +494,7 @@ const AddSWTD = () => {
                       onChange={handleChange}
                       value={form.time_started}
                       isInvalid={isTimeInvalid()}
-                      disabled={form?.category.startsWith("Degree")}
+                      disabled={form?.category.startsWith("Degree") || loading}
                     />
                     <Form.Control.Feedback type="invalid">
                       Time must be valid.
@@ -506,7 +513,7 @@ const AddSWTD = () => {
                       onChange={handleChange}
                       value={form.time_finished}
                       isInvalid={isTimeInvalid()}
-                      disabled={form?.category.startsWith("Degree")}
+                      disabled={form?.category.startsWith("Degree") || loading}
                     />
                   </Col>
                 </Form.Group>
@@ -528,6 +535,7 @@ const AddSWTD = () => {
                       onChange={handleProof}
                       ref={inputFile}
                       isInvalid={isProofInvalid}
+                      disabled={loading}
                     />
                   </Col>
                   <Col className="d-flex align-items-center">
@@ -556,6 +564,7 @@ const AddSWTD = () => {
                           onChange={handleChange}
                           value={form.points}
                           isInvalid={form.points <= 0}
+                          disabled={loading}
                         />
                       </Col>
                       <Col className="d-flex align-items-center">
@@ -599,18 +608,30 @@ const AddSWTD = () => {
                     name="benefits"
                     onChange={handleChange}
                     value={form.benefits}
+                    disabled={loading}
                   />
                 </Col>
               </Form.Group>
             </Row>
             <Row>
               <Col className="text-end">
-                <BtnPrimary
-                  onClick={handleSubmit}
-                  disabled={invalidFields()}
-                  title={invalidFields() ? "All fields are required." : ""}>
-                  Submit
-                </BtnPrimary>
+                {loading ? (
+                  <div
+                    className={`${styles.msg} d-flex justify-content-end align-items-center`}>
+                    <Spinner className={`me-2`} animation="border" />
+                    Submitting SWTD...
+                  </div>
+                ) : (
+                  <BtnPrimary
+                    onClick={() => {
+                      handleSubmit();
+                      setLoading(true);
+                    }}
+                    disabled={invalidFields()}
+                    title={invalidFields() ? "All fields are required." : ""}>
+                    Submit
+                  </BtnPrimary>
+                )}
               </Col>
             </Row>
           </Form>

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
 
 import departmentTypes from "../../data/departmentTypes.json";
 import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
@@ -23,7 +23,7 @@ const EmployeeSWTD = () => {
   const token = Cookies.get("userToken");
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [employee, setEmployee] = useState(null);
   const [termStatus, setTermStatus] = useState(null);
@@ -61,6 +61,7 @@ const EmployeeSWTD = () => {
       },
       (response) => {
         setUserSWTDs(response.swtds);
+        setLoading(false);
       },
       (error) => {
         if (error.response && error.response.data) {
@@ -178,7 +179,6 @@ const EmployeeSWTD = () => {
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      setLoading(false);
       if (!user?.is_admin && !user?.is_staff && !user?.is_superuser)
         navigate("/swtd");
       else {
@@ -187,7 +187,14 @@ const EmployeeSWTD = () => {
     }
   }, [user, navigate]);
 
-  if (loading) return null;
+  if (loading)
+    return (
+      <Row
+        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
+        <Spinner className={`me-2`} animation="border" />
+        Loading data...
+      </Row>
+    );
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
@@ -259,22 +266,6 @@ const EmployeeSWTD = () => {
                 {employee?.point_balance}
               </Col>
             )}
-
-            {/* {selectedTerm && (
-              <Col className="d-flex align-items-center" xs="auto">
-                <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
-                <span
-                  className={`ms-1 ${
-                    termStatus?.points?.valid_points <
-                    termStatus?.points?.required_points
-                      ? "text-danger"
-                      : "text-success"
-                  }`}>
-                  {termStatus?.points?.valid_points} /{" "}
-                  {termStatus?.points?.required_points}
-                </span>
-              </Col>
-            )} */}
 
             {selectedTerm !== null && (
               <Col className="d-flex align-items-center" xs="auto">

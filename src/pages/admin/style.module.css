@@ -48,3 +48,8 @@
 .icon {
   cursor: pointer;
 }
+
+.loading {
+  font-family: "Poppins-SemiBold";
+  color: #d80085;
+}

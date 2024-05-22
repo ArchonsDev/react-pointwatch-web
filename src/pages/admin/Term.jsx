@@ -1,13 +1,14 @@
 import React, { useState, useContext, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Form, Row, Col, Table } from "react-bootstrap";
+import { Form, Row, Col, Table, Spinner } from "react-bootstrap";
 
 import types from "../../data/types.json";
 import { addTerm, getTerms, deleteTerm } from "../../api/admin";
 import { isEmpty } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
+import { wordDate } from "../../common/format/date";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -28,6 +29,7 @@ const Term = () => {
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const [loading, setLoading] = useState(true);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [selectedType, setSelectedType] = useState("");
@@ -45,6 +47,7 @@ const Term = () => {
       },
       (response) => {
         setTerms(response.terms);
+        setLoading(false);
       },
       (error) => {
         console.log(error.message);
@@ -266,8 +269,16 @@ const Term = () => {
         </div>
       )}
       <Row className={`${styles.table}  w-100`}>
-        {terms.length === 0 ? (
+        {terms.length === 0 && !loading && (
           <Col className="text-center">No terms added yet.</Col>
+        )}
+
+        {loading ? (
+          <Row
+            className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
+            <Spinner className={`me-2`} animation="border" />
+            Loading terms...
+          </Row>
         ) : (
           <Table striped bordered hover responsive>
             <thead>
@@ -287,8 +298,8 @@ const Term = () => {
                     <td>{term.id}</td>
                     <td>{term.name}</td>
                     <td>{term.type}</td>
-                    <td>{term.start_date}</td>
-                    <td>{term.end_date}</td>
+                    <td>{wordDate(term.start_date)}</td>
+                    <td>{wordDate(term.end_date)}</td>
                     <td className="text-center">
                       <i
                         className={`${styles.icon} fa-solid fa-pen-to-square text-dark me-3`}
