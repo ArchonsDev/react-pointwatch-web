@@ -5,7 +5,7 @@ import config from "../config.json";
 export const register = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `http://${config.apiUrl}:5000/auth/register`,
+      `${config.apiUrl}/auth/register`,
       {
         employee_id: data.employee_id,
         email: data.email,
@@ -34,7 +34,7 @@ export const register = async (data, onSuccess, onFail, onCleanup) => {
 export const login = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `http://${config.apiUrl}:5000/auth/login`,
+      `${config.apiUrl}/auth/login`,
       {
         email: data.email,
         password: data.password,
@@ -61,7 +61,7 @@ export const login = async (data, onSuccess, onFail, onCleanup) => {
 export const recovery = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `http://${config.apiUrl}:5000/auth/recovery`,
+      `${config.apiUrl}/auth/recovery`,
       {
         email: data.email,
       },
@@ -85,7 +85,7 @@ export const recovery = async (data, onSuccess, onFail, onCleanup) => {
 export const reset = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `http://${config.apiUrl}:5000/auth/resetpassword`,
+      `${config.apiUrl}/auth/resetpassword`,
       {
         password: data.password,
       },

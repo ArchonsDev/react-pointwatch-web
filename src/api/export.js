@@ -4,7 +4,7 @@ import config from "../config.json";
 export const exportSWTDList = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `http://${config.apiUrl}:5000/users/${data.id}/swtds/export`,
+      `${config.apiUrl}/users/${data.id}/swtds/export`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -25,7 +25,7 @@ export const exportSWTDList = async (data, onSuccess, onFail, onCleanup) => {
 export const exportStaffReport = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `http://${config.apiUrl}:5000/users/${data.id}/validations/export`,
+      `${config.apiUrl}/users/${data.id}/validations/export`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -46,7 +46,7 @@ export const exportStaffReport = async (data, onSuccess, onFail, onCleanup) => {
 export const exportAdminReport = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `http://${config.apiUrl}:5000/users/${data.id}/clearings/export`,
+      `${config.apiUrl}/users/${data.id}/clearings/export`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,

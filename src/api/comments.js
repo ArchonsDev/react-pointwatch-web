@@ -4,7 +4,7 @@ import config from "../config.json";
 export const getComments = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `http://${config.apiUrl}:5000/swtds/${data.id}/comments`,
+      `${config.apiUrl}/swtds/${data.id}/comments`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -25,7 +25,7 @@ export const getComments = async (data, onSuccess, onFail, onCleanup) => {
 export const postComment = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `http://${config.apiUrl}:5000/swtds/${data.id}/comments`,
+      `${config.apiUrl}/swtds/${data.id}/comments`,
       {
         message: data.message,
       },
@@ -50,7 +50,7 @@ export const postComment = async (data, onSuccess, onFail, onCleanup) => {
 export const editComment = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.put(
-      `http://${config.apiUrl}:5000/swtds/${data.swtd_id}/comments/${data.comment_id}`,
+      `${config.apiUrl}/swtds/${data.swtd_id}/comments/${data.comment_id}`,
       {
         message: data.message,
       },
@@ -75,7 +75,7 @@ export const editComment = async (data, onSuccess, onFail, onCleanup) => {
 export const deleteComment = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.delete(
-      `http://${config.apiUrl}:5000/swtds/${data.swtd_id}/comments/${data.comment_id}`,
+      `${config.apiUrl}/swtds/${data.swtd_id}/comments/${data.comment_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
