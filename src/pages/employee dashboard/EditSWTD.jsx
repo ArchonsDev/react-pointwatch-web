@@ -8,7 +8,7 @@ import departmentTypes from "../../data/departmentTypes.json";
 import categories from "../../data/categories.json";
 import roles from "../../data/roles.json";
 
-import { formatDate, formatTermDate } from "../../common/format/date";
+import { formatDate, wordDate } from "../../common/format/date";
 import { isEmpty, isValidSWTDDate } from "../../common/validation/utils";
 import { calculatePoints } from "../../common/validation/points";
 import { useSwitch } from "../../hooks/useSwitch";
@@ -424,8 +424,8 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                     </option>
                     {terms.map((term, index) => (
                       <option key={index} value={term.id}>
-                        {term.name} ({formatTermDate(term.start_date)} to{" "}
-                        {formatTermDate(term.end_date)})
+                        {term.name} ({wordDate(term.start_date)} to{" "}
+                        {wordDate(term.end_date)})
                       </option>
                     ))}
                   </Form.Select>

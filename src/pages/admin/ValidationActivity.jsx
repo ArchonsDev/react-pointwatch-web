@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Form, InputGroup, Table } from "react-bootstrap";
+import { Row, Form, InputGroup, Table, Spinner } from "react-bootstrap";
 import Cookies from "js-cookie";
 
 import { getAllUsers } from "../../api/admin";
@@ -10,6 +10,8 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 
 const ValidationActivity = () => {
   const token = Cookies.get("userToken");
+
+  const [loading, setLoading] = useState(true);
   const [staff, setStaff] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -23,6 +25,7 @@ const ValidationActivity = () => {
           (user) => user.is_admin || user.is_staff
         );
         setStaff(filtered);
+        setLoading(false);
       },
       (error) => {
         console.log(error);
@@ -73,11 +76,18 @@ const ValidationActivity = () => {
         </InputGroup>
       </Row>
       <Row>
-        {displayEmployee.length === 0 ? (
+        {displayEmployee.length === 0 && !loading && (
           <span
             className={`${styles.table} d-flex justify-content-center align-items-center mt-5 w-100`}>
             No employees found.
           </span>
+        )}
+        {loading ? (
+          <Row
+            className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
+            <Spinner className={`me-2`} animation="border" />
+            Loading staff...
+          </Row>
         ) : (
           <Table className={styles.table} striped bordered hover responsive>
             <thead>

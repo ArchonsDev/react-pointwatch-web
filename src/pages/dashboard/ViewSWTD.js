@@ -9,6 +9,8 @@ import { useTrigger } from "../../hooks/useTrigger";
 import { validateSWTD } from "../../api/admin";
 import { getSWTD, getSWTDProof, getSWTDValidation } from "../../api/swtd"; /* prettier-ignore */
 import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
+import { wordDate } from "../../common/format/date";
+import { formatTime } from "../../common/format/time";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -23,7 +25,7 @@ const ViewSWTD = () => {
   const token = Cookies.get("userToken");
   const userID = parseInt(Cookies.get("userID"), 10);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
 
@@ -109,6 +111,7 @@ const ViewSWTD = () => {
       },
       (response) => {
         setSWTDStatus(response.data);
+        setLoading(false);
       },
       (error) => {
         console.log("Error fetching SWTD data: ", error);
@@ -202,7 +205,6 @@ const ViewSWTD = () => {
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      setLoading(false);
       if (!user?.is_admin && !user?.is_staff && !user?.is_superuser)
         navigate("/swtd");
       else {
@@ -213,7 +215,14 @@ const ViewSWTD = () => {
     }
   }, [user, navigate]);
 
-  if (loading) return null;
+  if (loading)
+    return (
+      <Row
+        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
+        <Spinner className={`me-2`} animation="border" />
+        Loading data...
+      </Row>
+    );
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
@@ -366,7 +375,9 @@ const ViewSWTD = () => {
                   <Form.Label className={styles.formLabel} column sm="2">
                     Date
                   </Form.Label>
-                  <Col className="d-flex align-items-center">{swtd?.date}</Col>
+                  <Col className="d-flex align-items-center">
+                    {wordDate(swtd?.date)}
+                  </Col>
                 </Form.Group>
               </Col>
 
@@ -380,7 +391,8 @@ const ViewSWTD = () => {
                     Time
                   </Form.Label>
                   <Col className="d-flex align-items-center" sm="10">
-                    {swtd?.time_started} to {swtd?.time_finished}
+                    {formatTime(swtd?.time_started)} to{" "}
+                    {formatTime(swtd?.time_finished)}
                   </Col>
                 </Form.Group>
               </Col>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { Container, Form, Row, Col, Card, Modal } from "react-bootstrap";
+import { Container, Form, Row, Col, Card, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
 import { useNavigate, useParams } from "react-router-dom";
 
 import Comments from "./Comments";
@@ -9,6 +9,8 @@ import { getClearanceStatus } from "../../api/user";
 import { getSWTD, getSWTDProof, deleteSWTD } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
+import { wordDate } from "../../common/format/date";
+import { formatTime } from "../../common/format/time";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
@@ -128,7 +130,14 @@ const SWTDDetails = () => {
     if (swtd) setLoading(false);
   }, []);
 
-  if (loading) return null;
+  if (loading)
+    return (
+      <Row
+        className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
+        <Spinner className={`${styles.spinner} me-2`} animation="border" />
+        Loading data...
+      </Row>
+    );
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
@@ -289,7 +298,7 @@ const SWTDDetails = () => {
                       Date
                     </Form.Label>
                     <Col className="d-flex align-items-center">
-                      {swtd?.date}
+                      {wordDate(swtd?.date)}
                     </Col>
                   </Form.Group>
                 </Col>
@@ -303,7 +312,8 @@ const SWTDDetails = () => {
                       Time
                     </Form.Label>
                     <Col className="d-flex align-items-center">
-                      {swtd?.time_started} to {swtd?.time_finished}
+                      {formatTime(swtd?.time_started)} to{" "}
+                      {formatTime(swtd?.time_finished)}
                     </Col>
                   </Form.Group>
                 </Col>
@@ -326,7 +336,9 @@ const SWTDDetails = () => {
                           </BtnPrimary>
                         </Col>
                         <Col className="text-start">
-                          <BtnSecondary onClick={() => openEditProof()}>
+                          <BtnSecondary
+                            onClick={() => openEditProof()}
+                            disabled={termStatus === true}>
                             Change Proof
                           </BtnSecondary>
                         </Col>
@@ -372,23 +384,32 @@ const SWTDDetails = () => {
       <Modal show={showProofModal} onHide={closeProofModal} size="lg" centered>
         <Modal.Body className="d-flex justify-content-center align-items-center">
           <Row className="w-100">
-            {swtdProof?.type.startsWith("image") && (
-              <img
-                src={swtdProof?.src}
-                title="SWTD Proof"
-                className={styles.imgProof}
-                alt="SWTD Proof"
-              />
-            )}
-
-            {swtdProof?.type === "application/pdf" && (
-              <iframe
-                src={swtdProof?.src}
-                type="application/pdf"
-                width="100%"
-                height="650px"
-                title="SWTD Proof PDF"
-                aria-label="SWTD Proof PDF"></iframe>
+            {!swtdProof ? (
+              <div
+                className={`${styles.msg} d-flex justify-content-center align-items-center`}>
+                <Spinner className={`me-2`} animation="border" />
+                Loading proof...
+              </div>
+            ) : (
+              <>
+                {swtdProof?.type.startsWith("image") && (
+                  <img
+                    src={swtdProof?.src}
+                    title="SWTD Proof"
+                    className={styles.imgProof}
+                    alt="SWTD Proof"
+                  />
+                )}
+                {swtdProof?.type === "application/pdf" && (
+                  <iframe
+                    src={swtdProof?.src}
+                    type="application/pdf"
+                    width="100%"
+                    height="650px"
+                    title="SWTD Proof PDF"
+                    aria-label="SWTD Proof PDF"></iframe>
+                )}
+              </>
             )}
           </Row>
         </Modal.Body>

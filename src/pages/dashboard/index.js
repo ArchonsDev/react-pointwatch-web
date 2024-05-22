@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner } from "react-bootstrap"; /* prettier-ignore */
 
 import departments from "../../data/departments.json";
 import { getAllUsers } from "../../api/admin";
@@ -16,7 +16,7 @@ const Dashboard = () => {
   const token = Cookies.get("userToken");
   const userID = Cookies.get("userID");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState(null);
 
@@ -27,6 +27,7 @@ const Dashboard = () => {
       },
       (response) => {
         setUsers(response.users);
+        setLoading(false);
       },
       (error) => {
         console.log(error);
@@ -50,14 +51,20 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      setLoading(false);
       if (!user?.is_admin && !user?.is_staff && !user?.is_superuser)
         navigate("/swtd");
       else fetchAllUsers();
     }
   }, [user, navigate]);
 
-  if (loading) return null;
+  if (loading)
+    return (
+      <Row
+        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
+        <Spinner className={`me-2`} animation="border" />
+        Loading data...
+      </Row>
+    );
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">

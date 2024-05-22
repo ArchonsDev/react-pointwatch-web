@@ -93,14 +93,11 @@ export const updateTerm = async (data, onSuccess, onFail) => {
 
 export const deleteTerm = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.delete(
-      `${config.apiUrl}/terms/${data.id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${data.token}`,
-        },
-      }
-    );
+    const response = await axios.delete(`${config.apiUrl}/terms/${data.id}`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+      },
+    });
 
     if (response.status === 200) {
       onSuccess && onSuccess(response.data);
@@ -149,7 +146,7 @@ export const clearEmployee = async (data, onSuccess, onFail) => {
 export const revokeEmployee = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.delete(
-      `http://${config.apiUrl}/users/${data.id}/terms/${data.term_id}`,
+      `${config.apiUrl}/users/${data.id}/terms/${data.term_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
