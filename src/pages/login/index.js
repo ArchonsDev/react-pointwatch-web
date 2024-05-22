@@ -106,7 +106,7 @@ const Login = () => {
 
   // I modified this function to set the current tab URL to the backend endpopint for MS auth. THis initiates the sign in process
   const handleMicrosoftLogin = async () => {
-    window.location.href = `${config.oauthUrl}:5000/auth/microsoft`;
+    window.location.href = `${config.oauthUrl}/auth/microsoft`;
   };
 
   const handleSendEmail = async (e) => {
