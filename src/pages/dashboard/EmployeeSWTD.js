@@ -267,22 +267,6 @@ const EmployeeSWTD = () => {
               </Col>
             )}
 
-            {/* {selectedTerm && (
-              <Col className="d-flex align-items-center" xs="auto">
-                <i className="fa-solid fa-circle-plus me-2"></i>Term Points:{" "}
-                <span
-                  className={`ms-1 ${
-                    termStatus?.points?.valid_points <
-                    termStatus?.points?.required_points
-                      ? "text-danger"
-                      : "text-success"
-                  }`}>
-                  {termStatus?.points?.valid_points} /{" "}
-                  {termStatus?.points?.required_points}
-                </span>
-              </Col>
-            )} */}
-
             {selectedTerm !== null && (
               <Col className="d-flex align-items-center" xs="auto">
                 <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
