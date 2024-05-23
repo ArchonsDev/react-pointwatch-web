@@ -141,7 +141,7 @@ const Login = () => {
   return (
     <div className={`${styles.Login} d-flex`}>
       <div
-        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}>
+        className={`${styles.box} d-flex col-xs-12 col-lg-4 p-xs-0 p-lg-5 bg-white justify-content-center align-items-center`}>
         <Container>
           {/* Error Toast */}
           <ToastContainer className="p-3" position="top-start">
@@ -330,7 +330,7 @@ const Login = () => {
                   </Row>
 
                   <Row>
-                    <Col md="auto">
+                    <Col xs="12" md="3" className="my-1">
                       <BtnPrimary
                         type="submit"
                         onClick={handleSubmit}
@@ -341,16 +341,16 @@ const Login = () => {
                         Login
                       </BtnPrimary>
                     </Col>
-                    <Col>
+                    <Col xs="12" md="3" className="my-1 me-auto">
                       <BtnSecondary
                         onClick={() => navigate("/register")}
                         className={styles.button}>
                         Register
                       </BtnSecondary>
                     </Col>
-                    <Col className="text-end" md="auto">
+                    <Col xs="12" md="4" className="text-end my-1">
                       <Button
-                        className={styles.msButton}
+                        className={`${styles['msButton']} w-100`}
                         onClick={handleMicrosoftLogin}>
                         Sign in with <i className="fa-brands fa-microsoft"></i>
                       </Button>
