@@ -249,9 +249,9 @@ const SWTDDashboard = () => {
         )}
       </Row>
 
-      <Row className="w-100">
-        <Col className="text-start" md={5}>
-          <InputGroup className={`${styles.searchBar} mb-3`}>
+      <Row className="w-100 mb-3 d-flex align-items-center">
+        <Col className="text-start" xs="12" sm="5" md="4" xxl="4">
+          <InputGroup className={`${styles.searchBar}`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
             </InputGroup.Text>
@@ -264,7 +264,7 @@ const SWTDDashboard = () => {
           </InputGroup>
         </Col>
 
-        <Col>
+        <Col xs="6" sm="4" md="3" xxl="3" className="me-auto">
           <Form.Group as={Row} controlId="inputFilter">
             <Form.Label className={styles.filterText} column sm="2">
               Status
@@ -285,15 +285,31 @@ const SWTDDashboard = () => {
           </Form.Group>
         </Col>
 
-        <Col className="text-end">
+        <Col sm="2" md="2" className="d-none d-sm-block">
           {selectedTerm === null && (
             <BtnSecondary onClick={handlePrint}>Export PDF</BtnSecondary>
           )}{" "}
+        </Col>
+        <Col sm="3" md="3" className="d-none d-sm-block">
           <BtnPrimary
             onClick={() =>
               user?.department === null ? openModal() : handleAddRecordClick()
             }>
             Add a New Record
+          </BtnPrimary>
+        </Col>
+
+        <Col xs="3" className="d-sm-none mt-auto mb-1">
+          {selectedTerm === null && (
+            <BtnSecondary onClick={handlePrint}><i class="fa-solid fa-download"></i></BtnSecondary>
+          )}{" "}
+        </Col>
+        <Col xs="3" className="d-sm-none mt-auto mb-1">
+          <BtnPrimary
+            onClick={() =>
+              user?.department === null ? openModal() : handleAddRecordClick()
+            }>
+            <i class="fa-solid fa-plus"></i>
           </BtnPrimary>
         </Col>
 
