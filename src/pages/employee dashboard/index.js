@@ -173,7 +173,7 @@ const SWTDDashboard = () => {
       <Row className={`${styles.employeeDetails} w-100 mb-3`}>
         <Col className="d-flex align-items-center">
           <Row>
-            <Col className="d-flex align-items-center" xs="auto">
+            <Col className="d-flex align-items-center my-1" xs="auto">
               <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
               {terms.length === 0 ? (
                 <>No terms were added yet.</>
@@ -202,19 +202,19 @@ const SWTDDashboard = () => {
                 </DropdownButton>
               )}
             </Col>
-            <Col className="d-flex align-items-center" xs="auto">
+            <Col className="d-flex align-items-center my-1" xs="auto">
               <i className="fa-solid fa-building me-2"></i>Department:{" "}
               {user?.department}
             </Col>
             {selectedTerm === null && (
-              <Col className="d-flex align-items-center" xs="auto">
+              <Col className="d-flex align-items-center my-1" xs="auto">
                 <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
                 {user?.point_balance}
               </Col>
             )}
 
             {selectedTerm !== null && (
-              <Col className="d-flex align-items-center" xs="auto">
+              <Col className="d-flex align-items-center my-1" xs="auto">
                 <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
                 <span
                   className={`ms-2 text-${
@@ -228,7 +228,8 @@ const SWTDDashboard = () => {
         </Col>
 
         {selectedTerm !== null && (
-          <Col className={`${styles.termPoints} text-end`} md={2}>
+          <>
+          <Col className={`${styles.termPoints} d-none d-sm-inline text-end my-1`} md={2}>
             <div>
               <span
                 className={`${styles.validPoints} ${
@@ -246,6 +247,27 @@ const SWTDDashboard = () => {
             </div>
             <span className={styles.pointsLabel}>points</span>
           </Col>
+          <Col className={`${styles.termPoints} d-flex justify-content-center mt-4 d-sm-none`} md={2}>
+            <div className={`${styles.termPoints} text-end`}>
+              <div>
+                <span
+                  className={`${styles.validPoints} ${
+                    termStatus?.points?.valid_points <
+                    termStatus?.points?.required_points
+                    ? "text-danger"
+                    : "text-success"
+                  }`}>
+                  {termStatus?.points?.valid_points}
+                </span>
+                <span className={styles.requiredPoints}>
+                  {" "}
+                  / {termStatus?.points?.required_points}
+                </span>
+              </div>
+              <span className={`${styles.pointsLabel} d-flex justify-content-center`}>points</span>
+            </div>
+          </Col>
+        </>
         )}
       </Row>
 
@@ -332,10 +354,10 @@ const SWTDDashboard = () => {
         </Modal>
       </Row>
 
-      <Row className="w-100">
+      <Row className="w-100 mx-0 px-0 mb-3">
         {selectedTerm === null ? (
           <>
-            <ListGroup className="w-100" variant="flush">
+            <ListGroup className="w-100 mx-0 px-0" variant="flush">
               {userSWTDs.length === 0 ? (
                 <span
                   className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
@@ -344,25 +366,25 @@ const SWTDDashboard = () => {
               ) : (
                 <ListGroup.Item className={styles.tableHeader}>
                   <Row>
-                    <Col xs={1}>No.</Col>
-                    <Col xs={7}>Title of SWTD</Col>
-                    <Col xs={2}>Points</Col>
-                    <Col xs={2}>Status</Col>
+                    <Col xs={2} sm={1}>No.</Col>
+                    <Col xs={5} sm={7}>Title of SWTD</Col>
+                    <Col xs={2} sm={2}>Points</Col>
+                    <Col xs={3} sm={2}>Status</Col>
                   </Row>
                 </ListGroup.Item>
               )}
             </ListGroup>
-            <ListGroup>
+            <ListGroup className="mx-0 px-0">
               {displayedSWTDs.map((item) => (
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
                   onClick={() => handleEditRecordClick(item.id)}>
                   <Row>
-                    <Col xs={1}>{item.id}</Col>
-                    <Col xs={7}>{truncateTitle(item.title)}</Col>
-                    <Col xs={2}>{item.points}</Col>
-                    <Col xs={2}>{item.validation.status}</Col>
+                    <Col xs={2} sm={1} className={styles['table-content']}>{item.id}</Col>
+                    <Col xs={5} sm={7} className={styles['table-content']}>{truncateTitle(item.title)}</Col>
+                    <Col xs={2} sm={2} className={styles['table-content']}>{item.points}</Col>
+                    <Col xs={3} sm={2} className={styles['table-content']}>{item.validation.status}</Col>
                   </Row>
                 </ListGroup.Item>
               ))}
@@ -375,27 +397,34 @@ const SWTDDashboard = () => {
           </span>
         ) : (
           <>
-            <ListGroup className="w-100" variant="flush">
-              <ListGroup.Item className={styles.tableHeader}>
-                <Row>
-                  <Col xs={1}>No.</Col>
-                  <Col xs={7}>Title of SWTD</Col>
-                  <Col xs={2}>Points</Col>
-                  <Col xs={2}>Status</Col>
-                </Row>
-              </ListGroup.Item>
+            <ListGroup className="w-100 mx-0 px-0" variant="flush">
+              {userSWTDs.length === 0 ? (
+                <span
+                  className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
+                  No records submitted.
+                </span>
+              ) : (
+                <ListGroup.Item className={styles.tableHeader}>
+                  <Row>
+                    <Col xs={2} sm={1}>No.</Col>
+                    <Col xs={5} sm={7}>Title of SWTD</Col>
+                    <Col xs={2} sm={2}>Points</Col>
+                    <Col xs={3} sm={2}>Status</Col>
+                  </Row>
+                </ListGroup.Item>
+              )}
             </ListGroup>
-            <ListGroup>
+            <ListGroup className="mx-0 px-0">
               {displayedSWTDs.map((item) => (
                 <ListGroup.Item
                   key={item.id}
                   className={styles.tableBody}
                   onClick={() => handleEditRecordClick(item.id)}>
                   <Row>
-                    <Col xs={1}>{item.id}</Col>
-                    <Col xs={7}>{truncateTitle(item.title)}</Col>
-                    <Col xs={2}>{item.points}</Col>
-                    <Col xs={2}>{item.validation.status}</Col>
+                    <Col xs={2} sm={1} className={styles['table-content']}>{item.id}</Col>
+                    <Col xs={5} sm={7} className={styles['table-content']}>{truncateTitle(item.title)}</Col>
+                    <Col xs={2} sm={2} className={styles['table-content']}>{item.points}</Col>
+                    <Col xs={3} sm={2} className={styles['table-content']}>{item.validation.status}</Col>
                   </Row>
                 </ListGroup.Item>
               ))}

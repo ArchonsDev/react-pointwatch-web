@@ -117,3 +117,9 @@
   color: #d80085;
   font-family: "Poppins-Medium";
 }
+
+.table-content {
+  overflow: hidden;  /* Hide overflowing content */
+  white-space: nowrap;  /* Prevent text from wrapping to a new line */
+  text-overflow: ellipsis;  /* Display ellipsis (...) for overflowing text */
+}
