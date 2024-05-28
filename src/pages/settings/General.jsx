@@ -78,6 +78,7 @@ const General = () => {
 
   const handleCancel = () => {
     setForm({
+      ...form,
       firstname: user?.firstname,
       lastname: user?.lastname,
       department: user?.department,

@@ -114,7 +114,11 @@ const Password = () => {
           Password changed!
         </div>
       )}
-      <Form className={styles.form} noValidate>
+      <span className={`${styles.form} text-muted`}>
+        If you're signed in with a Microsoft account and want to change your
+        password, please do so through Microsoft.
+      </span>
+      <Form className={`${styles.form} mt-2`} noValidate>
         <Row>
           <Form.Group
             as={Row}

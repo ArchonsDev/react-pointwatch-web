@@ -119,7 +119,7 @@ const Dashboard = () => {
             No employees found.
           </span>
         ) : (
-          <>
+          <div className="mb-3">
             <ListGroup className="w-100" variant="flush">
               {users.length !== 0 && (
                 <ListGroup.Item className={styles.tableHeader}>
@@ -156,7 +156,7 @@ const Dashboard = () => {
                     </ListGroup.Item>
                   ))}
             </ListGroup>
-          </>
+          </div>
         )}
       </Row>
     </Container>

@@ -260,12 +260,11 @@ const EmployeeSWTD = () => {
               <i className="fa-solid fa-building me-2"></i>Department:{" "}
               {employee?.department}
             </Col>
-            {selectedTerm === null && (
-              <Col className="d-flex align-items-center" xs="auto">
-                <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
-                {employee?.point_balance}
-              </Col>
-            )}
+
+            <Col className="d-flex align-items-center" xs="auto">
+              <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
+              {employee?.point_balance}
+            </Col>
 
             {selectedTerm !== null && (
               <Col className="d-flex align-items-center" xs="auto">
@@ -353,7 +352,7 @@ const EmployeeSWTD = () => {
                 <BtnSecondary
                   onClick={openModal}
                   disabled={
-                    termStatus?.points?.valid_points <
+                    termStatus?.points?.valid_points + employee?.point_balance <
                     termStatus?.points?.required_points
                   }>
                   Grant Clearance
