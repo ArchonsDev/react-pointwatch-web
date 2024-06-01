@@ -271,8 +271,9 @@ const SWTDDashboard = () => {
         )}
       </Row>
 
-      <Row className="w-100 mb-3 d-flex align-items-center">
-        <Col className="text-start" xs="12" sm="5" md="4" xxl="4">
+      <Row className="w-100 d-flex align-items-center">
+        {/* Search Bar */}
+        <Col xs="12" sm="7" md="4" xxl="4" className="text-start mb-3">
           <InputGroup className={`${styles.searchBar}`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
@@ -286,33 +287,28 @@ const SWTDDashboard = () => {
           </InputGroup>
         </Col>
 
-        <Col xs="6" sm="4" md="3" xxl="3" className="me-auto">
-          <Form.Group as={Row} controlId="inputFilter">
-            <Form.Label className={styles.filterText} column sm="2">
-              Status
-            </Form.Label>
-            <Col sm="8">
-              <Form.Select
-                className={styles.cardBody}
-                name="filter"
-                onChange={(e) => {
-                  setSelectedStatus(e.target.value);
-                }}>
-                <option value="">All Statuses</option>
-                <option value="PENDING">PENDING</option>
-                <option value="APPROVED">APPROVED</option>
-                <option value="REJECTED">REJECTED</option>
-              </Form.Select>
-            </Col>
+        {/* Filter */}
+        <Col xs="6" sm="6" md="3" xxl="3" className="d-flex align-items-center px-4 mb-3">
+          <Form.Group as={Row} controlId="inputFilter" className="flex-grow-1">
+            <Form.Select
+              className={styles.cardBody}
+              name="filter"
+              onChange={(e) => {
+                setSelectedStatus(e.target.value);
+              }}>
+              <option value="">All Statuses</option>
+              <option value="PENDING">PENDING</option>
+              <option value="APPROVED">APPROVED</option>
+              <option value="REJECTED">REJECTED</option>
+            </Form.Select>
           </Form.Group>
         </Col>
 
-        <Col sm="2" md="2" className="d-none d-sm-block">
+        {/* Action Buttons -> Larger than Mobile */}
+        <Col xs="6" sm="4" mb="3" xxl="4" className="d-none d-sm-flex ms-auto justify-content-between mb-3">
           {selectedTerm === null && (
             <BtnSecondary onClick={handlePrint}>Export PDF</BtnSecondary>
           )}{" "}
-        </Col>
-        <Col sm="3" md="3" className="d-none d-sm-block">
           <BtnPrimary
             onClick={() =>
               user?.department === null ? openModal() : handleAddRecordClick()
@@ -321,12 +317,11 @@ const SWTDDashboard = () => {
           </BtnPrimary>
         </Col>
 
-        <Col xs="3" className="d-sm-none mt-auto mb-1">
+        {/* Action Buttons -> Mobile */}
+        <Col xs="6" className="d-sm-none d-flex justify-content-between mb-3">
           {selectedTerm === null && (
             <BtnSecondary onClick={handlePrint}><i class="fa-solid fa-download"></i></BtnSecondary>
-          )}{" "}
-        </Col>
-        <Col xs="3" className="d-sm-none mt-auto mb-1">
+          )}
           <BtnPrimary
             onClick={() =>
               user?.department === null ? openModal() : handleAddRecordClick()

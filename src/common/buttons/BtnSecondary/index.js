@@ -6,7 +6,7 @@ const BtnSecondary = ({ onClick, children, ...rest }) => {
     <button
       {...rest}
       type="button"
-      className={`${styles["button-style"]} px-4 py-1 w-100`}
+      className={`${styles["button-style"]} px-4 py-1`}
       onClick={onClick}>
       {children}
     </button>

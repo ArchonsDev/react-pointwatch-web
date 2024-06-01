@@ -330,7 +330,7 @@ const Login = () => {
                   </Row>
 
                   <Row>
-                    <Col xs="12" md="5" xl="4" className="my-1 me-auto">
+                    <Col xs="6" md="5" xl="4" className="my-1 me-auto">
                       <BtnPrimary
                         type="submit"
                         onClick={handleSubmit}
@@ -341,7 +341,7 @@ const Login = () => {
                         Login
                       </BtnPrimary>
                     </Col>
-                    <Col xs="12" md="5" xl="5" xxl="4" className="my-1">
+                    <Col xs="6" md="5" xl="5" xxl="4" className="my-1 d-flex justify-content-end">
                       <BtnSecondary
                         onClick={() => navigate("/register")}
                         className={styles.button}>
