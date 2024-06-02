@@ -257,7 +257,7 @@ const SWTDDashboard = () => {
             </div>
             <span className={styles.pointsLabel}>points</span>
           </Col>
-          <Col className={`${styles.termPoints} d-flex justify-content-center mt-4 d-sm-none`} md={2}>
+          <Col className={`${styles.termPoints} d-flex justify-content-center mt-4 mb-3 d-sm-none`} md={2}>
             <div className={`${styles.termPoints} text-end`}>
               <div>
                 <span
@@ -328,16 +328,15 @@ const SWTDDashboard = () => {
         </Col>
 
         {/* Action Buttons -> Mobile */}
-        <Col xs="6" className="d-sm-none d-flex justify-content-between mb-3">
-          {selectedTerm === null && (
-            <BtnSecondary onClick={handlePrint}><i class="fa-solid fa-download"></i></BtnSecondary>
-          )}
-          <BtnPrimary
-            onClick={() =>
-              user?.department === null ? openModal() : handleAddRecordClick()
-            }>
-            <i class="fa-solid fa-plus"></i>
-          </BtnPrimary>
+        <Col xs="6" className="d-sm-none d-flex justify-content-between mb-3 px-0">
+          <Row className="w-100 d-flex justify-content-end align-items-center">
+            <Col xs="6" className="d-flex justify-content-end">
+              {selectedTerm === null && <BtnSecondary onClick={handlePrint}><i class="fa-solid fa-download"></i></BtnSecondary>}
+            </Col>
+            <Col xs="6" className="d-flex justify-content-end">
+              <BtnPrimary onClick={() => user?.department === null ? openModal() : handleAddRecordClick()}><i class="fa-solid fa-plus"></i></BtnPrimary>
+            </Col>
+          </Row>
         </Col>
 
         <Modal show={showModal} onHide={closeModal} size="md" centered>
