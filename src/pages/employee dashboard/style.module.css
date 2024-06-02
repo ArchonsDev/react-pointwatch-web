@@ -17,22 +17,6 @@
   font-family: "Poppins-Medium";
 }
 
-.tableHeader {
-  background-color: #e8b4bc !important;
-  font-family: "Poppins-Medium";
-  border-radius: 10px 10px 0 0 !important;
-}
-
-.tableBody {
-  font-family: "Poppins-Regular";
-  border-radius: 0 0 0 0 !important;
-  cursor: pointer;
-}
-
-.tableBody:hover {
-  background-color: rgb(232, 232, 232);
-}
-
 .cardHeader {
   background-color: #e8b4bc !important;
   font-family: "Poppins-SemiBold";
@@ -116,10 +100,4 @@
 .loading {
   color: #d80085;
   font-family: "Poppins-Medium";
-}
-
-.table-content {
-  overflow: hidden;  /* Hide overflowing content */
-  white-space: nowrap;  /* Prevent text from wrapping to a new line */
-  text-overflow: ellipsis;  /* Display ellipsis (...) for overflowing text */
 }

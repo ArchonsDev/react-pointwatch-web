@@ -16,6 +16,9 @@ import BtnSecondary from "../../common/buttons/BtnSecondary";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
 
+// Custom Components
+import SWTDTable from "../../components/SWTDTable";
+
 const SWTDDashboard = () => {
   const id = Cookies.get("userID");
   const token = Cookies.get("userToken");
@@ -34,6 +37,8 @@ const SWTDDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const [displayContent, setDisplayContent] = useState([]);
+
   const fetchAllSWTDs = async () => {
     await getAllSWTDs(
       {
@@ -50,13 +55,6 @@ const SWTDDashboard = () => {
         }
       }
     );
-  };
-
-  const truncateTitle = (title) => {
-    if (title.length > 50) {
-      return title.substring(0, 50) + "...";
-    }
-    return title;
   };
 
   const fetchTerms = () => {
@@ -94,10 +92,6 @@ const SWTDDashboard = () => {
     navigate("/swtd/form");
   };
 
-  const handleEditRecordClick = (id) => {
-    navigate(`/swtd/${id}`);
-  };
-
   const handlePrint = () => {
     exportSWTDList(
       {
@@ -115,18 +109,32 @@ const SWTDDashboard = () => {
     );
   };
 
-  const filteredSWTDs = userSWTDs?.filter(
-    (swtd) => swtd?.term.id === selectedTerm?.id
-  );
+  // Term/Status/Search side effect
+  useEffect(() => {
+    var content = userSWTDs;
 
-  const displayedSWTDs = (selectedTerm ? filteredSWTDs : userSWTDs)?.filter(
-    (swtd) =>
-      (selectedStatus === "" || swtd.validation.status === selectedStatus) &&
-      (swtd.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        swtd.validation.status
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()))
-  );
+    if (selectedTerm !== null) {
+      content = content.filter((swtd) => swtd?.term.id === selectedTerm?.id);
+    }
+
+    if (selectedStatus !== "") {
+      content = content.filter((swtd) => swtd.validation.status.toLowerCase() === selectedStatus.toLowerCase());
+    }
+
+    if (searchQuery !== "") {
+      var query = searchQuery.toLowerCase();
+
+      content = content.filter(
+        (swtd) => (
+          swtd.id.toString().includes(query) ||
+          swtd.title.toLowerCase().includes(query) ||
+          swtd.points.toString().includes(query)
+        )
+      );
+    }
+
+    setDisplayContent(content);
+  }, [selectedTerm, selectedStatus, searchQuery, userSWTDs]);
 
   useEffect(() => {
     if (!user) setLoading(true);
@@ -147,6 +155,7 @@ const SWTDDashboard = () => {
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
+      {/* Page Heading */}
       <Row className="w-100">
         <h3 className={`${styles.label} d-flex align-items-center`}>
           SWTD Points Overview
@@ -170,7 +179,8 @@ const SWTDDashboard = () => {
         </Modal>
       </Row>
 
-      <Row className={`${styles.employeeDetails} w-100 mb-3`}>
+      {/* Employee Details */}
+      <Row className={`${styles.employeeDetails} w-100 mb-2`}>
         <Col className="d-flex align-items-center">
           <Row>
             <Col className="d-flex align-items-center my-1" xs="auto">
@@ -270,10 +280,11 @@ const SWTDDashboard = () => {
         </>
         )}
       </Row>
-
-      <Row className="w-100 d-flex align-items-center">
+      
+      {/* Table Controls */}
+      <Row className="w-100 d-flex align-items-center mx-0 px-0">
         {/* Search Bar */}
-        <Col xs="12" sm="7" md="4" xxl="4" className="text-start mb-3">
+        <Col xs="12" sm="7" md="4" xxl="4" className="text-start mb-3 px-0">
           <InputGroup className={`${styles.searchBar}`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
@@ -287,8 +298,8 @@ const SWTDDashboard = () => {
           </InputGroup>
         </Col>
 
-        {/* Filter */}
-        <Col xs="6" sm="6" md="3" xxl="3" className="d-flex align-items-center px-4 mb-3">
+        {/* Status Filter */}
+        <Col xs="6" sm="6" md="3" xxl="3" className="d-flex align-items-center px-4 me-auto mb-3">
           <Form.Group as={Row} controlId="inputFilter" className="flex-grow-1">
             <Form.Select
               className={styles.cardBody}
@@ -305,16 +316,15 @@ const SWTDDashboard = () => {
         </Col>
 
         {/* Action Buttons -> Larger than Mobile */}
-        <Col xs="6" sm="4" mb="3" xxl="4" className="d-none d-sm-flex ms-auto justify-content-between mb-3">
-          {selectedTerm === null && (
-            <BtnSecondary onClick={handlePrint}>Export PDF</BtnSecondary>
-          )}{" "}
-          <BtnPrimary
-            onClick={() =>
-              user?.department === null ? openModal() : handleAddRecordClick()
-            }>
-            Add a New Record
-          </BtnPrimary>
+        <Col xs="6" sm="5" mb="3" xxl="4" className="d-none d-sm-flex justify-content-end mb-3 px-0">
+          <Row className="w-100 d-flex justify-content-end align-items-center">
+            <Col sm="5" className="d-flex justify-content-end">
+              {selectedTerm === null && <BtnSecondary onClick={handlePrint}>Export PDF</BtnSecondary>}
+            </Col>
+            <Col sm="6" className="d-flex justify-content-end">
+              <BtnPrimary onClick={() =>user?.department === null ? openModal() : handleAddRecordClick()}>Add a New Record</BtnPrimary>
+            </Col>
+          </Row>
         </Col>
 
         {/* Action Buttons -> Mobile */}
@@ -350,82 +360,9 @@ const SWTDDashboard = () => {
       </Row>
 
       <Row className="w-100 mx-0 px-0 mb-3">
-        {selectedTerm === null ? (
-          <>
-            <ListGroup className="w-100 mx-0 px-0" variant="flush">
-              {userSWTDs.length === 0 ? (
-                <span
-                  className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
-                  No records submitted.
-                </span>
-              ) : (
-                <ListGroup.Item className={styles.tableHeader}>
-                  <Row>
-                    <Col xs={2} sm={1}>No.</Col>
-                    <Col xs={5} sm={7}>Title of SWTD</Col>
-                    <Col xs={2} sm={2}>Points</Col>
-                    <Col xs={3} sm={2}>Status</Col>
-                  </Row>
-                </ListGroup.Item>
-              )}
-            </ListGroup>
-            <ListGroup className="mx-0 px-0">
-              {displayedSWTDs.map((item) => (
-                <ListGroup.Item
-                  key={item.id}
-                  className={styles.tableBody}
-                  onClick={() => handleEditRecordClick(item.id)}>
-                  <Row>
-                    <Col xs={2} sm={1} className={styles['table-content']}>{item.id}</Col>
-                    <Col xs={5} sm={7} className={styles['table-content']}>{truncateTitle(item.title)}</Col>
-                    <Col xs={2} sm={2} className={styles['table-content']}>{item.points}</Col>
-                    <Col xs={3} sm={2} className={styles['table-content']}>{item.validation.status}</Col>
-                  </Row>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </>
-        ) : displayedSWTDs.length === 0 ? (
-          <span
-            className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
-            No records found.
-          </span>
-        ) : (
-          <>
-            <ListGroup className="w-100 mx-0 px-0" variant="flush">
-              {userSWTDs.length === 0 ? (
-                <span
-                  className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
-                  No records submitted.
-                </span>
-              ) : (
-                <ListGroup.Item className={styles.tableHeader}>
-                  <Row>
-                    <Col xs={2} sm={1}>No.</Col>
-                    <Col xs={5} sm={7}>Title of SWTD</Col>
-                    <Col xs={2} sm={2}>Points</Col>
-                    <Col xs={3} sm={2}>Status</Col>
-                  </Row>
-                </ListGroup.Item>
-              )}
-            </ListGroup>
-            <ListGroup className="mx-0 px-0">
-              {displayedSWTDs.map((item) => (
-                <ListGroup.Item
-                  key={item.id}
-                  className={styles.tableBody}
-                  onClick={() => handleEditRecordClick(item.id)}>
-                  <Row>
-                    <Col xs={2} sm={1} className={styles['table-content']}>{item.id}</Col>
-                    <Col xs={5} sm={7} className={styles['table-content']}>{truncateTitle(item.title)}</Col>
-                    <Col xs={2} sm={2} className={styles['table-content']}>{item.points}</Col>
-                    <Col xs={3} sm={2} className={styles['table-content']}>{item.validation.status}</Col>
-                  </Row>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </>
-        )}
+        <Col xs="12" className="mx-0 px-0">
+          <SWTDTable data={displayContent} />
+        </Col>
       </Row>
     </Container>
   );
