@@ -1,43 +1,41 @@
 import React, { useContext, useEffect, useState } from "react";
+import { Row, Col, Container, DropdownButton, Dropdown, Modal, Spinner} from "react-bootstrap"; /* prettier-ignore */
 import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal, Spinner} from "react-bootstrap"; /* prettier-ignore */
 
+// Comfig
 import departmentTypes from "../../data/departmentTypes.json";
-import { getClearanceStatus } from "../../api/user";
-import { getTerms } from "../../api/admin";
-import { getAllSWTDs } from "../../api/swtd";
-import { exportSWTDList } from "../../api/export";
-import { useSwitch } from "../../hooks/useSwitch";
+
+// Context
 import SessionUserContext from "../../contexts/SessionUserContext";
 
-import SWTDInfo from "./SWTDInfo";
-import BtnSecondary from "../../common/buttons/BtnSecondary";
-import BtnPrimary from "../../common/buttons/BtnPrimary";
+// CSS
 import styles from "./style.module.css";
 
 // Custom Components
 import SWTDTable from "../../components/SWTDTable";
+import SWTDInfo from "./SWTDInfo";
+
+// API
+import { getClearanceStatus } from "../../api/user";
+import { getTerms } from "../../api/admin";
+import { getAllSWTDs } from "../../api/swtd";
+
+// Custom Hooks
+import { useSwitch } from "../../hooks/useSwitch";
 
 const SWTDDashboard = () => {
   const id = Cookies.get("userID");
   const token = Cookies.get("userToken");
-  const { user } = useContext(SessionUserContext);
-  const navigate = useNavigate();
 
-  const [showModal, openModal, closeModal] = useSwitch();
+  const { user } = useContext(SessionUserContext);
+
   const [showPointsModal, openPointsModal, closePointsModal] = useSwitch();
 
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [terms, setTerms] = useState([]);
-
-  const [termStatus, setTermStatus] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedTerm, setSelectedTerm] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [termStatus, setTermStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const [displayContent, setDisplayContent] = useState([]);
 
   const fetchAllSWTDs = async () => {
     await getAllSWTDs(
@@ -87,54 +85,6 @@ const SWTDDashboard = () => {
       }
     );
   };
-
-  const handleAddRecordClick = () => {
-    navigate("/swtd/form");
-  };
-
-  const handlePrint = () => {
-    exportSWTDList(
-      {
-        id: id,
-        token: token,
-      },
-      (response) => {
-        const blob = new Blob([response.data], { type: "application/pdf" });
-        const blobURL = URL.createObjectURL(blob);
-        window.open(blobURL, "_blank");
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
-  };
-
-  // Term/Status/Search side effect
-  useEffect(() => {
-    var content = userSWTDs;
-
-    if (selectedTerm !== null) {
-      content = content.filter((swtd) => swtd?.term.id === selectedTerm?.id);
-    }
-
-    if (selectedStatus !== "") {
-      content = content.filter((swtd) => swtd.validation.status.toLowerCase() === selectedStatus.toLowerCase());
-    }
-
-    if (searchQuery !== "") {
-      var query = searchQuery.toLowerCase();
-
-      content = content.filter(
-        (swtd) => (
-          swtd.id.toString().includes(query) ||
-          swtd.title.toLowerCase().includes(query) ||
-          swtd.points.toString().includes(query)
-        )
-      );
-    }
-
-    setDisplayContent(content);
-  }, [selectedTerm, selectedStatus, searchQuery, userSWTDs]);
 
   useEffect(() => {
     if (!user) setLoading(true);
@@ -281,88 +231,7 @@ const SWTDDashboard = () => {
         )}
       </Row>
       
-      {/* Table Controls */}
-      <Row className="w-100 d-flex align-items-center mx-0 px-0">
-        {/* Search Bar */}
-        <Col xs="12" sm="7" md="4" xxl="4" className="text-start mb-3 px-0">
-          <InputGroup className={`${styles.searchBar}`}>
-            <InputGroup.Text>
-              <i className="fa-solid fa-magnifying-glass"></i>
-            </InputGroup.Text>
-            <Form.Control
-              type="search"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </InputGroup>
-        </Col>
-
-        {/* Status Filter */}
-        <Col xs="6" sm="6" md="3" xxl="3" className="d-flex align-items-center px-4 me-auto mb-3">
-          <Form.Group as={Row} controlId="inputFilter" className="flex-grow-1">
-            <Form.Select
-              className={styles.cardBody}
-              name="filter"
-              onChange={(e) => {
-                setSelectedStatus(e.target.value);
-              }}>
-              <option value="">All Statuses</option>
-              <option value="PENDING">PENDING</option>
-              <option value="APPROVED">APPROVED</option>
-              <option value="REJECTED">REJECTED</option>
-            </Form.Select>
-          </Form.Group>
-        </Col>
-
-        {/* Action Buttons -> Larger than Mobile */}
-        <Col xs="6" sm="5" mb="3" xxl="4" className="d-none d-sm-flex justify-content-end mb-3 px-0">
-          <Row className="w-100 d-flex justify-content-end align-items-center">
-            <Col sm="5" className="d-flex justify-content-end">
-              {selectedTerm === null && <BtnSecondary onClick={handlePrint}>Export PDF</BtnSecondary>}
-            </Col>
-            <Col sm="6" className="d-flex justify-content-end">
-              <BtnPrimary onClick={() =>user?.department === null ? openModal() : handleAddRecordClick()}>Add a New Record</BtnPrimary>
-            </Col>
-          </Row>
-        </Col>
-
-        {/* Action Buttons -> Mobile */}
-        <Col xs="6" className="d-sm-none d-flex justify-content-between mb-3 px-0">
-          <Row className="w-100 d-flex justify-content-end align-items-center">
-            <Col xs="6" className="d-flex justify-content-end">
-              {selectedTerm === null && <BtnSecondary onClick={handlePrint}><i class="fa-solid fa-download"></i></BtnSecondary>}
-            </Col>
-            <Col xs="6" className="d-flex justify-content-end">
-              <BtnPrimary onClick={() => user?.department === null ? openModal() : handleAddRecordClick()}><i class="fa-solid fa-plus"></i></BtnPrimary>
-            </Col>
-          </Row>
-        </Col>
-
-        <Modal show={showModal} onHide={closeModal} size="md" centered>
-          <Modal.Header closeButton>
-            <Modal.Title className={styles.formLabel}>
-              Missing Required Fields
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body
-            className={`${styles.filterText} d-flex justify-content-center align-items-center`}>
-            Department is required before adding a new record. Please proceed to
-            your settings to make this change.
-          </Modal.Body>
-          <Modal.Footer>
-            <BtnPrimary onClick={() => navigate("/settings")}>
-              Go to Settings
-            </BtnPrimary>
-          </Modal.Footer>
-        </Modal>
-      </Row>
-
-      <Row className="w-100 mx-0 px-0 mb-3">
-        <Col xs="12" className="mx-0 px-0">
-          <SWTDTable data={displayContent} />
-        </Col>
-      </Row>
+      <SWTDTable term={selectedTerm} data={userSWTDs} />
     </Container>
   );
 };
