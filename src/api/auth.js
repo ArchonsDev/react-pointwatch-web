@@ -1,5 +1,4 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 import config from "../config.json";
 
 export const register = async (data, onSuccess, onFail, onCleanup) => {
@@ -47,8 +46,6 @@ export const login = async (data, onSuccess, onFail, onCleanup) => {
     );
 
     if (response.status === 200) {
-      Cookies.set("userToken", response?.data?.access_token);
-      Cookies.set("userID", JSON.stringify(response?.data?.user.id));
       onSuccess && onSuccess(response);
     }
   } catch (error) {

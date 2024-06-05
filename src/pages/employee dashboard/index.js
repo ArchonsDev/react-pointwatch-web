@@ -22,12 +22,13 @@ import { getAllSWTDs } from "../../api/swtd";
 
 // Custom Hooks
 import { useSwitch } from "../../hooks/useSwitch";
+import { useSelector } from "react-redux";
 
 const SWTDDashboard = () => {
   const id = Cookies.get("userID");
   const token = Cookies.get("userToken");
 
-  const { user } = useContext(SessionUserContext);
+  const user = useSelector(state => state.sessionUser.user);
 
   const [showPointsModal, openPointsModal, closePointsModal] = useSwitch();
 

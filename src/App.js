@@ -19,45 +19,44 @@ import Admin from "./pages/admin";
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
 
-import SessionUserContext from "./contexts/SessionUserContext";
-import { getUser } from "./api/user";
+// API
+import { getUser } from "./api/user.js";
 
+// CSS
 import styles from "./styles/App.module.css";
+
+// Redux
+import { useDispatch, useSelector } from "react-redux";
+import { login, logout } from "./features/sessionUserSlice.js";
 
 const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const token = Cookies.get("userToken");
-  const cookieID = Cookies.get("userID");
+  const dispatch = useDispatch();
 
-  const [user, setUser] = useState(null);
+  const user = useSelector(state => state.sessionUser.user);
+  const isLoggedIn = useSelector(state => state.sessionUser.usLoggedIn);
+  const token = useSelector(state => state.sessionUser.token);
 
-  let id = null;
-  if (cookieID !== undefined) {
-    id = JSON.parse(cookieID);
-  }
+  // const token = Cookies.get("userToken");
+  // const cookieID = Cookies.get("userID");
 
-  const data = {
-    token: token,
-    id: id,
-  };
+  // let id = null;
+  // if (cookieID !== undefined) {
+  //   id = JSON.parse(cookieID);
+  // }
 
-  const getSessionUser = () => {
-    getUser(
-      {
-        token: data.token,
-        id: data.id,
-      },
-      (response) => {
-        setUser(response?.data);
-      }
-    );
-  };
+  // const data = {
+  //   token: token,
+  //   id: id,
+  // };
 
+  // Drawer display condition
   const showDrawer = ["/swtd", "/dashboard", "/settings", "/admin"].some(
     (path) => location.pathname.startsWith(path)
   );
 
+  // Tab name control
   const tabNames = {
     "/login": "Login",
     "/register": "Register",
@@ -67,6 +66,18 @@ const App = () => {
     "/swtd": "SWTD Points Overview",
     "/swtd/form": "Add a New Record",
     "/admin": "Admin",
+  };
+
+  const getSessionUser = () => {
+    getUser(
+      {
+        token: token,
+        id: user.id,
+      },
+      (response) => {
+        dispatch(login(response.data));
+      }
+    );
   };
 
   document.title =
@@ -87,21 +98,23 @@ const App = () => {
     if (token && isTokenExpired(token)) {
       Cookies.remove("userToken");
       Cookies.remove("userID");
-      setUser(null);
+
+      dispatch(logout()); // Updates store
+
       navigate("/");
     }
 
-    if (data.token !== null && data.id !== null) {
+    if (isLoggedIn && token !== null) {
       getSessionUser();
     }
-  }, [data.token, data.id]);
+  }, [user]);
 
   return (
     <div
       className={`${styles.App} ${
         location.pathname === "/login" ? styles.bg : styles["no-bg"]
       }`}>
-      <SessionUserContext.Provider value={{ user, setUser }}>
+      {/* <SessionUserContext.Provider value={{ user, setUser }}> */}
         {showDrawer && <Drawer />}
         <Routes>
           <Route
@@ -151,7 +164,7 @@ const App = () => {
             element={token ? <Admin /> : <Navigate to="/login" />}
           />
         </Routes>
-      </SessionUserContext.Provider>
+      {/* </SessionUserContext.Provider> */}
     </div>
   );
 };

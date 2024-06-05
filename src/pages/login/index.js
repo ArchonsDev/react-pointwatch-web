@@ -1,11 +1,11 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button, Container, Row, Col, Form, InputGroup, Modal, ToastContainer, Toast, Spinner } from "react-bootstrap"; /* prettier-ignore */
 import styles from "./style.module.css";
 import config from "../../config.json";
+import Cookies from "js-cookie";
 
-import SessionUserContext from "../../contexts/SessionUserContext";
-import { login, recovery } from "../../api/auth";
+import { login as loginApi, recovery } from "../../api/auth";
 import { isEmpty } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -13,9 +13,14 @@ import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 import logo1 from "../../images/logo1.png";
 
+// Redux
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../../features/sessionUserSlice";
+
 const Login = () => {
-  const { user, setUser } = useContext(SessionUserContext);
+  const user = useSelector(state => state.sessionUser.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [errorMessage, setErrorMessage] = useState(null);
   const [showToast, setShowToast] = useState(false);
@@ -70,10 +75,14 @@ const Login = () => {
     setIsLoading(true);
     setIsClicked(true);
 
-    await login(
+    await loginApi(
       form,
       (response) => {
-        setUser(response.data.user);
+        dispatch(login(response.data));
+
+        // Cookies.set("userToken", response?.data?.access_token);
+        // Cookies.set("userID", JSON.stringify(response?.data?.user.id));
+
         if (user?.is_admin || user?.is_staff) navigate("/dashboard");
         else navigate("/swtd");
         setIsLoading(false);

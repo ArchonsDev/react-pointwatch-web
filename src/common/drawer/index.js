@@ -3,23 +3,34 @@ import Cookies from "js-cookie";
 import { Nav, Navbar, Offcanvas, Row, Col, Container } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router";
 
-import SessionUserContext from "../../contexts/SessionUserContext";
+// Hooks
 import { useSwitch } from "../../hooks/useSwitch";
 
 import ConfirmationModal from "../modals/ConfirmationModal";
 import logo1 from "../../images/logo1.png";
+
+// CSS
 import styles from "./style.module.css";
 
+// Redux
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../../features/sessionUserSlice";
+
 const Drawer = () => {
-  const { user } = useContext(SessionUserContext);
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const user = useSelector(state => state.sessionUser.user);
 
   const [showModal, openModal, closeModal] = useSwitch();
 
   const handleLogout = () => {
+    dispatch(logout());
+
     Cookies.remove("userToken");
     Cookies.remove("userID");
+
     navigate("/");
   };
 
