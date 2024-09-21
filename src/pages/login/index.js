@@ -141,7 +141,8 @@ const Login = () => {
   return (
     <div className={`${styles.Login} d-flex`}>
       <div
-        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}>
+        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}
+      >
         <Container>
           {/* Error Toast */}
           <ToastContainer className="p-3" position="top-start">
@@ -150,7 +151,8 @@ const Login = () => {
               show={showToast}
               delay={5000}
               onClose={toggleShow}
-              autohide>
+              autohide
+            >
               <Toast.Header className={styles.toastHeader}>
                 <img
                   src={logo1}
@@ -180,7 +182,8 @@ const Login = () => {
                 {isEmailSending ? (
                   <Row className="mt-3">
                     <Col
-                      className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}>
+                      className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}
+                    >
                       <Spinner className={styles.spinner} animation="border" />
                       Checking email...
                     </Col>
@@ -213,7 +216,8 @@ const Login = () => {
                         <InputGroup className="mt-3">
                           <InputGroup.Text>
                             <i
-                              className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
+                              className={`${styles.icon} fa-solid fa-envelope fa-lg`}
+                            ></i>
                           </InputGroup.Text>
                           <Form.Control
                             type="email"
@@ -267,7 +271,8 @@ const Login = () => {
                 <InputGroup hasValidation>
                   <InputGroup.Text className={styles.iconBox}>
                     <i
-                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
+                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}
+                    ></i>
                   </InputGroup.Text>
                   <Form.Control
                     type="email"
@@ -306,7 +311,8 @@ const Login = () => {
                           ? "fa-solid fa-eye fa-lg"
                           : "fa-solid fa-eye-slash fa-lg"
                       }`}
-                      onClick={() => setShowPassword(!showPassword)}></i>
+                      onClick={() => setShowPassword(!showPassword)}
+                    ></i>
                   </InputGroup.Text>
                 </InputGroup>
               </Form.Group>
@@ -314,7 +320,8 @@ const Login = () => {
               {isLoading ? (
                 <Row className="mt-3">
                   <Col
-                    className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}>
+                    className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}
+                  >
                     <Spinner className={styles.spinner} animation="border" />{" "}
                     Signing in...
                   </Col>
@@ -329,29 +336,43 @@ const Login = () => {
                     </Col>
                   </Row>
 
-                  <Row>
-                    <Col md="auto">
-                      <BtnPrimary
-                        type="submit"
-                        onClick={handleSubmit}
-                        className={styles.button}
-                        disabled={
-                          isEmpty(form.email) || isEmpty(form.password)
-                        }>
-                        Login
-                      </BtnPrimary>
+                  <Row className="mb-2">
+                    <Col md={6}>
+                      <Row>
+                        <BtnPrimary
+                          type="submit"
+                          onClick={handleSubmit}
+                          className={`${styles.button} ${styles.buttonLogin}`}
+                          disabled={
+                            isEmpty(form.email) || isEmpty(form.password)
+                          }
+                        >
+                          Login
+                        </BtnPrimary>
+                      </Row>
                     </Col>
+                    <Col md={6}>
+                      <Row>
+                        <BtnSecondary
+                          onClick={() => navigate("/register")}
+                          className={`${styles.button} ${styles.buttonRegister}`}
+                        >
+                          Register
+                        </BtnSecondary>
+                      </Row>
+                    </Col>
+                  </Row>
+                  <Row className="mt-3 mb-3 text-center">
                     <Col>
-                      <BtnSecondary
-                        onClick={() => navigate("/register")}
-                        className={styles.button}>
-                        Register
-                      </BtnSecondary>
+                      <span className={styles.orText}>or</span>
                     </Col>
-                    <Col className="text-end" md="auto">
+                  </Row>
+                  <Row>
+                    <Col>
                       <Button
-                        className={styles.msButton}
-                        onClick={handleMicrosoftLogin}>
+                        className={`${styles.msButton} w-100`}
+                        onClick={handleMicrosoftLogin}
+                      >
                         Sign in with <i className="fa-brands fa-microsoft"></i>
                       </Button>
                     </Col>

@@ -83,12 +83,14 @@
 }
 
 .msButton {
-  background-color: #00a4ef !important;
-  border: none !important;
-  border-radius: 200px !important;
-  font-family: "Poppins-SemiBold" !important;
-  font-size: 15px !important;
+  color: #180018 !important; 
+  background-color: #ffffff !important; 
+  border: 2px solid #180018 !important; 
+  border-radius: 10px; 
+  font-family: "Poppins-SemiBold" !important; 
+  font-size: 16px !important; 
 }
+
 
 .spinner {
   color: #d80085;

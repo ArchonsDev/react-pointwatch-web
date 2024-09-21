@@ -60,7 +60,8 @@ const Dashboard = () => {
   if (loading)
     return (
       <Row
-        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
+        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}
+      >
         <Spinner className={`me-2`} animation="border" />
         Loading data...
       </Row>
@@ -98,7 +99,8 @@ const Dashboard = () => {
                 name="filter"
                 onChange={(e) => {
                   setSelectedDepartment(e.target.value);
-                }}>
+                }}
+              >
                 <option value="">All departments</option>
                 {departments.departments.map((department, index) => (
                   <option key={index} value={department}>
@@ -115,7 +117,8 @@ const Dashboard = () => {
         {displayEmployee.length === 0 &&
         (selectedDepartment === "" || selectedDepartment !== "") ? (
           <span
-            className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
+            className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}
+          >
             No employees found.
           </span>
         ) : (
@@ -142,7 +145,8 @@ const Dashboard = () => {
                     <ListGroup.Item
                       key={item.id}
                       className={styles.tableBody}
-                      onClick={() => handleEmployeeSWTDClick(item.id)}>
+                      onClick={() => handleEmployeeSWTDClick(item.id)}
+                    >
                       <Row>
                         <Col xs={3}>{item.employee_id}</Col>
                         <Col xs={5}>
