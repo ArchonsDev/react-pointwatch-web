@@ -69,18 +69,17 @@ const Drawer = () => {
             aria-labelledby={`offcanvasNavbarLabel-expand`}
             className={styles.sidebar}
             placement="start">
-            {/* Profile picture */}
             <Offcanvas.Header className="d-flex justify-content-center align-items-center">
               <Offcanvas.Title id={`offcanvasNavbarLabel-expand`}>
                 <Row className="flex-column">
-                  <Col className="d-flex justify-content-center align-items-center">
-                    <div className={`${styles.circle} mb-3`}></div>
+                  <Col className="d-flex justify-content-center align-items-center mb-1">
+                    <img src={logo1} style={{ width: "30%" }} />
                   </Col>
-                  <Col className={`${styles.name} text-center`}>
-                    {user?.firstname} {user?.lastname}
-                  </Col>
-                  <Col className={`${styles.empId} text-center`}>
-                    {user?.employee_id}
+                  <Col className="text-center mb-4">
+                    <span
+                      className={`${styles.brand} d-flex justify-content-center`}>
+                      PointWatch
+                    </span>
                   </Col>
                 </Row>
               </Offcanvas.Title>
@@ -147,11 +146,17 @@ const Drawer = () => {
                   </Nav.Link>
                 </Nav>
               </div>
-
+              <Row className="w-100 p-4 flex-column">
+                <Col className={`${styles.name}`}>
+                  {user?.firstname} {user?.lastname}
+                </Col>
+                <Col className={`${styles.detail}`}>{user?.employee_id}</Col>
+                <Col className={`${styles.detail}`}>{user?.department}</Col>
+              </Row>
               {/* Logout */}
               <Nav.Item className={styles.logout}>
                 <Nav.Link
-                  className={`mx-3 mb-3 p-3 ${styles.navItem}`}
+                  className={`mx-3 p-3 ${styles.logoutItem}`}
                   onClick={openModal}>
                   <i
                     className={`fa-solid fa-arrow-right-from-bracket fa-lg ${styles.drawerIcon}`}></i>

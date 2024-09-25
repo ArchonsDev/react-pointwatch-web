@@ -101,24 +101,14 @@ const General = () => {
       )}
 
       <Row>
-        <Col sm="3" className="text-center flex-column">
-          <div className="d-flex justify-content-center align-items-center">
-            <div className={`${styles.circle} mb-3`}></div>
-          </div>
-          <BtnPrimary>Change</BtnPrimary>
-          <div className="mt-2">
-            <BtnSecondary>Remove</BtnSecondary>
-          </div>
-        </Col>
-
-        <Col sm="9">
+        <Col>
           <Row>
             <Form.Group as={Row} className="mb-3" controlId="inputEmployeeID">
-              <Form.Label className={styles.formLabel} column sm="3">
+              <Form.Label className={styles.formLabel} column md="2">
                 Employee ID
               </Form.Label>
               {user?.employee_id === null && isEditing && (
-                <Col sm="9">
+                <Col md="9">
                   <Form.Control
                     className={styles.formBox}
                     name="employee_id"
@@ -142,7 +132,7 @@ const General = () => {
 
               <Col
                 className="d-flex justify-content-start align-items-center"
-                sm="9">
+                md="9">
                 {user?.employee_id}
               </Col>
             </Form.Group>
@@ -150,12 +140,12 @@ const General = () => {
 
           <Row>
             <Form.Group as={Row} className="mb-3" controlId="inputEmail">
-              <Form.Label className={styles.formLabel} column sm="3">
+              <Form.Label className={styles.formLabel} column md="2">
                 Email
               </Form.Label>
               <Col
                 className="d-flex justify-content-start align-items-center"
-                sm="9">
+                md="9">
                 {user?.email}
               </Col>
             </Form.Group>
@@ -163,11 +153,11 @@ const General = () => {
 
           <Row>
             <Form.Group as={Row} className="mb-3" controlId="inputFirstname">
-              <Form.Label className={styles.formLabel} column sm="3">
+              <Form.Label className={styles.formLabel} column md="2">
                 First name
               </Form.Label>
               {isEditing ? (
-                <Col sm="9">
+                <Col md="9">
                   <Form.Control
                     className={styles.formBox}
                     name="firstname"
@@ -178,7 +168,7 @@ const General = () => {
               ) : (
                 <Col
                   className="d-flex justify-content-start align-items-center"
-                  sm="9">
+                  md="9">
                   {user?.firstname}
                 </Col>
               )}
@@ -187,11 +177,11 @@ const General = () => {
 
           <Row>
             <Form.Group as={Row} className="mb-3" controlId="inputLastname">
-              <Form.Label className={styles.formLabel} column sm="3">
+              <Form.Label className={styles.formLabel} column md="2">
                 Last name
               </Form.Label>
               {isEditing ? (
-                <Col sm="9">
+                <Col md="9">
                   <Form.Control
                     className={styles.formBox}
                     type="text"
@@ -203,7 +193,7 @@ const General = () => {
               ) : (
                 <Col
                   className="d-flex justify-content-start align-items-center"
-                  sm="9">
+                  md="9">
                   {user?.lastname}
                 </Col>
               )}
@@ -212,11 +202,11 @@ const General = () => {
 
           <Row>
             <Form.Group as={Row} className="mb-3" controlId="inputDepartments">
-              <Form.Label className={styles.formLabel} column sm="3">
+              <Form.Label className={styles.formLabel} column md="2">
                 Department
               </Form.Label>
               {isEditing ? (
-                <Col sm="9">
+                <Col md="9">
                   <Form.Select
                     name="department"
                     className={styles.formBox}
@@ -239,7 +229,7 @@ const General = () => {
               ) : (
                 <Col
                   className="d-flex justify-content-start align-items-center"
-                  sm="9">
+                  md="9">
                   {user?.department}
                 </Col>
               )}
@@ -249,8 +239,8 @@ const General = () => {
       </Row>
 
       <Row>
-        <Col sm="3"></Col>
-        <Col className="text-end" sm="9">
+        <Col md="3"></Col>
+        <Col className="text-end" md="9">
           {!isEditing ? (
             <BtnSecondary
               onClick={() => {

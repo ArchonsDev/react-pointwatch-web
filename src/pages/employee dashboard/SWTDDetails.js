@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { Container, Form, Row, Col, Card, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
+import { Container, Row, Col, Card, Modal, Spinner, Form } from "react-bootstrap"; /* prettier-ignore */
 import { useNavigate, useParams } from "react-router-dom";
 
 import Comments from "./Comments";
@@ -150,6 +150,42 @@ const SWTDDetails = () => {
             Training Information
           </h3>
         </Col>
+
+        {/* Edit/Delete & Cancel Buttons */}
+        <Col className="text-end">
+          {isEditing ? (
+            <BtnSecondary
+              onClick={() => {
+                fetchSWTD();
+                cancelEditing();
+              }}>
+              Cancel Editing
+            </BtnSecondary>
+          ) : (
+            <>
+              <BtnSecondary
+                onClick={() => {
+                  fetchSWTD();
+                  enableEditing();
+                }}
+                disabled={termStatus === true}>
+                Edit
+              </BtnSecondary>{" "}
+              <BtnPrimary
+                onClick={openDeleteModal}
+                disabled={termStatus === true}>
+                Delete
+              </BtnPrimary>
+            </>
+          )}
+        </Col>
+        <ConfirmationModal
+          show={showDeleteModal}
+          onHide={closeDeleteModal}
+          onConfirm={handleDeleteRecord}
+          header={"Delete SWTD"}
+          message={"Do you wish to delete this submission?"}
+        />
       </Row>
 
       <Card className="mb-3 w-100">
@@ -172,41 +208,14 @@ const SWTDDetails = () => {
               </span>
             </Col>
 
-            {/* Edit/Delete & Cancel Buttons */}
-            <Col className="text-end">
-              {isEditing ? (
-                <BtnSecondary
-                  onClick={() => {
-                    fetchSWTD();
-                    cancelEditing();
-                  }}>
-                  Cancel Editing
-                </BtnSecondary>
-              ) : (
-                <>
-                  <BtnSecondary
-                    onClick={() => {
-                      fetchSWTD();
-                      enableEditing();
-                    }}
-                    disabled={termStatus === true}>
-                    Edit
-                  </BtnSecondary>{" "}
-                  <BtnPrimary
-                    onClick={openDeleteModal}
-                    disabled={termStatus === true}>
-                    Delete
-                  </BtnPrimary>
-                </>
-              )}
-            </Col>
-            <ConfirmationModal
-              show={showDeleteModal}
-              onHide={closeDeleteModal}
-              onConfirm={handleDeleteRecord}
-              header={"Delete SWTD"}
-              message={"Do you wish to delete this submission?"}
-            />
+            {!isEditing && (
+              <Col className={`text-end`}>
+                <span
+                  className={
+                    styles.pointsDisplay
+                  }>{`${swtd.points} POINTS`}</span>
+              </Col>
+            )}
           </Row>
         </Card.Header>
 
@@ -229,154 +238,100 @@ const SWTDDetails = () => {
                   SWTD Details updated.
                 </div>
               )}
-              <Row>
-                <Form.Group as={Row} className="mb-3">
-                  <Form.Label className={styles.formLabel} column sm="1">
-                    Title
+
+              <Row className="mb-4">
+                <Col className={styles.formLabel} md="1">
+                  Title
+                </Col>
+                <Col>{truncateTitle(swtd?.title)}</Col>
+              </Row>
+
+              <Row className="mb-4">
+                <Col className={styles.formLabel} md="1">
+                  Venue
+                </Col>
+                <Col md="5">{swtd?.venue}</Col>
+              </Row>
+
+              <Row className="mb-4">
+                <Col md="1">
+                  <span className={styles.formLabel}>Term</span>
+                </Col>
+                <Col>{swtd?.term.name}</Col>
+              </Row>
+
+              <Row className="mb-4">
+                <Col className={styles.formLabel} md="1">
+                  Category
+                </Col>
+                <Col>{swtd?.category}</Col>
+              </Row>
+
+              <Row className="mb-4">
+                <Col md="1">
+                  <span className={styles.formLabel}>Role</span>
+                </Col>
+                <Col>{swtd?.role}</Col>
+              </Row>
+
+              <Row className="mb-4">
+                <Col className={styles.formLabel} md="1">
+                  Date
+                </Col>
+                <Col>{wordDate(swtd?.date)}</Col>
+              </Row>
+
+              <Row className="mb-4">
+                <Col className={styles.formLabel} md="1">
+                  Time
+                </Col>
+                <Col>
+                  {formatTime(swtd?.time_started)} to{" "}
+                  {formatTime(swtd?.time_finished)}
+                </Col>
+              </Row>
+
+              <Row className="mb-4">
+                <Col className={styles.formLabel} md="1">
+                  Proof
+                </Col>
+                <Col md="5">
+                  <BtnPrimary
+                    onClick={() => {
+                      fetchSWTDProof();
+                      openProofModal();
+                    }}>
+                    View
+                  </BtnPrimary>{" "}
+                  <BtnSecondary
+                    onClick={() => openEditProof()}
+                    disabled={termStatus === true}>
+                    Change
+                  </BtnSecondary>
+                </Col>
+                <EditProofModal
+                  show={showEditProof}
+                  onHide={closeEditProof}
+                  editSuccess={proofSuccess}
+                  editError={proofError}
+                />
+              </Row>
+
+              <Form>
+                <Form.Group className="mb-3">
+                  <Form.Label className={styles.formLabel}>
+                    Takeaways
                   </Form.Label>
-                  <Col className="d-flex align-items-center">
-                    {truncateTitle(swtd?.title)}
+                  <Col>
+                    <Form.Control
+                      as="textarea"
+                      className={styles.formBox}
+                      value={swtd?.benefits}
+                      readOnly
+                    />
                   </Col>
                 </Form.Group>
-              </Row>
-              <Row className="w-100">
-                {/* Venue */}
-                <Col>
-                  <Form.Group as={Row} className="mb-3">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Venue
-                    </Form.Label>
-                    <Col className="d-flex align-items-center">
-                      {swtd?.venue}
-                    </Col>
-                  </Form.Group>
-                </Col>
-                {/* Category */}
-                <Col>
-                  <Form.Group as={Row} className="mb-3">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Category
-                    </Form.Label>
-                    <Col className="d-flex align-items-center">
-                      {swtd?.category}
-                    </Col>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row className="w-100">
-                {/* Term */}
-                <Col>
-                  <Form.Group as={Row} className="mb-3">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Term
-                    </Form.Label>
-                    <Col className="d-flex align-items-center">
-                      {swtd?.term.name}
-                    </Col>
-                  </Form.Group>
-                </Col>
-                {/* Role */}
-                <Col>
-                  <Form.Group as={Row} className="mb-3">
-                    <Form.Label
-                      className={`${styles.formLabel} text-end`}
-                      column
-                      sm="2">
-                      Role
-                    </Form.Label>
-                    <Col className="d-flex align-items-center">
-                      {swtd?.role}
-                    </Col>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row className="w-100">
-                {/* Date */}
-                <Col>
-                  <Form.Group as={Row} className="mb-3">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Date
-                    </Form.Label>
-                    <Col className="d-flex align-items-center">
-                      {wordDate(swtd?.date)}
-                    </Col>
-                  </Form.Group>
-                </Col>
-                {/* Time */}
-                <Col>
-                  <Form.Group as={Row} className="mb-3">
-                    <Form.Label
-                      className={`${styles.formLabel} text-end`}
-                      column
-                      sm="2">
-                      Time
-                    </Form.Label>
-                    <Col className="d-flex align-items-center">
-                      {formatTime(swtd?.time_started)} to{" "}
-                      {formatTime(swtd?.time_finished)}
-                    </Col>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row className="w-100">
-                <Col>
-                  <Form.Group as={Row} className="mb-3" controlId="inputProof">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Proof
-                    </Form.Label>
-                    <Col className="d-flex justify-content-start align-items-center">
-                      <Row className="w-100">
-                        <Col className="text-start" md="auto">
-                          <BtnPrimary
-                            onClick={() => {
-                              fetchSWTDProof();
-                              openProofModal();
-                            }}>
-                            View
-                          </BtnPrimary>
-                        </Col>
-                        <Col className="text-start">
-                          <BtnSecondary
-                            onClick={() => openEditProof()}
-                            disabled={termStatus === true}>
-                            Change Proof
-                          </BtnSecondary>
-                        </Col>
-                      </Row>
-                    </Col>
-                  </Form.Group>
-                  <EditProofModal
-                    show={showEditProof}
-                    onHide={closeEditProof}
-                    editSuccess={proofSuccess}
-                    editError={proofError}
-                  />
-                </Col>
-                <Col className="text-end">
-                  <Form.Group as={Row} className="mb-3">
-                    <Form.Label className={styles.formLabel} column sm="2">
-                      Points
-                    </Form.Label>
-                    <Col
-                      className={`${styles.points} d-flex justify-content-start align-items-center`}
-                      sm="2">
-                      {swtd?.points}
-                    </Col>
-                  </Form.Group>
-                </Col>
-              </Row>
-              <Row>
-                <Form.Group as={Row} className="mb-3">
-                  <Form.Label className={styles.formLabel} column sm="1">
-                    Benefits
-                  </Form.Label>
-                  <Col
-                    className="d-flex align-items-center w-100"
-                    style={{ wordWrap: "break-word" }}>
-                    {swtd?.benefits}
-                  </Col>
-                </Form.Group>
-              </Row>
+              </Form>
             </>
           )}
         </Card.Body>

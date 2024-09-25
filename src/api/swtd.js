@@ -31,12 +31,11 @@ export const addSWTD = async (data, onSuccess, onFail, onCleanup) => {
         category: data.category,
         term_id: data.term_id,
         role: data.role,
-        date: data.date,
-        time_started: data.time_started,
-        time_finished: data.time_finished,
+        dates: data.dates,
         points: data.points,
         proof: data.proof,
         benefits: data.benefits,
+        has_deliverables: data.has_deliverables,
       },
       {
         headers: {
@@ -58,15 +57,12 @@ export const addSWTD = async (data, onSuccess, onFail, onCleanup) => {
 
 export const getSWTD = async (data, onSuccess, onFail, onCleanup) => {
   try {
-    const response = await axios.get(
-      `${config.apiUrl}/swtds/${data.form_id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${data.token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.get(`${config.apiUrl}/swtds/${data.form_id}`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (response.status === 200) {
       onSuccess && onSuccess(response);
@@ -182,14 +178,11 @@ export const editProof = async (data, onSuccess, onFail, onCleanup) => {
 
 export const deleteSWTD = async (data, onSuccess, onFail, onCleanup) => {
   try {
-    const response = await axios.delete(
-      `${config.apiUrl}/swtds/${data.id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${data.token}`,
-        },
-      }
-    );
+    const response = await axios.delete(`${config.apiUrl}/swtds/${data.id}`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+      },
+    });
 
     if (response.status === 200) {
       onSuccess && onSuccess(response);

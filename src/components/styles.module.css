@@ -1,0 +1,13 @@
+.progBars {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.bar {
+  height: 2em !important;
+  border-radius: 10px !important;
+  background-color: #e8b4bc !important;
+  --bs-progress-bar-bg: #9d084a !important;
+  color: var(--bs-progress-bar-bg) !important;
+}
