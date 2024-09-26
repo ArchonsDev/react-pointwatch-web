@@ -50,7 +50,7 @@ const AddSWTD = () => {
     {
       date: "",
       time_started: "",
-      time_finished: "",
+      time_ended: "",
     },
   ]);
   const [form, setForm] = useState({
@@ -80,7 +80,7 @@ const AddSWTD = () => {
       {
         date: "",
         time_started: "",
-        time_finished: "",
+        time_ended: "",
       },
     ]);
 
@@ -125,7 +125,7 @@ const AddSWTD = () => {
       setForm({
         ...form,
         time_started: "00:00",
-        time_finished: "00:00",
+        time_ended: "00:00",
         points: 0,
         [e.target.name]: e.target.value,
       });
@@ -181,7 +181,7 @@ const AddSWTD = () => {
 
     const updatedFormDates = [...formDates];
     while (updatedFormDates.length < newNumDays) {
-      updatedFormDates.push({ date: "", time_started: "", time_finished: "" });
+      updatedFormDates.push({ date: "", time_started: "", time_ended: "" });
     }
     while (updatedFormDates.length > newNumDays) {
       updatedFormDates.pop();
@@ -262,13 +262,13 @@ const AddSWTD = () => {
         !form.category.startsWith("Degree") &&
         !isEmpty(dateEntry.date) &&
         !isEmpty(dateEntry.time_started) &&
-        !isEmpty(dateEntry.time_finished);
+        !isEmpty(dateEntry.time_ended);
 
       if (isFormValid) {
         const points = getHourPoints(
           form.category,
           dateEntry.time_started,
-          dateEntry.time_finished
+          dateEntry.time_ended
         );
         swtdPoints += points;
       }
@@ -335,7 +335,7 @@ const AddSWTD = () => {
       (dateEntry) =>
         !isEmpty(dateEntry.date) &&
         !isEmpty(dateEntry.time_started) &&
-        !isEmpty(dateEntry.time_finished)
+        !isEmpty(dateEntry.time_ended)
     );
 
     if (allEntriesFilled) {
@@ -691,7 +691,7 @@ const AddSWTD = () => {
                         }
                         value={dateEntry.time_started || ""}
                         isInvalid={
-                          dateEntry.time_started > dateEntry.time_finished
+                          dateEntry.time_started > dateEntry.time_ended
                         }
                         disabled={
                           form?.category.startsWith("Degree") || loading
@@ -715,13 +715,13 @@ const AddSWTD = () => {
                         onChange={(e) =>
                           handleFormDatesChange(
                             index,
-                            "time_finished",
+                            "time_ended",
                             e.target.value
                           )
                         }
-                        value={dateEntry.time_finished || ""}
+                        value={dateEntry.time_ended || ""}
                         isInvalid={
-                          dateEntry.time_started > dateEntry.time_finished
+                          dateEntry.time_started > dateEntry.time_ended
                         }
                         disabled={
                           form?.category.startsWith("Degree") || loading

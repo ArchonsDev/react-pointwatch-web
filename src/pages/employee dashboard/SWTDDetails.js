@@ -44,6 +44,7 @@ const SWTDDetails = () => {
         token: token,
       },
       (response) => {
+        console.log(response.data);
         setSWTD(response.data);
         fetchClearance(response.data.term.id);
         setLoading(false);
