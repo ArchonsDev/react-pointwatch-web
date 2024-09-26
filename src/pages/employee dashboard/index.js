@@ -359,7 +359,7 @@ const SWTDDashboard = () => {
           </h3>
         </Col>
         <Col className="text-end">
-          <BtnSecondary>View All</BtnSecondary>
+        <BtnSecondary onClick={() => navigate("/swtd/all")}>View All</BtnSecondary>
         </Col>
       </Row>
 
