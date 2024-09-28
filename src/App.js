@@ -14,6 +14,7 @@ import SWTDDetails from "./pages/employee dashboard/SWTDDetails";
 import Dashboard from "./pages/dashboard";
 import EmployeeSWTD from "./pages/dashboard/EmployeeSWTD";
 import ViewSWTD from "./pages/dashboard/ViewSWTD";
+import DisplaySWTD from "./pages/employee dashboard/DisplaySWTD";
 
 import Admin from "./pages/admin";
 import Settings from "./pages/settings";
@@ -115,6 +116,7 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/reset" element={<ResetPassword />} />
           <Route path="/authorized" element={<Authorized />} />
+          <Route path="/swtd/all" element={<DisplaySWTD />} />
           <Route
             path="/swtd"
             element={token ? <SWTDDashboard /> : <Navigate to="/login" />}
