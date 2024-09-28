@@ -29,6 +29,9 @@ const SWTDDashboard = () => {
 
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [terms, setTerms] = useState([]);
+  const [approvedSWTDCount, setApprovedSWTDCount] = useState(0);
+  const [pendingSWTDCount, setPendingSWTDCount] = useState(0);
+  const [rejectedSWTDCount, setRejectedSWTDCount] = useState(0);
 
   const [termStatus, setTermStatus] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -44,12 +47,26 @@ const SWTDDashboard = () => {
       },
       (response) => {
         setUserSWTDs(response.swtds);
+        const approvedCount = response.swtds.filter(
+          (swtd) => swtd.validation.status === "APPROVED"
+        ).length;
+        const pendingCount = response.swtds.filter(
+          (swtd) => swtd.validation.status === "PENDING"
+        ).length;
+        const rejectedCount = response.swtds.filter(
+          (swtd) => swtd.validation.status === "REJECTED"
+        ).length;
+
+        // Update the state with the counts
+        setApprovedSWTDCount(approvedCount);
+        setPendingSWTDCount(pendingCount);
+        setRejectedSWTDCount(rejectedCount);
         setLoading(false);
+
+        console.log(response.swtds);
       },
       (error) => {
-        if (error.response && error.response.data) {
-          console.log(error.response.data.error);
-        }
+        console.log(error);
       }
     );
   };
@@ -141,7 +158,8 @@ const SWTDDashboard = () => {
   if (loading)
     return (
       <Row
-        className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
+        className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}
+      >
         <Spinner className={`me-2`} animation="border" />
         Loading data...
       </Row>
@@ -155,13 +173,15 @@ const SWTDDashboard = () => {
             Dashboard
             <i
               className={`${styles.commentEdit} fa-solid fa-circle-info fa-xs ms-2`}
-              onClick={openPointsModal}></i>
+              onClick={openPointsModal}
+            ></i>
           </h3>
           <Modal
             show={showPointsModal}
             onHide={closePointsModal}
             size="lg"
-            centered>
+            centered
+          >
             <Modal.Header closeButton>
               <Modal.Title className={styles.formLabel}>
                 Required Points & Compliance Schedule
@@ -174,7 +194,8 @@ const SWTDDashboard = () => {
         </Col>
         <Col
           className={`d-flex align-items-center ${styles.employeeDetails}`}
-          xs="auto">
+          xs="auto"
+        >
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           {terms.length === 0 ? (
             <>No terms were added yet.</>
@@ -185,7 +206,8 @@ const SWTDDashboard = () => {
                 selectedTerm?.is_ongoing === true ? "success" : "secondary"
               }
               size="sm"
-              title={selectedTerm ? selectedTerm.name : "All terms"}>
+              title={selectedTerm ? selectedTerm.name : "All terms"}
+            >
               <Dropdown.Item onClick={() => setSelectedTerm(null)}>
                 All terms
               </Dropdown.Item>
@@ -196,7 +218,8 @@ const SWTDDashboard = () => {
                     onClick={() => {
                       fetchClearanceStatus(term);
                       setSelectedTerm(term);
-                    }}>
+                    }}
+                  >
                     {term.name}
                   </Dropdown.Item>
                 ))}
@@ -226,7 +249,8 @@ const SWTDDashboard = () => {
                 <span
                   className={`ms-2 text-${
                     termStatus?.is_cleared ? "success" : "danger"
-                  }`}>
+                  }`}
+                >
                   {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
                 </span>
               </Col>
@@ -242,7 +266,8 @@ const SWTDDashboard = () => {
             <BtnPrimary
               onClick={() =>
                 user?.department === null ? openModal() : handleAddRecordClick()
-              }>
+              }
+            >
               Add SWTD
             </BtnPrimary>
           </Row>
@@ -256,7 +281,8 @@ const SWTDDashboard = () => {
               </Modal.Title>
             </Modal.Header>
             <Modal.Body
-              className={`${styles.filterText} d-flex justify-content-center align-items-center`}>
+              className={`${styles.filterText} d-flex justify-content-center align-items-center`}
+            >
               Department is required before adding a new record. Please proceed
               to your settings to make this change.
             </Modal.Body>
@@ -274,7 +300,7 @@ const SWTDDashboard = () => {
               Approved SWTDs
             </Card.Header>
             <Card.Body className={styles.statBody}>
-              <Card.Text>4</Card.Text>
+              <Card.Text>{approvedSWTDCount}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -285,7 +311,7 @@ const SWTDDashboard = () => {
               Pending SWTDs
             </Card.Header>
             <Card.Body className={styles.statBody}>
-              <Card.Text>2</Card.Text>
+              <Card.Text>{pendingSWTDCount}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -293,10 +319,10 @@ const SWTDDashboard = () => {
         <Col>
           <Card className={`${styles.statCard} text-center`}>
             <Card.Header className={styles.statHeader}>
-              SWTDs for Revision
+              SWTDs For Revisions
             </Card.Header>
             <Card.Body className={styles.statBody}>
-              <Card.Text>4</Card.Text>
+              <Card.Text>{rejectedSWTDCount}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -305,7 +331,7 @@ const SWTDDashboard = () => {
           <Card className={`${styles.statCard} text-center`}>
             <Card.Header className={styles.statHeader}>Total SWTDs</Card.Header>
             <Card.Body className={styles.statBody}>
-              <Card.Text>10</Card.Text>
+              <Card.Text>{userSWTDs.length}</Card.Text> {/* Total SWTD count */}
             </Card.Body>
           </Card>
         </Col>
@@ -321,7 +347,8 @@ const SWTDDashboard = () => {
                     termStatus?.points?.required_points
                       ? "text-danger"
                       : "text-success"
-                  }`}>
+                  }`}
+                >
                   {termStatus?.points?.valid_points}
                 </span>
                 <span className={styles.requiredPoints}>
@@ -339,13 +366,21 @@ const SWTDDashboard = () => {
       </Row>
 
       <Row className="w-100 mb-3">
-        <Col className={styles.graphBackground}>
-          <LineGraph swtd={userSWTDs} term={selectedTerm} />
-        </Col>
+        {terms.length > 0 || userSWTDs.length > 0 ? (
+          <>
+            <Col className={styles.graphBackground}>
+              <LineGraph swtd={userSWTDs} term={selectedTerm} />
+            </Col>
 
-        <Col>
-          <ProgBars swtd={userSWTDs} term={selectedTerm} />
-        </Col>
+            <Col>
+              <ProgBars swtd={userSWTDs} term={selectedTerm} />
+            </Col>
+          </>
+        ) : (
+          <Col className="text-center">
+            <h5>No stats to show yet</h5>
+          </Col>
+        )}
       </Row>
 
       <Row className="w-100 mb-3">
@@ -381,10 +416,15 @@ const SWTDDashboard = () => {
               <ListGroup.Item
                 key={item.id}
                 className={styles.tableBody}
-                onClick={() => handleEditRecordClick(item.id)}>
+                onClick={() => handleEditRecordClick(item.id)}
+              >
                 <Row>
                   <Col md={9}>{truncateTitle(item.title)}</Col>
-                  <Col md={2}>{item.validation.status}</Col>
+                  <Col md={2}>
+                    {item.validation.status === "REJECTED"
+                      ? "FOR REVISION"
+                      : item.validation.status}
+                  </Col>
                   <Col md={1}>{item.points}</Col>
                 </Row>
               </ListGroup.Item>

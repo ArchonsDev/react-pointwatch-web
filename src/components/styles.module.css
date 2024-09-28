@@ -6,8 +6,9 @@
 
 .bar {
   height: 2em !important;
-  border-radius: 10px !important;
+  border-radius: 15px !important;
   background-color: #e8b4bc !important;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
   --bs-progress-bar-bg: #9d084a !important;
   color: var(--bs-progress-bar-bg) !important;
 }
