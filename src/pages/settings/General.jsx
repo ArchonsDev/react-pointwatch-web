@@ -145,7 +145,7 @@ const General = () => {
               </Form.Label>
               <Col
                 className="d-flex justify-content-start align-items-center"
-                md="9">
+                md="10">
                 {user?.email}
               </Col>
             </Form.Group>
@@ -157,7 +157,7 @@ const General = () => {
                 First name
               </Form.Label>
               {isEditing ? (
-                <Col md="9">
+                <Col md="10">
                   <Form.Control
                     className={styles.formBox}
                     name="firstname"
@@ -181,7 +181,7 @@ const General = () => {
                 Last name
               </Form.Label>
               {isEditing ? (
-                <Col md="9">
+                <Col md="10">
                   <Form.Control
                     className={styles.formBox}
                     type="text"
@@ -206,7 +206,7 @@ const General = () => {
                 Department
               </Form.Label>
               {isEditing ? (
-                <Col md="9">
+                <Col md="10">
                   <Form.Select
                     name="department"
                     className={styles.formBox}
@@ -239,8 +239,7 @@ const General = () => {
       </Row>
 
       <Row>
-        <Col md="3"></Col>
-        <Col className="text-end" md="9">
+        <Col className="text-end">
           {!isEditing ? (
             <BtnSecondary
               onClick={() => {

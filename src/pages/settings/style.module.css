@@ -9,14 +9,14 @@
 }
 
 .activeTab {
-  font-family: "Poppins-SemiBold";
-  color: #3a3238 !important;
-  background-color: #e8b4bc !important;
+  font-family: "Poppins-Bold";
+  color: #f5e3e0 !important;
+  background-color: #9d084a !important;
 }
 
 .inactiveTab {
   color: #f5e3e0 !important;
-  background-color: #3a3238 !important;
+  background-color: #180018 !important;
 }
 
 .form {

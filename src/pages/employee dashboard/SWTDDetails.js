@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Cookies from "js-cookie";
 import { Container, Row, Col, Card, Modal, Spinner, Form } from "react-bootstrap"; /* prettier-ignore */
 import { useNavigate, useParams } from "react-router-dom";
@@ -23,6 +23,7 @@ const SWTDDetails = () => {
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
   const id = parseInt(Cookies.get("userID"), 10);
+  const textareaRef = useRef(null);
 
   const [isEditing, enableEditing, cancelEditing] = useSwitch();
   const [showEditProof, openEditProof, closeEditProof] = useSwitch();
@@ -44,7 +45,6 @@ const SWTDDetails = () => {
         token: token,
       },
       (response) => {
-        console.log(response.data);
         setSWTD(response.data);
         fetchClearance(response.data.term.id);
         setLoading(false);
@@ -89,6 +89,9 @@ const SWTDDetails = () => {
       },
       (response) => {
         setTermStatus(response.is_cleared);
+      },
+      (error) => {
+        console.log("Error fetching clearance status: ", error);
       }
     );
   };
@@ -131,6 +134,14 @@ const SWTDDetails = () => {
     if (swtd) setLoading(false);
   }, []);
 
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [swtd?.benefits]);
+
   if (loading)
     return (
       <Row
@@ -148,7 +159,7 @@ const SWTDDetails = () => {
             <i
               className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
               onClick={() => navigate("/swtd")}></i>{" "}
-            Training Information
+            SWTD Information
           </h3>
         </Col>
 
@@ -205,17 +216,21 @@ const SWTDDetails = () => {
                     ? "text-danger"
                     : ""
                 }>
-                {swtd?.validation.status}
+                {swtd?.validation.status === "REJECTED"
+                  ? "FOR REVISION"
+                  : swtd?.validation.status}
               </span>
             </Col>
 
             {!isEditing && (
-              <Col className={`text-end`}>
-                <span
-                  className={
-                    styles.pointsDisplay
-                  }>{`${swtd.points} POINTS`}</span>
-              </Col>
+              <>
+                <Col className={`text-end`}>
+                  <span
+                    className={
+                      styles.pointsDisplay
+                    }>{`${swtd?.points} POINTS`}</span>
+                </Col>
+              </>
             )}
           </Row>
         </Card.Header>
@@ -241,62 +256,75 @@ const SWTDDetails = () => {
               )}
 
               <Row className="mb-4">
-                <Col className={styles.formLabel} md="1">
+                <Col className={styles.formLabel} md="2">
                   Title
                 </Col>
                 <Col>{truncateTitle(swtd?.title)}</Col>
               </Row>
 
               <Row className="mb-4">
-                <Col className={styles.formLabel} md="1">
+                <Col className={styles.formLabel} md="2">
                   Venue
                 </Col>
-                <Col md="5">{swtd?.venue}</Col>
-              </Row>
-
-              <Row className="mb-4">
-                <Col md="1">
+                <Col md="4">{swtd?.venue}</Col>
+                <Col md="2">
                   <span className={styles.formLabel}>Term</span>
                 </Col>
                 <Col>{swtd?.term.name}</Col>
               </Row>
 
               <Row className="mb-4">
-                <Col className={styles.formLabel} md="1">
+                <Col className={styles.formLabel} md="2">
                   Category
                 </Col>
-                <Col>{swtd?.category}</Col>
-              </Row>
-
-              <Row className="mb-4">
-                <Col md="1">
+                <Col md="4">{swtd?.category}</Col>
+                <Col md="2">
                   <span className={styles.formLabel}>Role</span>
                 </Col>
                 <Col>{swtd?.role}</Col>
               </Row>
 
               <Row className="mb-4">
-                <Col className={styles.formLabel} md="1">
-                  Date
+                <Col className={styles.formLabel} md="2">
+                  Date & Time
                 </Col>
-                <Col>{wordDate(swtd?.date)}</Col>
+                <Col md="4">
+                  {swtd?.dates?.map((entry, index) => (
+                    <div key={index}>
+                      {wordDate(entry.date)}
+                      {!swtd?.category?.startsWith("Degree") && (
+                        <>
+                          {" "}
+                          ({formatTime(entry.time_started)} to{" "}
+                          {formatTime(entry.time_ended)})
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </Col>
+                <Col className={styles.formLabel} md="2">
+                  Has deliverables
+                </Col>
+                <Col md="4">
+                  {swtd?.has_deliverables === true ? (
+                    <>
+                      <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
+                      Yes
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
+                      No
+                    </>
+                  )}
+                </Col>
               </Row>
 
               <Row className="mb-4">
-                <Col className={styles.formLabel} md="1">
-                  Time
-                </Col>
-                <Col>
-                  {formatTime(swtd?.time_started)} to{" "}
-                  {formatTime(swtd?.time_finished)}
-                </Col>
-              </Row>
-
-              <Row className="mb-4">
-                <Col className={styles.formLabel} md="1">
+                <Col className={styles.formLabel} md="2">
                   Proof
                 </Col>
-                <Col md="5">
+                <Col md="4">
                   <BtnPrimary
                     onClick={() => {
                       fetchSWTDProof();
@@ -326,8 +354,10 @@ const SWTDDetails = () => {
                   <Col>
                     <Form.Control
                       as="textarea"
+                      ref={textareaRef}
                       className={styles.formBox}
                       value={swtd?.benefits}
+                      style={{ overflow: "hidden" }}
                       readOnly
                     />
                   </Col>
