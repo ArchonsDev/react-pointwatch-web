@@ -40,6 +40,12 @@
   font-size: 1.2rem;
 }
 
+.swtdHeader {
+  background-color: #e8b4bc !important;
+  font-family: "Poppins-SemiBold";
+  border-radius: 10px 10px 0 0 !important;
+}
+
 .cardBody {
   font-family: "Poppins-Regular";
 }
@@ -153,4 +159,19 @@
 .graphBackground {
   background-color: white;
   border-radius: 3px;
+}
+
+.pageNum {
+  --bs-pagination-active-bg: #9d084a !important;
+  --bs-pagination-bg: #180018 !important;
+  --bs-pagination-border: none !important;
+  --bs-pagination-active-border-color: #9d084a !important;
+  --bs-pagination-color: white !important;
+  --bs-pagination-hover-bg: #9d084a !important;
+  --bs-pagination-hover-color: white !important;
+  --bs-pagination-focus-color: white !important;
+  --bs-pagination-focus-bg: #9d084a !important;
+  --bs-pagination-focus-border: none !important;
+  --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(157, 8, 74, 0.25);
+  font-family: "Poppins-SemiBold" !important;
 }

@@ -62,21 +62,20 @@ const App = () => {
   const tabNames = {
     "/login": "Login",
     "/register": "Register",
-    "/dashboard": "Dashboard",
+    "/dashboard": "Head Dashboard",
     "/reset": "Reset Password",
     "/settings": "Settings",
-    "/swtd": "SWTD Points Overview",
+    "/swtd": "Dashboard",
     "/swtd/form": "Add a New Record",
+    "/swtd/all": "SWTD Submissions",
     "/admin": "Admin",
   };
 
-  document.title =
-    location.pathname.startsWith("/swtd/") &&
-    !location.pathname.startsWith("/swtd/form")
-      ? "Training Information"
-      : location.pathname.startsWith("/dashboard")
-      ? "Dashboard"
-      : tabNames[location.pathname] || "PointWatch";
+  document.title = tabNames[location.pathname] || "PointWatch";
+
+  document.title = location.pathname.startsWith("/swtd/all/")
+    ? "SWTD Information"
+    : tabNames[location.pathname] || "PointWatch";
 
   useEffect(() => {
     const isTokenExpired = (token) => {
@@ -126,7 +125,7 @@ const App = () => {
             element={token ? <AddSWTD /> : <Navigate to="/login" />}
           />
           <Route
-            path="/swtd/:swtd_id"
+            path="/swtd/all/:swtd_id"
             element={token ? <SWTDDetails /> : <Navigate to="/login" />}
           />
           <Route

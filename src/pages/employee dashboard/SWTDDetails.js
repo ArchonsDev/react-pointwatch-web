@@ -158,7 +158,7 @@ const SWTDDetails = () => {
           <h3 className={styles.label}>
             <i
               className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
-              onClick={() => navigate("/swtd")}></i>{" "}
+              onClick={() => navigate("/swtd/all")}></i>{" "}
             SWTD Information
           </h3>
         </Col>
