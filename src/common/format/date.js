@@ -13,8 +13,8 @@ export const apiDate = (date) => {
 
 export const wordDate = (date) => {
   if (!date) return "";
-  const format = formatDate(date);
-  const dateObj = new Date(format);
+  //const format = formatDate(date);
+  const dateObj = new Date(date);
   const options = { year: "numeric", month: "long", day: "numeric" };
   return dateObj.toLocaleDateString("en-US", options);
 };
