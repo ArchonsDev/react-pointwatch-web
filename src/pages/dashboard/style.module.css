@@ -22,8 +22,9 @@
 }
 
 .tableHeader {
-  background-color: #e8b4bc !important;
+  background-color: #9d084a !important;
   font-family: "Poppins-Medium";
+  color: white !important;
   border-radius: 10px 10px 0 0 !important;
 }
 
@@ -100,3 +101,43 @@
 .requiredPoints {
   font-size: 1.3em;
 }
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #5a0431 !important; 
+  padding: 10px;
+}
+
+.pagination-container .pagination {
+  display: inline-flex;
+}
+
+.pagination-container .pagination li a {
+  color: white; 
+  font-weight: bold; 
+}
+
+.pagination-container .pagination li.active a {
+  background-color: white; 
+  color: #5a0431; 
+}
+
+.pagination-container .pagination li a:hover {
+  background-color: #ff4081; 
+  color: white; 
+}
+
+.pagination-container .pagination li a:focus {
+  outline: none; 
+}
+
+.pagination-container .pagination li.disabled a {
+  pointer-events: none;
+  opacity: 0.6; 
+}
+
