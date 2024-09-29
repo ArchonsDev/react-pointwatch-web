@@ -1,7 +1,11 @@
+import { formatDate } from "../common/format/date";
+
 export const defaultLineData = (swtd) => {
   const monthCount = {};
+  console.log(swtd);
   swtd?.forEach((item) => {
-    const date = new Date(item.date);
+    const formattedDate = formatDate(item.dates.date);
+    const date = new Date(formattedDate);
     const month = date.toLocaleString("default", { month: "long" });
 
     monthCount[month] = (monthCount[month] || 0) + 1;
@@ -25,8 +29,11 @@ export const createLineData = (swtd, term) => {
   const monthCount = {};
   const termSWTDs = swtd?.filter((item) => item.term.id === term?.id);
 
+  console.log(termSWTDs);
+
   termSWTDs?.forEach((item) => {
-    const date = new Date(item.date);
+    const formattedDate = formatDate(item.dates.date);
+    const date = new Date(formattedDate);
     const month = date.toLocaleString("default", { month: "long" });
     monthCount[month] = (monthCount[month] || 0) + 1;
   });

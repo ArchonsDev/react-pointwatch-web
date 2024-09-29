@@ -29,6 +29,9 @@ const SWTDDashboard = () => {
 
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [terms, setTerms] = useState([]);
+  const [approvedSWTDCount, setApprovedSWTDCount] = useState(0);
+  const [pendingSWTDCount, setPendingSWTDCount] = useState(0);
+  const [rejectedSWTDCount, setRejectedSWTDCount] = useState(0);
 
   const [termStatus, setTermStatus] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -44,12 +47,26 @@ const SWTDDashboard = () => {
       },
       (response) => {
         setUserSWTDs(response.swtds);
+        const approvedCount = response.swtds.filter(
+          (swtd) => swtd.validation.status === "APPROVED"
+        ).length;
+        const pendingCount = response.swtds.filter(
+          (swtd) => swtd.validation.status === "PENDING"
+        ).length;
+        const rejectedCount = response.swtds.filter(
+          (swtd) => swtd.validation.status === "REJECTED"
+        ).length;
+
+        // Update the state with the counts
+        setApprovedSWTDCount(approvedCount);
+        setPendingSWTDCount(pendingCount);
+        setRejectedSWTDCount(rejectedCount);
         setLoading(false);
+
+        console.log(response.swtds);
       },
       (error) => {
-        if (error.response && error.response.data) {
-          console.log(error.response.data.error);
-        }
+        console.log(error);
       }
     );
   };
@@ -272,7 +289,7 @@ const SWTDDashboard = () => {
               Approved SWTDs
             </Card.Header>
             <Card.Body className={styles.statBody}>
-              <Card.Text>4</Card.Text>
+              <Card.Text>{approvedSWTDCount}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -283,7 +300,7 @@ const SWTDDashboard = () => {
               Pending SWTDs
             </Card.Header>
             <Card.Body className={styles.statBody}>
-              <Card.Text>2</Card.Text>
+              <Card.Text>{pendingSWTDCount}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -291,10 +308,10 @@ const SWTDDashboard = () => {
         <Col>
           <Card className={`${styles.statCard} text-center`}>
             <Card.Header className={styles.statHeader}>
-              SWTDs for Revision
+              SWTDs For Revisions
             </Card.Header>
             <Card.Body className={styles.statBody}>
-              <Card.Text>4</Card.Text>
+              <Card.Text>{rejectedSWTDCount}</Card.Text>
             </Card.Body>
           </Card>
         </Col>
@@ -303,7 +320,7 @@ const SWTDDashboard = () => {
           <Card className={`${styles.statCard} text-center`}>
             <Card.Header className={styles.statHeader}>Total SWTDs</Card.Header>
             <Card.Body className={styles.statBody}>
-              <Card.Text>10</Card.Text>
+              <Card.Text>{userSWTDs.length}</Card.Text> {/* Total SWTD count */}
             </Card.Body>
           </Card>
         </Col>
@@ -337,13 +354,21 @@ const SWTDDashboard = () => {
       </Row>
 
       <Row className="w-100 mb-3">
-        <Col className={styles.graphBackground}>
-          <LineGraph swtd={userSWTDs} term={selectedTerm} />
-        </Col>
+        {terms.length > 0 || userSWTDs.length > 0 ? (
+          <>
+            <Col className={styles.graphBackground}>
+              <LineGraph swtd={userSWTDs} term={selectedTerm} />
+            </Col>
 
-        <Col>
-          <ProgBars swtd={userSWTDs} term={selectedTerm} />
-        </Col>
+            <Col>
+              <ProgBars swtd={userSWTDs} term={selectedTerm} />
+            </Col>
+          </>
+        ) : (
+          <Col className="text-center">
+            <h5>No stats to show yet</h5>
+          </Col>
+        )}
       </Row>
 
       <Row className="w-100 mb-3">
@@ -384,7 +409,11 @@ const SWTDDashboard = () => {
                 onClick={() => handleViewSWTD(item.id)}>
                 <Row>
                   <Col md={9}>{truncateTitle(item.title)}</Col>
-                  <Col md={2}>{item.validation.status}</Col>
+                  <Col md={2}>
+                    {item.validation.status === "REJECTED"
+                      ? "FOR REVISION"
+                      : item.validation.status}
+                  </Col>
                   <Col md={1}>{item.points}</Col>
                 </Row>
               </ListGroup.Item>
