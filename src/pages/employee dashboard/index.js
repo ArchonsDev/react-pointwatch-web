@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal, Spinner, Card, ProgressBar } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, ListGroup, DropdownButton, Dropdown, Modal, Spinner, Card } from "react-bootstrap"; /* prettier-ignore */
 
 import departmentTypes from "../../data/departmentTypes.json";
 import { getClearanceStatus } from "../../api/user";
@@ -34,9 +34,7 @@ const SWTDDashboard = () => {
   const [rejectedSWTDCount, setRejectedSWTDCount] = useState(0);
 
   const [termStatus, setTermStatus] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedTerm, setSelectedTerm] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   const fetchAllSWTDs = async () => {
@@ -62,8 +60,6 @@ const SWTDDashboard = () => {
         setPendingSWTDCount(pendingCount);
         setRejectedSWTDCount(rejectedCount);
         setLoading(false);
-
-        console.log(response.swtds);
       },
       (error) => {
         console.log(error);
@@ -133,19 +129,6 @@ const SWTDDashboard = () => {
       }
     );
   };
-
-  const filteredSWTDs = userSWTDs?.filter(
-    (swtd) => swtd?.term.id === selectedTerm?.id
-  );
-
-  // const displayedSWTDs = (selectedTerm ? filteredSWTDs : userSWTDs)?.filter(
-  //   (swtd) =>
-  //     (selectedStatus === "" || swtd.validation.status === selectedStatus) &&
-  //     (swtd.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //       swtd.validation.status
-  //         .toLowerCase()
-  //         .includes(searchQuery.toLowerCase()))
-  // );
 
   useEffect(() => {
     if (!user) setLoading(true);
@@ -356,7 +339,8 @@ const SWTDDashboard = () => {
       <Row className="w-100 mb-3">
         {terms.length > 0 || userSWTDs.length > 0 ? (
           <>
-            <Col className={styles.graphBackground}>
+            <Col
+              className={`${styles.graphBackground} d-flex justify-content-center align-items-center`}>
               <LineGraph swtd={userSWTDs} term={selectedTerm} />
             </Col>
 
