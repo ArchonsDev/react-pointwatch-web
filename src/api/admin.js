@@ -1,9 +1,10 @@
 import axios from "axios";
-import config from "../config.json";
+
+const apiUrl = process.env.REACT_APP_API_URL;
 
 export const getAllUsers = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.get(`${config.apiUrl}/users/`, {
+    const response = await axios.get(`${apiUrl}/users/`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
@@ -20,7 +21,7 @@ export const getAllUsers = async (data, onSuccess, onFail) => {
 export const validateSWTD = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.put(
-      `${config.apiUrl}/swtds/${data.id}/validation`,
+      `${apiUrl}/swtds/${data.id}/validation`,
       {
         status: data.response,
       },
@@ -42,7 +43,7 @@ export const validateSWTD = async (data, onSuccess, onFail) => {
 export const addTerm = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.post(
-      `${config.apiUrl}/terms/`,
+      `${apiUrl}/terms/`,
       {
         name: data.name,
         start_date: data.start_date,
@@ -68,7 +69,7 @@ export const addTerm = async (data, onSuccess, onFail) => {
 export const updateTerm = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.put(
-      `${config.apiUrl}/terms/${data.id}`,
+      `${apiUrl}/terms/${data.id}`,
       {
         name: data.name,
         start_date: data.start_date,
@@ -93,7 +94,7 @@ export const updateTerm = async (data, onSuccess, onFail) => {
 
 export const deleteTerm = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.delete(`${config.apiUrl}/terms/${data.id}`, {
+    const response = await axios.delete(`${apiUrl}/terms/${data.id}`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
@@ -109,7 +110,7 @@ export const deleteTerm = async (data, onSuccess, onFail) => {
 
 export const getTerms = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.get(`${config.apiUrl}/terms/`, {
+    const response = await axios.get(`${apiUrl}/terms/`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
@@ -126,7 +127,7 @@ export const getTerms = async (data, onSuccess, onFail) => {
 export const clearEmployee = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.post(
-      `${config.apiUrl}/users/${data.id}/terms/${data.term_id}`,
+      `${apiUrl}/users/${data.id}/terms/${data.term_id}`,
       {},
       {
         headers: {
@@ -146,7 +147,7 @@ export const clearEmployee = async (data, onSuccess, onFail) => {
 export const revokeEmployee = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.delete(
-      `${config.apiUrl}/users/${data.id}/terms/${data.term_id}`,
+      `${apiUrl}/users/${data.id}/terms/${data.term_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
