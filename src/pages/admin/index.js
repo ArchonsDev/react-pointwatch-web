@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Row, Nav, Card } from "react-bootstrap";
+import { Container, Row, Nav, Card, Spinner } from "react-bootstrap";
 
 import Term from "./Term";
 import ValidationActivity from "./ValidationActivity";
@@ -35,16 +35,24 @@ const Admin = () => {
     if (!user) setLoading(true);
     else {
       setLoading(false);
-      if (!user?.is_admin && !user?.is_superuser) navigate("/swtd");
+      if (!user?.is_staff && !user?.is_superuser)
+        console.log("User is neither staff nor superuser, navigating away.");
     }
   }, [user, navigate]);
 
-  if (loading) return null;
+  if (loading)
+    return (
+      <Row
+        className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
+        <Spinner className={`me-2`} animation="border" />
+        Loading data...
+      </Row>
+    );
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
       <Row className="mb-2">
-        <h3 className={styles.label}>Admin</h3>
+        <h3 className={styles.label}>HR Management Dashboard</h3>
       </Row>
 
       <Row>

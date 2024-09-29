@@ -19,18 +19,30 @@ export const ProgBars = ({ swtd, term }) => {
 
   return (
     <div className={styles.progBars}>
-      <span>Overall Top Categories of SWTDs</span>
-      {topCategories.map(([category, count]) => (
-        <div key={category} className="mb-3">
-          {" "}
-          {/* Use a div as a wrapper */}
-          <span>{`${category}: ${count} SWTDs`}</span>
-          <ProgressBar
-            className={styles.bar}
-            now={(count / termSWTDs.length) * 100} // Calculate percentage
-          />
+      <span className={styles.header}>Overall Top Categories of SWTDs</span>
+      {termSWTDs.length !== 0 ? (
+        <>
+          {topCategories.map(([category, count]) => (
+            <div key={category} className="mb-3">
+              {" "}
+              <span
+                className={
+                  styles.barLabel
+                }>{`${category}: ${count} SWTDs`}</span>
+              <ProgressBar
+                className={styles.bar}
+                now={(count / termSWTDs.length) * 100}
+              />
+            </div>
+          ))}
+        </>
+      ) : (
+        <div>
+          <span className={`${styles.barLabel} d-flex justify-content-center`}>
+            No SWTDs for this term yet.
+          </span>
         </div>
-      ))}
+      )}
     </div>
   );
 };

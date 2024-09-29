@@ -140,7 +140,7 @@ const Term = () => {
   };
 
   useEffect(() => {
-    if (!user?.is_admin && !user?.is_superuser) {
+    if (!user?.is_staff && !user?.is_superuser) {
       navigate("/swtd");
     }
     fetchTerms();

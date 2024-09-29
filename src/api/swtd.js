@@ -123,16 +123,17 @@ export const editSWTD = async (data, onSuccess, onFail, onCleanup) => {
     const response = await axios.put(
       `${apiUrl}/swtds/${data.id}`,
       {
+        author_id: data.author_id,
         title: data.title,
         venue: data.venue,
         category: data.category,
         term_id: data.term_id,
         role: data.role,
-        date: data.date,
-        time_started: data.time_started,
-        time_finished: data.time_finished,
+        dates: data.dates,
         points: data.points,
+        proof: data.proof,
         benefits: data.benefits,
+        has_deliverables: data.has_deliverables,
       },
       {
         headers: {

@@ -26,6 +26,7 @@ const AddSWTD = () => {
   const accessToken = Cookies.get("userToken");
   const navigate = useNavigate();
   const inputFile = useRef(null);
+  const textareaRef = useRef(null);
 
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
@@ -116,11 +117,15 @@ const AddSWTD = () => {
     setSelectedRole(value);
     setForm((prevForm) => ({
       ...prevForm,
-      role: value,
+      role: value === "Other" ? "" : value,
     }));
   };
 
   const handleChange = (e) => {
+    const textarea = textareaRef.current;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+
     if (e.target.name === "category" && e.target.value.startsWith("Degree")) {
       setForm({
         ...form,
@@ -278,7 +283,13 @@ const AddSWTD = () => {
   };
 
   const handleSubmit = async () => {
-    const datesString = JSON.stringify(formDates);
+    //Change date format from YYYY-MM-DD to MM-DD-YYYY
+    const formattedDates = formDates.map((dateEntry) => ({
+      ...dateEntry,
+      date: apiDate(dateEntry.date),
+    }));
+
+    const datesString = JSON.stringify(formattedDates);
 
     const updatedForm = {
       ...form,
@@ -291,6 +302,11 @@ const AddSWTD = () => {
         setTimeout(() => {
           triggerShowSuccess(4500);
           clearForm();
+          setNumDays(1);
+          setCheckBox({
+            ...checkbox,
+            deliverable: false,
+          });
           setLoading(false);
         });
       },
@@ -338,7 +354,7 @@ const AddSWTD = () => {
         !isEmpty(dateEntry.time_ended)
     );
 
-    if (allEntriesFilled) {
+    if (allEntriesFilled && !checkbox.deliverable) {
       const totalPoints = calculateTotalPoints();
       setForm((prevForm) => ({
         ...prevForm,
@@ -350,7 +366,7 @@ const AddSWTD = () => {
         points: 0,
       }));
     }
-  }, [formDates, form.category]);
+  }, [formDates, form.category, checkbox.deliverable]);
 
   useEffect(() => {
     if (user?.department === null) navigate("/swtd");
@@ -471,6 +487,7 @@ const AddSWTD = () => {
               </Form.Group>
             </Row>
 
+            {/* GENERAL INFORMATION */}
             <Row className="mb-2">
               <Col className={`p-1 ${styles.categoryLabel}`}>
                 <span className="ms-1">GENERAL INFORMATION</span>
@@ -639,6 +656,7 @@ const AddSWTD = () => {
               </Col>
             </Row>
 
+            {/* DATE + TIME ROW */}
             <Row className="mb-4">
               {formDates.map((dateEntry, index) => (
                 <Row key={index} className="mb-2">
@@ -732,12 +750,12 @@ const AddSWTD = () => {
                 </Row>
               ))}
             </Row>
-
+            {/* TIME */}
             <Row className="w-100 mb-1">
               <span className={styles.categoryLabel}>DOCUMENTATION</span>
             </Row>
 
-            {/* Proof */}
+            {/* PROOF */}
             <Row>
               <Col md="6">
                 <FloatingLabel
@@ -752,7 +770,6 @@ const AddSWTD = () => {
                     ref={inputFile}
                     isInvalid={isProofInvalid}
                     disabled={loading}
-                    multiple
                   />
                 </FloatingLabel>
               </Col>
@@ -764,20 +781,23 @@ const AddSWTD = () => {
               </Col>
             </Row>
 
-            {/* Takeaways */}
+            {/* TAKEAWAYS */}
             <>
               <FloatingLabel
                 controlId="floatingInputTakeaways"
-                label="Benefits"
+                label={`Takeaways (${
+                  2000 - form.benefits.length
+                } characters remaining)`}
                 className="mb-3">
                 <Form.Control
                   as="textarea"
                   name="benefits"
+                  ref={textareaRef}
                   className={styles.formBox}
-                  style={{ wordWrap: "break-word" }}
-                  placeholder="Benefits"
+                  style={{ wordWrap: "break-word", overflow: "hidden" }}
                   onChange={handleChange}
                   value={form.benefits}
+                  maxLength={2000}
                   disabled={loading}
                 />
               </FloatingLabel>

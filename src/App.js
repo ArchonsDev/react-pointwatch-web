@@ -14,6 +14,7 @@ import SWTDDetails from "./pages/employee dashboard/SWTDDetails";
 import Dashboard from "./pages/dashboard";
 import EmployeeSWTD from "./pages/dashboard/EmployeeSWTD";
 import ViewSWTD from "./pages/dashboard/ViewSWTD";
+import DisplaySWTD from "./pages/employee dashboard/DisplaySWTD";
 
 import Admin from "./pages/admin";
 import Settings from "./pages/settings";
@@ -64,28 +65,27 @@ const App = () => {
     );
   };
 
-  const showDrawer = ["/swtd", "/dashboard", "/settings", "/admin"].some(
-    (path) => location.pathname.startsWith(path)
+  const showDrawer = ["/swtd", "/dashboard", "/settings", "/hr"].some((path) =>
+    location.pathname.startsWith(path)
   );
 
   const tabNames = {
     "/login": "Login",
     "/register": "Register",
-    "/dashboard": "Dashboard",
+    "/dashboard": "Head Dashboard",
     "/reset": "Reset Password",
     "/settings": "Settings",
-    "/swtd": "SWTD Points Overview",
+    "/swtd": "Dashboard",
     "/swtd/form": "Add a New Record",
-    "/admin": "Admin",
+    "/swtd/all": "SWTD Submissions",
+    "/hr": "HR Management Dashboard",
   };
 
-  document.title =
-    location.pathname.startsWith("/swtd/") &&
-    !location.pathname.startsWith("/swtd/form")
-      ? "Training Information"
-      : location.pathname.startsWith("/dashboard")
-      ? "Dashboard"
-      : tabNames[location.pathname] || "PointWatch";
+  document.title = tabNames[location.pathname] || "PointWatch";
+
+  document.title = location.pathname.startsWith("/swtd/all/")
+    ? "SWTD Information"
+    : tabNames[location.pathname] || "PointWatch";
 
   const values = {
     user,
@@ -133,6 +133,7 @@ const App = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/reset" element={<ResetPassword />} />
             <Route path="/authorized" element={<Authorized />} />
+            <Route path="/swtd/all" element={<DisplaySWTD />} />
             <Route
               path="/swtd"
               element={token ? <SWTDDashboard /> : <Navigate to="/login" />}
@@ -142,7 +143,7 @@ const App = () => {
               element={token ? <AddSWTD /> : <Navigate to="/login" />}
             />
             <Route
-              path="/swtd/:swtd_id"
+              path="/swtd/all/:swtd_id"
               element={token ? <SWTDDetails /> : <Navigate to="/login" />}
             />
             <Route
@@ -165,7 +166,7 @@ const App = () => {
               />
 
             <Route
-              path="/admin"
+              path="/hr"
               element={token ? <Admin /> : <Navigate to="/login" />}
               />
           </Routes>
