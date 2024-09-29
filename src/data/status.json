@@ -1,0 +1,8 @@
+{
+    "status": [
+        "PENDING",
+        "APPROVED",
+        "REJECTED"
+    ]
+
+}

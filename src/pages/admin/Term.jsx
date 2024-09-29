@@ -8,7 +8,7 @@ import { addTerm, getTerms, deleteTerm } from "../../api/admin";
 import { isEmpty } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
-import { wordDate } from "../../common/format/date";
+import { monthYearDate } from "../../common/format/date";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -93,6 +93,12 @@ const Term = () => {
       form.end_date = `${month}-${day}-${year}`;
     }
 
+    if (!isEmpty(form.type) && form.type.includes("MIDYEAR/SUMMER"))
+      form.type = "MIDYEAR";
+
+    if (!isEmpty(form.type) && form.type.includes("ACADEMIC YEAR"))
+      form.type = "SCHOOLYEAR";
+
     await addTerm(
       {
         ...form,
@@ -134,7 +140,7 @@ const Term = () => {
   };
 
   useEffect(() => {
-    if (!user?.is_admin && !user?.is_superuser) {
+    if (!user?.is_staff && !user?.is_superuser) {
       navigate("/swtd");
     }
     fetchTerms();
@@ -206,11 +212,20 @@ const Term = () => {
               </Form.Label>
               <Col sm="3">
                 <Form.Control
-                  type="date"
+                  type="month"
                   className={styles.formBox}
                   name="start_date"
-                  onChange={handleChange}
-                  value={form.start_date}
+                  onChange={(e) => {
+                    const [year, month] = e.target.value.split("-");
+                    const startOfMonth = new Date(Date.UTC(year, month - 1, 1)); // Month is 0-indexed
+                    handleChange({
+                      target: {
+                        name: "start_date",
+                        value: startOfMonth.toISOString().slice(0, 10),
+                      },
+                    });
+                  }}
+                  value={form.start_date.slice(0, 7)}
                 />
               </Col>
             </Form.Group>
@@ -221,12 +236,25 @@ const Term = () => {
               </Form.Label>
               <Col sm="3">
                 <Form.Control
-                  type="date"
-                  min={form.start_date}
+                  type="month"
+                  min={form.start_date.slice(0, 7)}
                   className={styles.formBox}
                   name="end_date"
-                  onChange={handleChange}
-                  value={form.end_date}
+                  onChange={(e) => {
+                    const date = new Date(e.target.value);
+                    const endOfMonth = new Date(
+                      date.getFullYear(),
+                      date.getMonth() + 1,
+                      0
+                    );
+                    handleChange({
+                      target: {
+                        name: "end_date",
+                        value: endOfMonth.toISOString().slice(0, 10),
+                      },
+                    });
+                  }}
+                  value={form.end_date.slice(0, 7)}
                   isInvalid={form.end_date < form.start_date}
                 />
                 <Form.Control.Feedback type="invalid">
@@ -297,9 +325,15 @@ const Term = () => {
                   <tr key={term.id}>
                     <td>{term.id}</td>
                     <td>{term.name}</td>
-                    <td>{term.type}</td>
-                    <td>{wordDate(term.start_date)}</td>
-                    <td>{wordDate(term.end_date)}</td>
+                    <td>
+                      {term.type === "MIDYEAR"
+                        ? "MIDYEAR/SUMMER"
+                        : term.type === "SCHOOLYEAR"
+                        ? "ACADEMIC YEAR"
+                        : term.type}
+                    </td>
+                    <td>{monthYearDate(term.start_date)}</td>
+                    <td>{monthYearDate(term.end_date)}</td>
                     <td className="text-center">
                       <i
                         className={`${styles.icon} fa-solid fa-pen-to-square text-dark me-3`}

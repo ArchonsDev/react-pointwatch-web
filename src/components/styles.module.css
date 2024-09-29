@@ -1,0 +1,30 @@
+.progBars {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.header {
+  text-align: center;
+  font-family: "Poppins-SemiBold";
+  margin-bottom: 2px;
+  font-size: 1.3em;
+}
+
+.barLabel {
+  font-size: 1em;
+  font-family: "Poppins-Regular";
+}
+
+.bar {
+  height: 1.5em !important;
+  border-radius: 15px !important;
+  background-color: #e8b4bc !important;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+  --bs-progress-bar-bg: #9d084a !important;
+  color: var(--bs-progress-bar-bg) !important;
+}
+
+.bar .progress-bar {
+  transition: width 0.4s ease;
+}

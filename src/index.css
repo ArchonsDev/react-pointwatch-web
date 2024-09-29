@@ -8,3 +8,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.form-check-input[type="checkbox"] {
+  border: 1px solid;
+}

@@ -464,7 +464,7 @@ const ViewSWTD = () => {
                     setValidation("REJECTED");
                     openValidateModal();
                   }}>
-                  <i className="fa-solid fa-xmark"></i> REJECT
+                  <i className="fa-solid fa-xmark"></i> NEEDS REVISION
                 </Button>
               </Col>
               <ConfirmationModal

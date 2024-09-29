@@ -18,7 +18,8 @@
 }
 
 .tableHeader {
-  background-color: #e8b4bc !important;
+  background-color: #180018 !important;
+  color: white !important;
   font-family: "Poppins-Medium";
   border-radius: 10px 10px 0 0 !important;
 }
@@ -39,11 +40,21 @@
   font-size: 1.2rem;
 }
 
+.swtdHeader {
+  background-color: #e8b4bc !important;
+  font-family: "Poppins-SemiBold";
+  border-radius: 10px 10px 0 0 !important;
+}
+
 .cardBody {
   font-family: "Poppins-Regular";
 }
 
 .formLabel {
+  font-family: "Poppins-SemiBold";
+}
+
+.categoryLabel {
   font-family: "Poppins-SemiBold";
 }
 
@@ -60,6 +71,15 @@
 .points {
   font-family: "Poppins-SemiBold";
   color: #d80085 !important;
+}
+
+.pointsDisplay {
+  padding-left: 1%;
+  padding-right: 1%;
+  background-color: white;
+  border-radius: 5px;
+  border: #9d084a solid;
+  color: #9d084a;
 }
 
 .triangle {
@@ -106,14 +126,53 @@
 }
 
 .validPoints {
-  font-size: 2.3em;
+  font-size: 2em;
 }
 
 .requiredPoints {
-  font-size: 1.3em;
+  font-size: 1em;
 }
 
 .loading {
   color: #d80085;
   font-family: "Poppins-Medium";
+}
+
+.statCard {
+  border: 1px solid #180018 !important;
+}
+
+.statHeader {
+  padding: 0% !important;
+  font-family: "Poppins-SemiBold";
+  border-bottom: 1px solid #e8b4bc !important;
+  color: #180018 !important;
+  background-color: #e8b4bc !important;
+}
+
+.statBody {
+  padding: 3% !important;
+  font-family: "Poppins-Medium";
+  color: #180018 !important;
+}
+
+.graphBackground {
+  background-color: white;
+  border-radius: 3px;
+  font-family: "Poppins-Medium";
+}
+
+.pageNum {
+  --bs-pagination-active-bg: #9d084a !important;
+  --bs-pagination-bg: #180018 !important;
+  --bs-pagination-border: none !important;
+  --bs-pagination-active-border-color: #9d084a !important;
+  --bs-pagination-color: white !important;
+  --bs-pagination-hover-bg: #9d084a !important;
+  --bs-pagination-hover-color: white !important;
+  --bs-pagination-focus-color: white !important;
+  --bs-pagination-focus-bg: #9d084a !important;
+  --bs-pagination-focus-border: none !important;
+  --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(157, 8, 74, 0.25);
+  font-family: "Poppins-SemiBold" !important;
 }
