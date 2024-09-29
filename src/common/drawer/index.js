@@ -40,6 +40,7 @@ const Drawer = () => {
                 src={logo1}
                 height={40}
                 className="d-inline-block align-top me-2"
+                alt="PointWatch Logo"
               />
               PointWatch
             </div>
@@ -73,7 +74,11 @@ const Drawer = () => {
               <Offcanvas.Title id={`offcanvasNavbarLabel-expand`}>
                 <Row className="flex-column">
                   <Col className="d-flex justify-content-center align-items-center mb-1">
-                    <img src={logo1} style={{ width: "30%" }} />
+                    <img
+                      src={logo1}
+                      style={{ width: "30%" }}
+                      alt="PointWatch Logo"
+                    />
                   </Col>
                   <Col className="text-center mb-4">
                     <span
@@ -118,17 +123,17 @@ const Drawer = () => {
                   </Nav.Link>
 
                   {/* Admin */}
-                  {(user?.is_admin || user?.is_superuser) && (
+                  {(user?.is_staff || user?.is_superuser) && (
                     <Nav.Link
                       className={`mx-3 my-1 p-3 ${
                         location.pathname === "/admin"
                           ? styles.active
                           : styles.navItem
                       }`}
-                      onClick={(e) => navigate("/admin")}>
+                      onClick={(e) => navigate("/hr")}>
                       <i
                         className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}></i>
-                      <span className="px-2">Admin</span>
+                      <span className="px-2">HR Management</span>
                     </Nav.Link>
                   )}
 

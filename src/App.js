@@ -55,8 +55,8 @@ const App = () => {
     );
   };
 
-  const showDrawer = ["/swtd", "/dashboard", "/settings", "/admin"].some(
-    (path) => location.pathname.startsWith(path)
+  const showDrawer = ["/swtd", "/dashboard", "/settings", "/hr"].some((path) =>
+    location.pathname.startsWith(path)
   );
 
   const tabNames = {
@@ -68,7 +68,7 @@ const App = () => {
     "/swtd": "Dashboard",
     "/swtd/form": "Add a New Record",
     "/swtd/all": "SWTD Submissions",
-    "/admin": "Admin",
+    "/hr": "HR Management Dashboard",
   };
 
   document.title = tabNames[location.pathname] || "PointWatch";
@@ -148,7 +148,7 @@ const App = () => {
           />
 
           <Route
-            path="/admin"
+            path="/hr"
             element={token ? <Admin /> : <Navigate to="/login" />}
           />
         </Routes>
