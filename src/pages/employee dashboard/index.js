@@ -359,51 +359,54 @@ const SWTDDashboard = () => {
         <hr />
       </Row>
 
-      <Row className="w-100 mb-3">
-        <Col>
-          <h3 className={`${styles.label} d-flex align-items-center`}>
-            Recent SWTDs
-          </h3>
-        </Col>
-        <Col className="text-end">
-          <BtnSecondary onClick={() => navigate("/swtd/all")}>
-            View All
-          </BtnSecondary>
-        </Col>
-      </Row>
-
-      <Row className="w-100 mb-3">
-        <ListGroup className="w-100" variant="flush">
-          <ListGroup.Item className={styles.tableHeader}>
-            <Row>
-              <Col md={9}>Title</Col>
-              <Col md={2}>Status</Col>
-              <Col md={1}>Points</Col>
-            </Row>
-          </ListGroup.Item>
-        </ListGroup>
-        <ListGroup>
-          {userSWTDs
-            .slice(-5)
-            .reverse()
-            .map((item) => (
-              <ListGroup.Item
-                key={item.id}
-                className={styles.tableBody}
-                onClick={() => handleViewSWTD(item.id)}>
+      {userSWTDs.length !== 0 && (
+        <>
+          <Row className="w-100 mb-3">
+            <Col>
+              <h3 className={`${styles.label} d-flex align-items-center`}>
+                Recent SWTDs
+              </h3>
+            </Col>
+            <Col className="text-end">
+              <BtnSecondary onClick={() => navigate("/swtd/all")}>
+                View All
+              </BtnSecondary>
+            </Col>
+          </Row>
+          <Row className="w-100 mb-3">
+            <ListGroup className="w-100" variant="flush">
+              <ListGroup.Item className={styles.tableHeader}>
                 <Row>
-                  <Col md={9}>{truncateTitle(item.title)}</Col>
-                  <Col md={2}>
-                    {item.validation.status === "REJECTED"
-                      ? "FOR REVISION"
-                      : item.validation.status}
-                  </Col>
-                  <Col md={1}>{item.points}</Col>
+                  <Col md={9}>Title</Col>
+                  <Col md={2}>Status</Col>
+                  <Col md={1}>Points</Col>
                 </Row>
               </ListGroup.Item>
-            ))}
-        </ListGroup>
-      </Row>
+            </ListGroup>
+            <ListGroup>
+              {userSWTDs
+                .slice(-5)
+                .reverse()
+                .map((item) => (
+                  <ListGroup.Item
+                    key={item.id}
+                    className={styles.tableBody}
+                    onClick={() => handleViewSWTD(item.id)}>
+                    <Row>
+                      <Col md={9}>{truncateTitle(item.title)}</Col>
+                      <Col md={2}>
+                        {item.validation.status === "REJECTED"
+                          ? "FOR REVISION"
+                          : item.validation.status}
+                      </Col>
+                      <Col md={1}>{item.points}</Col>
+                    </Row>
+                  </ListGroup.Item>
+                ))}
+            </ListGroup>
+          </Row>
+        </>
+      )}
     </Container>
   );
 };
