@@ -1,11 +1,12 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import config from "../config.json";
+
+const apiUrl = process.env.REACT_APP_API_URL;
 
 export const register = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `${config.apiUrl}/auth/register`,
+      `${apiUrl}/auth/register`,
       {
         employee_id: data.employee_id,
         email: data.email,
@@ -34,7 +35,7 @@ export const register = async (data, onSuccess, onFail, onCleanup) => {
 export const login = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `${config.apiUrl}/auth/login`,
+      `${apiUrl}/auth/login`,
       {
         email: data.email,
         password: data.password,
@@ -61,7 +62,7 @@ export const login = async (data, onSuccess, onFail, onCleanup) => {
 export const recovery = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `${config.apiUrl}/auth/recovery`,
+      `${apiUrl}/auth/recovery`,
       {
         email: data.email,
       },
@@ -85,7 +86,7 @@ export const recovery = async (data, onSuccess, onFail, onCleanup) => {
 export const reset = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `${config.apiUrl}/auth/resetpassword`,
+      `${apiUrl}/auth/resetpassword`,
       {
         password: data.password,
       },
