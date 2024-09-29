@@ -113,8 +113,8 @@ const SWTDDashboard = () => {
     navigate("/swtd/form");
   };
 
-  const handleEditRecordClick = (id) => {
-    navigate(`/swtd/${id}`);
+  const handleViewSWTD = (id) => {
+    navigate(`/swtd/all/${id}`);
   };
 
   const handlePrint = () => {
@@ -236,12 +236,10 @@ const SWTDDashboard = () => {
               {user?.department}
             </Col>
 
-            {selectedTerm === null && (
-              <Col className="d-flex align-items-center" xs="auto">
-                <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
-                {user?.point_balance}
-              </Col>
-            )}
+            <Col className="d-flex align-items-center" xs="auto">
+              <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
+              {user?.point_balance}
+            </Col>
 
             {selectedTerm !== null && (
               <Col className="d-flex align-items-center" xs="auto">
@@ -394,7 +392,9 @@ const SWTDDashboard = () => {
           </h3>
         </Col>
         <Col className="text-end">
-          <BtnSecondary>View All</BtnSecondary>
+          <BtnSecondary onClick={() => navigate("/swtd/all")}>
+            View All
+          </BtnSecondary>
         </Col>
       </Row>
 
@@ -416,7 +416,7 @@ const SWTDDashboard = () => {
               <ListGroup.Item
                 key={item.id}
                 className={styles.tableBody}
-                onClick={() => handleEditRecordClick(item.id)}
+                onClick={() => handleViewSWTD(item.id)}
               >
                 <Row>
                   <Col md={9}>{truncateTitle(item.title)}</Col>
