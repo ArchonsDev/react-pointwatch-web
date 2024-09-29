@@ -22,7 +22,14 @@ ChartJS.register(
 );
 
 export const LineGraph = ({ swtd, term }) => {
-  const options = {};
+  const options = {
+    scales: {
+      y: {
+        beginAtZero: true,
+        min: 0,
+      },
+    },
+  };
   const lineData = term ? createLineData(swtd, term) : defaultLineData(swtd);
   return <Line options={options} data={lineData} />;
 };

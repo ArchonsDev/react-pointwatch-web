@@ -159,6 +159,7 @@
 .graphBackground {
   background-color: white;
   border-radius: 3px;
+  font-family: "Poppins-Medium";
 }
 
 .pageNum {
