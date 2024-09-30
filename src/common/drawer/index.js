@@ -130,10 +130,10 @@ const Drawer = () => {
                           ? styles.active
                           : styles.navItem
                       }`}
-                      onClick={(e) => navigate("/hr")}>
+                      onClick={(e) => navigate("/admin")}>
                       <i
                         className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}></i>
-                      <span className="px-2">HR Management</span>
+                      <span className="px-2">System Management</span>
                     </Nav.Link>
                   )}
 
