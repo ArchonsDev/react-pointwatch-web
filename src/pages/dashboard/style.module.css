@@ -102,92 +102,72 @@
   font-size: 1.3em;
 }
 
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background-color: #5a0431 !important; 
-  padding: 10px;
-}
-
-.pagination-container .pagination {
-  display: inline-flex;
-}
-
-.pagination-container .pagination li a {
-  color: white; 
-  font-weight: bold; 
-}
-
-.pagination-container .pagination li.active a {
-  background-color: white; 
-  color: #5a0431; 
-}
-
-.pagination-container .pagination li a:hover {
-  background-color: #ff4081; 
-  color: white; 
-}
-
-.pagination-container .pagination li a:focus {
-  outline: none; 
-}
-
-.pagination-container .pagination li.disabled a {
-  pointer-events: none;
-  opacity: 0.6; 
-}
-
 .blackCard {
-  background-color: black !important;
+  background-color: #180018 !important;
 }
 
-.cardTitle{
+.cardTitle {
   color: white;
 }
 
-.cardList{
+.cardList {
   background-color: black !important;
   border-color: black !important;
   border: none !important;
 }
 
-.listColor{
+.listColor {
   background-color: black !important;
   color: white !important;
 }
 
-.depStat{
+.depCol {
   color: white !important;
 }
 
-.cardCol1{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 20px;
+.depTitle {
+  font-family: "Poppins-SemiBold";
+  font-size: 1.15em;
+}
+
+.depStat {
+  font-family: "Poppins-Regular";
+  font-size: 0.9em;
+}
+
+.cardCol1 {
+  font-family: "Poppins-Medium";
   color: white;
 }
 
 .lackingPercent {
   justify-content: center;
-  font-size: 2.5rem; /* Adjust the size as needed */
-  font-weight: bold; /* Makes the text bold */
-  font-family: 'Poppins', sans-serif; /* Set font to Poppins */
-  text-align: center; /* Center the text within the row */
+  font-size: 2.3rem;
+  font-weight: bold;
+  font-family: "Poppins", sans-serif;
+  text-align: center;
 }
 
-
-.lackingTitle{
-  
+.pageNum {
+  --bs-pagination-active-bg: #9d084a !important;
+  --bs-pagination-bg: #180018 !important;
+  --bs-pagination-border: none !important;
+  --bs-pagination-active-border-color: #9d084a !important;
+  --bs-pagination-color: white !important;
+  --bs-pagination-hover-bg: #9d084a !important;
+  --bs-pagination-hover-color: white !important;
+  --bs-pagination-focus-color: white !important;
+  --bs-pagination-focus-bg: #9d084a !important;
+  --bs-pagination-focus-border: none !important;
+  --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(157, 8, 74, 0.25);
+  font-family: "Poppins-SemiBold" !important;
 }
 
-.pieCol{
-  height: 250px;
+.bar {
+  border-radius: 15px !important;
+  border: 2px solid white !important;
+  background-color: #e8b4bc !important;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+  --bs-progress-bar-bg: #9d084a !important;
+  color: var(--bs-progress-bar-bg) !important;
 }
-
-
