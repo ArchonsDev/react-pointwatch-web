@@ -148,6 +148,11 @@ const Term = () => {
 
   return (
     <>
+      <Row className={`${styles.table} w-100`}>
+        <span className="text-muted mb-3">
+          Terms are required for employees to submit SWTDs.
+        </span>
+      </Row>
       <Form className={styles.form}>
         {showError && (
           <div className="alert alert-danger mb-3" role="alert">
@@ -313,9 +318,9 @@ const Term = () => {
               <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Type</th>
-                <th>Start Date</th>
-                <th>End Date</th>
+                <th className="col-1">Type</th>
+                <th className="col-2">Start Date</th>
+                <th className="col-2">End Date</th>
                 <th className="text-center">Actions</th>
               </tr>
             </thead>
@@ -336,13 +341,13 @@ const Term = () => {
                     <td>{monthYearDate(term.end_date)}</td>
                     <td className="text-center">
                       <i
-                        className={`${styles.icon} fa-solid fa-pen-to-square text-dark me-3`}
+                        className={`${styles.icon} fa-solid fa-pen-to-square fa-xl text-dark me-3`}
                         onClick={() => {
                           openEditModal();
                           setSelectedTerm(term);
                         }}></i>
                       <i
-                        className={`${styles.icon} fa-solid fa-trash-can text-danger`}
+                        className={`${styles.icon} fa-solid fa-trash-can fa-xl text-danger`}
                         onClick={() => {
                           openDeleteModal();
                           setSelectedTerm(term);

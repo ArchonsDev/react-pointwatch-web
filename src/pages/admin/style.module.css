@@ -9,14 +9,14 @@
 }
 
 .activeTab {
-  font-family: "Poppins-SemiBold";
-  color: #3a3238 !important;
-  background-color: #e8b4bc !important;
+  font-family: "Poppins-Bold";
+  color: #f5e3e0 !important;
+  background-color: #9d084a !important;
 }
 
 .inactiveTab {
   color: #f5e3e0 !important;
-  background-color: #3a3238 !important;
+  background-color: #180018 !important;
 }
 
 .card {
@@ -52,4 +52,19 @@
 .loading {
   font-family: "Poppins-SemiBold";
   color: #d80085;
+}
+
+.pageNum {
+  --bs-pagination-active-bg: #9d084a !important;
+  --bs-pagination-bg: #180018 !important;
+  --bs-pagination-border: none !important;
+  --bs-pagination-active-border-color: #9d084a !important;
+  --bs-pagination-color: white !important;
+  --bs-pagination-hover-bg: #9d084a !important;
+  --bs-pagination-hover-color: white !important;
+  --bs-pagination-focus-color: white !important;
+  --bs-pagination-focus-bg: #9d084a !important;
+  --bs-pagination-focus-border: none !important;
+  --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(157, 8, 74, 0.25);
+  font-family: "Poppins-SemiBold" !important;
 }
