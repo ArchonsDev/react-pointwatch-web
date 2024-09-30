@@ -1,7 +1,17 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
+import PieChart from "../../components/Pie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, Card } from "react-bootstrap"; /* prettier-ignore */
+import { 
+  Row, 
+  Col, 
+  Container, 
+  InputGroup, 
+  Form, 
+  ListGroup, 
+  Spinner, 
+  Pagination, 
+  Card, ProgressBar } from "react-bootstrap"; /* prettier-ignore */
 
 import departments from "../../data/departments.json";
 import { getAllUsers } from "../../api/admin";
@@ -55,6 +65,12 @@ const Dashboard = () => {
   
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  const [now, setNow] = useState(20);
+
+  function ProgressBarr({ label }) {
+    return <ProgressBar now={now} label={label} style={{ width: '100%' }} />;
+  }
+
   useEffect(() => {
     if (!user) setLoading(true);
     else {
@@ -80,6 +96,40 @@ const Dashboard = () => {
         <h3 className={styles.label}>
           {user.department} Department Dashboard
         </h3>
+      </Row>
+
+      <Row className="mb-3">
+        <Col md="6">
+          <Card className={styles.blackCard}>
+              <Card.Body>
+                <Row>
+                  <Col className={`${styles.cardCol1} w-100`}>
+                    <Row className={styles.lackingTitle}> % of employees lacking points</Row>
+                    <Row className={styles.lackingPercent}>{`${now}%`}</Row> 
+                    <Row className="w-100"><ProgressBarr label={`${now}%`} /></Row>
+                  </Col>
+                  <Col className={styles.depStat}>
+                    <Row className="w-100">Department Statistics</Row>
+                      <Row className="w-100">
+                        <Col md="15">Total Employees</Col>
+                        <Col className="test-end">#</Col>
+                      </Row>
+                      <Row className="w-100">
+                        <Col md="15">Employees Lacking Points</Col>
+                        <Col className="test-end">#</Col>
+                      </Row>
+                      <Row className="w-100">
+                        <Col md="15">Employees with Required Points</Col>
+                        <Col className="test-end">#</Col>
+                      </Row>
+                  </Col>
+                </Row>
+              </Card.Body>
+          </Card>
+        </Col>
+        <Col className={styles.pieCol} md="6">
+          <PieChart />
+        </Col>
       </Row>
 
       <Row className="w-100">
