@@ -1,7 +1,17 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
+import PieChart from "../../components/Pie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner } from "react-bootstrap"; /* prettier-ignore */
+import { 
+  Row, 
+  Col, 
+  Container, 
+  InputGroup, 
+  Form, 
+  ListGroup, 
+  Spinner, 
+  Pagination, 
+  Card, ProgressBar } from "react-bootstrap"; /* prettier-ignore */
 
 import departments from "../../data/departments.json";
 import { getAllUsers } from "../../api/admin";
@@ -18,7 +28,8 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 15;
 
   const fetchAllUsers = async () => {
     await getAllUsers(
@@ -39,14 +50,26 @@ const Dashboard = () => {
     navigate(`/dashboard/${id}`);
   };
 
-  const displayEmployee = users.filter(
-    (user) =>
-      (selectedDepartment ? user.department === selectedDepartment : true) &&
+  const filteredUsers = users.filter(
+    (userItem) =>
+      userItem.department === user.department &&
       (searchQuery === "" ||
-        user.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.employee_id.includes(searchQuery))
+        userItem.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        userItem.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        userItem.employee_id.includes(searchQuery))
   );
+
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstRow, indexOfLastRow);
+  
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const [now, setNow] = useState(20);
+
+  function ProgressBarr({ label }) {
+    return <ProgressBar now={now} label={label} style={{ width: '100%' }} />;
+  }
 
   useEffect(() => {
     if (!user) setLoading(true);
@@ -70,7 +93,43 @@ const Dashboard = () => {
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
       <Row className="mb-2">
-        <h3 className={styles.label}>Dashboard</h3>
+        <h3 className={styles.label}>
+          {user.department} Department Dashboard
+        </h3>
+      </Row>
+
+      <Row className="mb-3">
+        <Col md="6">
+          <Card className={styles.blackCard}>
+              <Card.Body>
+                <Row>
+                  <Col className={`${styles.cardCol1} w-100`}>
+                    <Row className={styles.lackingTitle}> % of employees lacking points</Row>
+                    <Row className={styles.lackingPercent}>{`${now}%`}</Row> 
+                    <Row className="w-100"><ProgressBarr label={`${now}%`} /></Row>
+                  </Col>
+                  <Col className={styles.depStat}>
+                    <Row className="w-100">Department Statistics</Row>
+                      <Row className="w-100">
+                        <Col md="15">Total Employees</Col>
+                        <Col className="test-end">#</Col>
+                      </Row>
+                      <Row className="w-100">
+                        <Col md="15">Employees Lacking Points</Col>
+                        <Col className="test-end">#</Col>
+                      </Row>
+                      <Row className="w-100">
+                        <Col md="15">Employees with Required Points</Col>
+                        <Col className="test-end">#</Col>
+                      </Row>
+                  </Col>
+                </Row>
+              </Card.Body>
+          </Card>
+        </Col>
+        <Col className={styles.pieCol} md="6">
+          <PieChart />
+        </Col>
       </Row>
 
       <Row className="w-100">
@@ -88,7 +147,7 @@ const Dashboard = () => {
           </InputGroup>
         </Col>
 
-        <Col className="text-end" md={3}>
+        {/*<Col className="text-end" md={3}>
           <Form.Group as={Row} controlId="inputFilter">
             <Form.Label className={styles.filterText} column sm="4">
               Department
@@ -110,17 +169,16 @@ const Dashboard = () => {
               </Form.Select>
             </Col>
           </Form.Group>
-        </Col>
+        </Col>*/}
       </Row>
 
       <Row className="w-100">
-        {displayEmployee.length === 0 &&
-        (selectedDepartment === "" || selectedDepartment !== "") ? (
-          <span
-            className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}
-          >
-            No employees found.
-          </span>
+        {currentUsers.length === 0 ? (
+            <span
+              className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}
+            >
+              No employees found.
+            </span>
         ) : (
           <div className="mb-3">
             <ListGroup className="w-100" variant="flush">
@@ -129,7 +187,6 @@ const Dashboard = () => {
                   <Row>
                     <Col xs={3}>ID No.</Col>
                     <Col xs={5}>Name</Col>
-                    <Col xs={2}>Department</Col>
                     <Col className="text-center" xs={2}>
                       Point Balance
                     </Col>
@@ -138,11 +195,8 @@ const Dashboard = () => {
               )}
             </ListGroup>
             <ListGroup>
-              {displayEmployee &&
-                displayEmployee
-                  .filter((item) => item.id !== parseInt(userID, 10))
-                  .map((item) => (
-                    <ListGroup.Item
+              {currentUsers.map((item) => (
+                <ListGroup.Item
                       key={item.id}
                       className={styles.tableBody}
                       onClick={() => handleEmployeeSWTDClick(item.id)}
@@ -152,7 +206,6 @@ const Dashboard = () => {
                         <Col xs={5}>
                           {item.firstname} {item.lastname}
                         </Col>
-                        <Col xs={2}>{item.department}</Col>
                         <Col className="text-center" xs={2}>
                           {item.point_balance}
                         </Col>
@@ -162,6 +215,40 @@ const Dashboard = () => {
             </ListGroup>
           </div>
         )}
+      </Row>
+      <Row className="w-100 mb-3">
+        <Col className="d-flex justify-content-center">
+          <div className="pagination-container">
+            <Pagination size="sm">
+              <Pagination.First onClick={() => paginate(1)} />
+              <Pagination.Prev onClick={() => paginate(currentPage > 1 ? currentPage - 1 : 1)} />
+              {Array.from(
+                { length: Math.ceil(filteredUsers.length / rowsPerPage) },
+                (_, index) => (
+                  <Pagination.Item
+                    key={index + 1}
+                    active={index + 1 === currentPage}
+                    onClick={() => paginate(index + 1)}
+                  >
+                    {index + 1}
+                  </Pagination.Item>
+                )
+              )}
+              <Pagination.Next
+                onClick={() =>
+                  paginate(
+                    currentPage < filteredUsers.length / rowsPerPage
+                      ? currentPage + 1
+                      : currentPage
+                  )
+                }
+              />
+              <Pagination.Last
+                onClick={() => paginate(Math.ceil(filteredUsers.length / rowsPerPage))}
+              />
+            </Pagination>
+          </div>
+        </Col>
       </Row>
     </Container>
   );
