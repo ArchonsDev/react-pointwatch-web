@@ -256,10 +256,6 @@ const EmployeeSWTD = () => {
                 </DropdownButton>
               )}
             </Col>
-            <Col className="d-flex align-items-center" xs="auto">
-              <i className="fa-solid fa-building me-2"></i>Department:{" "}
-              {employee?.department}
-            </Col>
 
             <Col className="d-flex align-items-center" xs="auto">
               <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
@@ -303,20 +299,22 @@ const EmployeeSWTD = () => {
       </Row>
 
       <Row className="w-100">
-        <Col className="text-start" md={5}>
+        {/* SEARCH BAR */}
+        <Col className="text-start p-0 me-2" md={5}>
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
             </InputGroup.Text>
             <Form.Control
               type="search"
-              placeholder="Search"
+              placeholder="Search by SWTD tistle"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </InputGroup>
         </Col>
 
+        {/* STATUS FILTER */}
         <Col>
           <Form.Group as={Row} controlId="inputFilter">
             <Form.Label className={styles.filterText} column sm="2">
@@ -338,6 +336,7 @@ const EmployeeSWTD = () => {
           </Form.Group>
         </Col>
 
+        {/* CLEARANCE BUTTONS */}
         <Col className="text-end">
           {user?.is_admin &&
             selectedTerm !== null &&
@@ -360,7 +359,10 @@ const EmployeeSWTD = () => {
               </>
             ))}
           {selectedTerm === null && (
-            <BtnPrimary onClick={handlePrint} disabled={userSWTDs.length === 0}>
+            <BtnPrimary
+              onClick={handlePrint}
+              disabled={loading || userSWTDs.length === 0}>
+              <i className="fa-solid fa-file-arrow-down me-2"></i>
               Export PDF
             </BtnPrimary>
           )}
@@ -397,8 +399,7 @@ const EmployeeSWTD = () => {
               ) : (
                 <ListGroup.Item className={styles.tableHeader}>
                   <Row>
-                    <Col xs={1}>No.</Col>
-                    <Col xs={7}>Title of SWTD</Col>
+                    <Col xs={8}>Title of SWTD</Col>
                     <Col xs={2}>Points</Col>
                     <Col xs={2}>Status</Col>
                   </Row>
@@ -412,8 +413,7 @@ const EmployeeSWTD = () => {
                   className={styles.tableBody}
                   onClick={() => handleViewSWTD(item.id)}>
                   <Row>
-                    <Col xs={1}>{item.id}</Col>
-                    <Col xs={7}>{truncateTitle(item.title)}</Col>
+                    <Col xs={8}>{truncateTitle(item.title)}</Col>
                     <Col xs={2}>{item.points}</Col>
                     <Col xs={2}>{item.validation.status}</Col>
                   </Row>
