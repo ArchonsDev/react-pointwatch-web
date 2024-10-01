@@ -6,6 +6,7 @@ import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, 
 import departmentTypes from "../../data/departmentTypes.json";
 import { getAllUsers, getTerms } from "../../api/admin";
 import { getClearanceStatus } from "../../api/user";
+import { getAllSWTDs } from "../../api/swtd";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import styles from "./style.module.css";
@@ -18,7 +19,7 @@ const Dashboard = () => {
   const [departmentUsers, setDepartmentUsers] = useState([]);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
-  const [userClearanceStatus, setUserClearanceStatus] = useState({});
+  const [userClearanceStatus, setUserClearanceStatus] = useState([]);
   const [requiredPoints, setRequiredPoints] = useState(0);
   const lackingUsers = Object.values(userClearanceStatus).filter(
     (status) => status.points.valid_points < requiredPoints
@@ -33,7 +34,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 15;
+  const recordsPerPage = 20;
 
   const fetchAllUsers = async () => {
     await getAllUsers(
@@ -46,7 +47,6 @@ const Dashboard = () => {
             (us) => us.department === user.department && us.id !== user.id
           )
         );
-        setLoading(false);
       },
       (error) => {
         console.log(error);
@@ -77,41 +77,56 @@ const Dashboard = () => {
     );
   };
 
-  const fetchClearanceStatus = (
-    userId,
-    term,
-    employee_id,
-    firstname,
-    lastname
-  ) => {
-    getClearanceStatus(
+  const fetchClearanceStatus = (employee, term) => {
+    getAllSWTDs(
       {
-        id: userId,
-        term_id: term.id,
+        author_id: employee.id,
         token: token,
       },
-      (response) => {
-        setUserClearanceStatus((prevStatus) => ({
-          ...prevStatus,
-          [userId]: {
-            ...response,
-            employee_id,
-            firstname,
-            lastname,
+      (swtdsResponse) => {
+        const filteredSWTDs = swtdsResponse.swtds.filter(
+          (swtd) => swtd.term.id === term.id
+        );
+
+        getClearanceStatus(
+          {
+            id: employee.id,
+            term_id: term.id,
+            token: token,
           },
-        }));
-        setRequiredPoints(response.points.required_points);
+          (clearanceResponse) => {
+            setUserClearanceStatus((prevStatus) => ({
+              ...prevStatus,
+              [employee.id]: {
+                ...clearanceResponse,
+                id: employee.id,
+                employee_id: employee.employee_id,
+                firstname: employee.firstname,
+                lastname: employee.lastname,
+                swtds: filteredSWTDs,
+              },
+            }));
+
+            setRequiredPoints(clearanceResponse.points.required_points);
+            setLoading(false);
+          },
+          (error) => {
+            console.log(
+              `Clearance status error for user ${employee.id}:`,
+              error.message
+            );
+          }
+        );
       },
       (error) => {
-        console.log(error.message);
+        console.log(`SWTDs error for user ${employee.id}:`, error.message);
       }
     );
   };
 
   const fetchClearanceStatusForAllUsers = (term) => {
     departmentUsers.forEach((us) => {
-      const { id, employee_id, firstname, lastname } = us;
-      fetchClearanceStatus(id, term, employee_id, firstname, lastname);
+      fetchClearanceStatus(us, term);
     });
   };
 
@@ -125,26 +140,46 @@ const Dashboard = () => {
       .sort((a, b) => b.valid_points - a.valid_points)
       .slice(0, 5);
   };
-  const topUsers = getTopEmployeePoints();
 
   const handleEmployeeSWTDClick = (id) => {
     navigate(`/dashboard/${id}`);
   };
 
-  const filteredUsers = departmentUsers.filter(
-    (userItem) =>
-      userItem.department === user.department &&
-      (searchQuery === "" ||
-        userItem.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        userItem.lastname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        userItem.employee_id.includes(searchQuery))
+  //Get Point Standings
+  const topUsers = getTopEmployeePoints();
+
+  //Pagination
+  const handleSearchFilter = (employeeList, query) => {
+    return Object.values(employeeList).filter((employee) => {
+      const match =
+        employee.employee_id.includes(query) ||
+        employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
+        employee.lastname.toLowerCase().includes(query.toLowerCase());
+      return match;
+    });
+  };
+
+  const filteredEmployees = searchQuery
+    ? handleSearchFilter(userClearanceStatus, searchQuery)
+    : Object.values(userClearanceStatus);
+
+  const totalRecords = filteredEmployees.length;
+  const totalPages = Math.ceil(totalRecords / recordsPerPage);
+
+  // Ensure currentPage does not exceed totalPages
+  const currentPageClamped = Math.min(currentPage, totalPages);
+
+  const indexOfLastRecord = currentPageClamped * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+
+  const currentRecords = filteredEmployees.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
   );
 
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstRow, indexOfLastRow);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   useEffect(() => {
     if (!user) setLoading(true);
@@ -167,10 +202,6 @@ const Dashboard = () => {
     }
   }, [selectedTerm]);
 
-  useEffect(() => {
-    console.log("Updated user clearance status:", userClearanceStatus);
-  }, [userClearanceStatus]);
-
   if (loading)
     return (
       <Row
@@ -182,7 +213,7 @@ const Dashboard = () => {
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
-      <Row className="mb-3 w-100">
+      <Row className="mb-2 w-100">
         <Col>
           <h3 className={styles.label}>
             {user.department} Department Dashboard
@@ -247,7 +278,9 @@ const Dashboard = () => {
                   <hr className="m-0 mb-2" style={{ opacity: "1" }} />
                   <Row className={`${styles.depStat} w-100 mb-2`}>
                     <Col md="auto">Total Employees</Col>
-                    <Col className="text-end">{departmentUsers.length}</Col>
+                    <Col className="text-end">
+                      {Object.values(userClearanceStatus).length}
+                    </Col>
                   </Row>
                   <Row className={`${styles.depStat} w-100 mb-2`}>
                     <Col md="auto">Employees Lacking Points</Col>
@@ -263,18 +296,17 @@ const Dashboard = () => {
           </Card>
         </Col>
         <Col>
-          <span>Point Standings for {selectedTerm?.name}</span>
-          <hr className="m-0 mb-2" style={{ opacity: "1" }} />
-          <Row>
-            <Col>ID No. - Name</Col>
-            <Col className="text-end">Points</Col>
-          </Row>
+          <span className={styles.formLabel}>
+            Point Standings for {selectedTerm?.name}
+          </span>
+          <hr className="m-0 mb-1" style={{ opacity: "1" }} />
           {topUsers.map((user) => (
-            <Row key={user.userId}>
-              <Col md="6">
-                {user.employee_id} - {user.firstname} {user.lastname}
+            <Row className={styles.cardBody} key={user.userId}>
+              <Col md="1">{user.employee_id}</Col>
+              <Col>
+                {user.firstname} {user.lastname}
               </Col>
-              <Col className="text-end" md="6">
+              <Col className="text-end">
                 {user.points?.valid_points || 0} {/* Display valid points */}
               </Col>
             </Row>
@@ -283,47 +315,23 @@ const Dashboard = () => {
       </Row>
 
       <Row className="w-100">
-        <Col className="text-start" md={6}>
+        <Col className="text-start" md={7}>
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
             </InputGroup.Text>
             <Form.Control
               type="search"
-              placeholder="Search"
+              placeholder="Search an employee by ID number, firstname, or lastname."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </InputGroup>
         </Col>
-
-        {/*<Col className="text-end" md={3}>
-          <Form.Group as={Row} controlId="inputFilter">
-            <Form.Label className={styles.filterText} column sm="4">
-              Department
-            </Form.Label>
-            <Col>
-              <Form.Select
-                className={styles.filterOption}
-                name="filter"
-                onChange={(e) => {
-                  setSelectedDepartment(e.target.value);
-                }}
-              >
-                <option value="">All departments</option>
-                {departments.departments.map((department, index) => (
-                  <option key={index} value={department}>
-                    {department}
-                  </option>
-                ))}
-              </Form.Select>
-            </Col>
-          </Form.Group>
-        </Col>*/}
       </Row>
 
       <Row className="w-100">
-        {currentUsers.length === 0 ? (
+        {!userClearanceStatus ? (
           <span
             className={`${styles.msg} d-flex justify-content-center align-items-center mt-5 w-100`}>
             No employees found.
@@ -331,22 +339,26 @@ const Dashboard = () => {
         ) : (
           <div className="mb-3">
             <ListGroup className="w-100" variant="flush">
-              {departmentUsers.length !== 0 && (
-                <ListGroup.Item className={styles.tableHeader}>
-                  <Row>
-                    <Col md={2}>ID No.</Col>
-                    <Col>Name</Col>
-                    <Col className="text-center" md={2}>
-                      Point Balance
-                    </Col>
-                  </Row>
-                </ListGroup.Item>
-              )}
+              <ListGroup.Item className={styles.tableHeader}>
+                <Row>
+                  <Col md={2}>ID No.</Col>
+                  <Col>Name</Col>
+                  <Col className="text-center" md={2}>
+                    Pending SWTDs
+                  </Col>
+                  <Col className="text-center" md={2}>
+                    Approved SWTDs
+                  </Col>
+                  <Col className="text-center" md={2}>
+                    SWTDs For Revision
+                  </Col>
+                </Row>
+              </ListGroup.Item>
             </ListGroup>
             <ListGroup>
-              {currentUsers.map((item) => (
+              {currentRecords.map((item) => (
                 <ListGroup.Item
-                  key={item.id}
+                  key={item.employee_id}
                   className={styles.tableBody}
                   onClick={() => handleEmployeeSWTDClick(item.id)}>
                   <Row>
@@ -355,7 +367,25 @@ const Dashboard = () => {
                       {item.firstname} {item.lastname}
                     </Col>
                     <Col className="text-center" md={2}>
-                      {item.point_balance}
+                      {
+                        item.swtds.filter(
+                          (swtd) => swtd.validation.status === "PENDING"
+                        ).length
+                      }
+                    </Col>
+                    <Col className="text-center" md={2}>
+                      {
+                        item.swtds.filter(
+                          (swtd) => swtd.validation.status === "APPROVED"
+                        ).length
+                      }
+                    </Col>
+                    <Col className="text-center" md={2}>
+                      {
+                        item.swtds.filter(
+                          (swtd) => swtd.validation.status === "REJECTED"
+                        ).length
+                      }
                     </Col>
                   </Row>
                 </ListGroup.Item>
@@ -366,39 +396,37 @@ const Dashboard = () => {
       </Row>
       <Row className="w-100 mb-3">
         <Col className="d-flex justify-content-center">
-          <div className="pagination-container">
-            <Pagination className={styles.pageNum}>
-              <Pagination.First onClick={() => paginate(1)} />
-              <Pagination.Prev
-                onClick={() => paginate(currentPage > 1 ? currentPage - 1 : 1)}
-              />
-              {Array.from(
-                { length: Math.ceil(filteredUsers.length / rowsPerPage) },
-                (_, index) => (
-                  <Pagination.Item
-                    key={index + 1}
-                    active={index + 1 === currentPage}
-                    onClick={() => paginate(index + 1)}>
-                    {index + 1}
-                  </Pagination.Item>
-                )
-              )}
-              <Pagination.Next
-                onClick={() =>
-                  paginate(
-                    currentPage < filteredUsers.length / rowsPerPage
-                      ? currentPage + 1
-                      : currentPage
-                  )
-                }
-              />
-              <Pagination.Last
-                onClick={() =>
-                  paginate(Math.ceil(filteredUsers.length / rowsPerPage))
-                }
-              />
-            </Pagination>
-          </div>
+          <Pagination>
+            <Pagination.First
+              className={styles.pageNum}
+              onClick={() => handlePageChange(1)}
+            />
+            <Pagination.Prev
+              className={styles.pageNum}
+              onClick={() => {
+                if (currentPage > 1) handlePageChange(currentPage - 1);
+              }}
+            />
+            {Array.from({ length: totalPages }, (_, index) => (
+              <Pagination.Item
+                key={index + 1}
+                active={index + 1 === currentPage}
+                className={styles.pageNum}
+                onClick={() => handlePageChange(index + 1)}>
+                {index + 1}
+              </Pagination.Item>
+            ))}
+            <Pagination.Next
+              className={styles.pageNum}
+              onClick={() => {
+                if (currentPage < totalPages) handlePageChange(currentPage + 1);
+              }}
+            />
+            <Pagination.Last
+              className={styles.pageNum}
+              onClick={() => handlePageChange(totalPages)}
+            />
+          </Pagination>
         </Col>
       </Row>
     </Container>

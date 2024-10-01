@@ -1,6 +1,6 @@
 .label {
   font-family: "Degradasi";
-  color: #3a3238;
+  color: #180018;
 }
 
 .employeeDetails {
@@ -88,17 +88,17 @@
 
 .iconBox {
   background-color: #e8b4bc !important;
-  color: #3a3238 !important;
+  color: #180018 !important;
 }
 
 .button {
-  background-color: #d80085 !important;
+  background-color: #9d084a !important;
   border: none !important;
 }
 
 .commentEdit {
   cursor: pointer;
-  color: #3a3238;
+  color: #180018;
 }
 
 .commentDelete {
@@ -117,7 +117,7 @@
 
 .msg {
   font-family: "Poppins-SemiBold";
-  color: #d80085;
+  color: #9d084a;
 }
 
 .termPoints {
@@ -134,7 +134,7 @@
 }
 
 .loading {
-  color: #d80085;
+  color: #9d084a;
   font-family: "Poppins-Medium";
 }
 

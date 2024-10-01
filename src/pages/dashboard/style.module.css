@@ -1,10 +1,11 @@
 .label {
   font-family: "Degradasi";
-  color: #3a3238;
+  color: #180018;
 }
 
 .employeeDetails {
   font-family: "Poppins-Medium";
+  color: #180018;
 }
 
 .searchBar {
@@ -22,9 +23,9 @@
 }
 
 .tableHeader {
-  background-color: #9d084a !important;
+  background-color: #e8b4bc !important;
   font-family: "Poppins-Medium";
-  color: white !important;
+  color: #180018 !important;
   border-radius: 10px 10px 0 0 !important;
 }
 
@@ -81,12 +82,12 @@
 
 .pointsBox {
   font-family: "Poppins-SemiBold";
-  color: #d80085 !important;
+  color: #9d084a !important;
 }
 
 .msg {
   font-family: "Poppins-SemiBold";
-  color: #d80085;
+  color: #9d084a;
 }
 
 .termPoints {
@@ -108,12 +109,6 @@
 
 .cardTitle {
   color: white;
-}
-
-.cardList {
-  background-color: black !important;
-  border-color: black !important;
-  border: none !important;
 }
 
 .listColor {
@@ -146,6 +141,15 @@
   font-weight: bold;
   font-family: "Poppins", sans-serif;
   text-align: center;
+}
+
+.pointsDisplay {
+  padding-left: 1%;
+  padding-right: 1%;
+  background-color: white;
+  border-radius: 5px;
+  border: #9d084a solid;
+  color: #9d084a;
 }
 
 .pageNum {

@@ -245,7 +245,11 @@ const SWTDDashboard = () => {
             </BtnPrimary>
           </Row>
           <Row>
-            <BtnSecondary onClick={handlePrint}>Export PDF</BtnSecondary>
+            <BtnSecondary
+              onClick={handlePrint}
+              disabled={userSWTDs.length === 0}>
+              Export PDF
+            </BtnSecondary>
           </Row>
           <Modal show={showModal} onHide={closeModal} size="md" centered>
             <Modal.Header closeButton>
@@ -337,7 +341,7 @@ const SWTDDashboard = () => {
       </Row>
 
       <Row className="w-100 mb-3">
-        {terms.length > 0 || userSWTDs.length > 0 ? (
+        {userSWTDs.length > 0 ? (
           <>
             <Col
               className={`${styles.graphBackground} d-flex justify-content-center align-items-center`}>
@@ -349,8 +353,8 @@ const SWTDDashboard = () => {
             </Col>
           </>
         ) : (
-          <Col className="text-center">
-            <h5>No stats to show yet</h5>
+          <Col className={`${styles.employeeDetails} text-center`}>
+            <h5>No statistics to show yet.</h5>
           </Col>
         )}
       </Row>
