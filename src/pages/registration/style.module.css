@@ -1,10 +1,10 @@
 .background {
   height: 100vh;
-  background-color: #3a3238;
+  background-color: #180018;
 }
 
 .header {
-  background-color: #e8b4bc;
+  background-color: #9d084a;
   padding: 10px;
   padding-left: 30px;
   padding-top: 20px;
@@ -13,23 +13,23 @@
 }
 
 .triangle {
-  color: #3a3238 !important;
+  color: white !important;
   cursor: pointer;
 }
 
 .icon {
-  color: #3a3238 !important;
+  color: #180018 !important;
 }
 
 .brand {
   font-family: "Degradasi";
   font-size: 2rem;
-  color: #d80085;
+  color: #9d084a;
   vertical-align: middle;
 }
 
 .formIcon {
-  color: #474448;
+  color: #180018;
 }
 
 .iconBox {

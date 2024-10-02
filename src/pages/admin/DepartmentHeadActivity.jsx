@@ -111,7 +111,7 @@ const DepartmentHeadActivity = () => {
           </InputGroup.Text>
           <Form.Control
             type="search"
-            placeholder="Search"
+            placeholder="Search by ID number, firstname, or lastname"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -120,7 +120,7 @@ const DepartmentHeadActivity = () => {
       <Row>
         {loading ? (
           <Row
-            className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
+            className={`${styles.loading} d-flex justify-content-center align-items-center w-100 mb-5`}>
             <Spinner className={`me-2`} animation="border" />
             Loading department heads...
           </Row>
@@ -134,7 +134,7 @@ const DepartmentHeadActivity = () => {
               <Table className={styles.table} striped bordered hover responsive>
                 <thead>
                   <tr>
-                    <th className="col-2">Employee ID</th>
+                    <th className="col-2">ID No.</th>
                     <th>Name</th>
                     <th className="col-2 text-center">Validation Report</th>
                     <th className="col-2 text-center">Clearance Report</th>

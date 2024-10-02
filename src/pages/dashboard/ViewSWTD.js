@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, Card, Form, Button, ListGroup, Badge, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
@@ -24,6 +24,7 @@ const ViewSWTD = () => {
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
   const userID = parseInt(Cookies.get("userID"), 10);
+  const textareaRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [swtd, setSWTD] = useState(null);
@@ -215,6 +216,14 @@ const ViewSWTD = () => {
     }
   }, [user, navigate]);
 
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [swtd?.benefits]);
+
   if (loading)
     return (
       <Row
@@ -286,172 +295,133 @@ const ViewSWTD = () => {
       {/* SWTD Information */}
       <Card className="mb-3 w-100">
         <Card.Header className={styles.cardHeader}>
-          Status:{" "}
-          <span
-            className={
-              swtdStatus?.status === "PENDING"
-                ? "text-muted"
-                : swtdStatus?.status === "APPROVED"
-                ? "text-success"
-                : swtdStatus?.status === "REJECTED"
-                ? "text-danger"
-                : ""
-            }>
-            {swtdStatus?.status}
-          </span>
+          <Row>
+            <Col>
+              Status:{" "}
+              <span
+                className={
+                  swtdStatus?.status === "PENDING"
+                    ? "text-muted"
+                    : swtdStatus?.status === "APPROVED"
+                    ? "text-success"
+                    : swtdStatus?.status === "REJECTED"
+                    ? "text-danger"
+                    : ""
+                }>
+                {swtdStatus?.status}
+              </span>
+            </Col>
+            <Col className={`text-end`}>
+              <span
+                className={
+                  styles.pointsDisplay
+                }>{`${swtd?.points} POINTS`}</span>
+            </Col>
+          </Row>
         </Card.Header>
         <Card.Body className={`${styles.cardBody} p-4`}>
-          <Form noValidate>
-            {/* Title */}
-            <Row>
-              <Form.Group as={Row} className="mb-3" controlId="inputTitle">
-                <Form.Label className={styles.formLabel} column sm="1">
-                  Title
-                </Form.Label>
-                <Col className="d-flex align-items-center">
-                  {truncateTitle(swtd?.title)}
-                </Col>
-              </Form.Group>
-            </Row>
+          <Row className="mb-4">
+            <Col className={styles.formLabel} md="2">
+              Title
+            </Col>
+            <Col>{truncateTitle(swtd?.title)}</Col>
+          </Row>
 
-            <Row className="w-100">
-              {/* Venue */}
+          <Row className="mb-4">
+            <Col className={styles.formLabel} md="2">
+              Venue
+            </Col>
+            <Col md="4">{swtd?.venue}</Col>
+            <Col md="2">
+              <span className={styles.formLabel}>Term</span>
+            </Col>
+            <Col>{swtd?.term.name}</Col>
+          </Row>
+
+          <Row className="mb-4">
+            <Col className={styles.formLabel} md="2">
+              Category
+            </Col>
+            <Col md="4">{swtd?.category}</Col>
+            <Col md="2">
+              <span className={styles.formLabel}>Role</span>
+            </Col>
+            <Col>{swtd?.role}</Col>
+          </Row>
+
+          <Row className="mb-4">
+            <Col className={styles.formLabel} md="2">
+              Date & Time
+            </Col>
+            <Col md="4">
+              {swtd?.dates?.map((entry, index) => (
+                <div key={index}>
+                  {wordDate(entry.date)}
+                  {!swtd?.category?.startsWith("Degree") && (
+                    <>
+                      {" "}
+                      ({formatTime(entry.time_started)} to{" "}
+                      {formatTime(entry.time_ended)})
+                    </>
+                  )}
+                </div>
+              ))}
+            </Col>
+            <Col className={styles.formLabel} md="2">
+              Has deliverables
+            </Col>
+            <Col md="4">
+              {swtd?.has_deliverables === true ? (
+                <>
+                  <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
+                  Yes
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
+                  No
+                </>
+              )}
+            </Col>
+          </Row>
+
+          <Row className="mb-4">
+            <Col className={styles.formLabel} md="2">
+              Proof
+            </Col>
+            <Col md="4">
+              <BtnPrimary
+                onClick={() => {
+                  fetchSWTDProof();
+                  openProofModal();
+                }}>
+                View
+              </BtnPrimary>{" "}
+            </Col>
+          </Row>
+
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label className={styles.formLabel}>Takeaways</Form.Label>
               <Col>
-                <Form.Group as={Row} className="mb-3">
-                  <Form.Label className={styles.formLabel} column sm="2">
-                    Venue
-                  </Form.Label>
-                  <Col className="d-flex align-items-center">{swtd?.venue}</Col>
-                </Form.Group>
+                <Form.Control
+                  as="textarea"
+                  ref={textareaRef}
+                  className={styles.formBox}
+                  value={swtd?.benefits}
+                  style={{ overflow: "hidden" }}
+                  readOnly
+                />
               </Col>
-
-              {/* Term */}
-              <Col>
-                <Form.Group as={Row} className="mb-3">
-                  <Form.Label
-                    className={`${styles.formLabel} text-end`}
-                    column
-                    sm="2">
-                    Term
-                  </Form.Label>
-                  <Col className="d-flex align-items-center">
-                    {swtd?.term.name}
-                  </Col>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="w-100">
-              {/* Category */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputCategory">
-                  <Form.Label className={styles.formLabel} column sm="2">
-                    Category
-                  </Form.Label>
-                  <Col className="d-flex align-items-center">
-                    {swtd?.category}
-                  </Col>
-                </Form.Group>
-              </Col>
-
-              {/* Role */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputRole">
-                  <Form.Label
-                    className={`${styles.formLabel} text-end`}
-                    column
-                    sm="2">
-                    Role
-                  </Form.Label>
-                  <Col className="d-flex align-items-center">{swtd?.role}</Col>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="w-100">
-              {/* Date */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputDate">
-                  <Form.Label className={styles.formLabel} column sm="2">
-                    Date
-                  </Form.Label>
-                  <Col className="d-flex align-items-center">
-                    {wordDate(swtd?.date)}
-                  </Col>
-                </Form.Group>
-              </Col>
-
-              {/* Time */}
-              <Col className={`${styles.time} text-end`}>
-                <Form.Group
-                  as={Row}
-                  className="mb-3"
-                  controlId="inputTimeStart">
-                  <Form.Label className={styles.formLabel} column sm="2">
-                    Time
-                  </Form.Label>
-                  <Col className="d-flex align-items-center" sm="10">
-                    {formatTime(swtd?.time_started)} to{" "}
-                    {formatTime(swtd?.time_finished)}
-                  </Col>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row className="w-100">
-              {/* Proof */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputProof">
-                  <Form.Label className={styles.formLabel} column sm="2">
-                    Proof
-                  </Form.Label>
-                  <Col className="d-flex justify-content-start align-items-start">
-                    <BtnPrimary
-                      onClick={() => {
-                        fetchSWTDProof();
-                        openProofModal();
-                      }}>
-                      View
-                    </BtnPrimary>
-                  </Col>
-                </Form.Group>
-              </Col>
-
-              {/* Points */}
-              <Col className="text-end">
-                <Form.Group as={Row} className="mb-3" controlId="inputPoints">
-                  <Form.Label className={styles.formLabel} column sm="2">
-                    Points
-                  </Form.Label>
-                  <Col
-                    className={`${styles.pointsBox} d-flex justify-content-start align-items-center`}>
-                    {swtd?.points}
-                  </Col>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            {/* Benefits */}
-            <Row>
-              <Form.Group as={Row} className="mb-3" controlId="inputBenefits">
-                <Form.Label className={styles.formLabel} column sm="1">
-                  Benefits
-                </Form.Label>
-                <Col
-                  className="d-flex align-items-center w-100"
-                  style={{ wordWrap: "break-word" }}>
-                  {swtd?.benefits}
-                </Col>
-              </Form.Group>
-            </Row>
+            </Form.Group>
           </Form>
           {/* Validation Buttons */}
           {swtdStatus?.status === "PENDING" && (
             <Row className="w-100">
-              <Col className="text-end">
+              <Col className="p-0 text-end">
                 <Button
                   className="me-3"
-                  variant="outline-success"
+                  variant="success"
                   onClick={() => {
                     setValidation("APPROVED");
                     openValidateModal();
@@ -459,7 +429,7 @@ const ViewSWTD = () => {
                   <i className="fa-solid fa-check"></i> APPROVE
                 </Button>
                 <Button
-                  variant="outline-danger"
+                  variant="danger"
                   onClick={() => {
                     setValidation("REJECTED");
                     openValidateModal();

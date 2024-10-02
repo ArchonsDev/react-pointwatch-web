@@ -187,17 +187,18 @@ const Term = () => {
           {/* Term Type */}
           <Row>
             <Form.Group as={Row} className="mb-3" controlId="inputType">
-              <Form.Label className={`${styles.formLabel}`} column sm="2">
+              <Form.Label className={`${styles.formLabel}`} column md="2">
                 Term Type
               </Form.Label>
               <Col
                 className="d-flex justify-content-start align-items-center"
-                sm="10">
+                md="10">
                 {types.type.map((item, index) => (
                   <Form.Check
                     key={index}
                     type="radio"
                     name="type"
+                    className="me-5"
                     label={item}
                     value={item}
                     onChange={handleChange}
@@ -302,16 +303,14 @@ const Term = () => {
         </div>
       )}
       <Row className={`${styles.table}  w-100`}>
-        {terms.length === 0 && !loading && (
-          <Col className="text-center">No terms added yet.</Col>
-        )}
-
         {loading ? (
           <Row
             className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
             <Spinner className={`me-2`} animation="border" />
             Loading terms...
           </Row>
+        ) : terms.length === 0 ? (
+          <Col className="text-center">No terms added yet.</Col>
         ) : (
           <Table striped bordered hover responsive>
             <thead>

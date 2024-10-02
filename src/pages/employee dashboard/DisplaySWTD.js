@@ -185,7 +185,7 @@ const SWTDDashboard = () => {
             </InputGroup.Text>
             <Form.Control
               type="search"
-              placeholder="Search"
+              placeholder="Search by SWTD title"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -240,13 +240,9 @@ const SWTDDashboard = () => {
           </Row>
           <Row className="w-100 mb-3">
             <Col className="d-flex justify-content-center">
-              <Pagination>
-                <Pagination.First
-                  className={styles.pageNum}
-                  onClick={() => handlePageChange(1)}
-                />
+              <Pagination className={styles.pageNum}>
+                <Pagination.First onClick={() => handlePageChange(1)} />
                 <Pagination.Prev
-                  className={styles.pageNum}
                   onClick={() => {
                     if (currentPage > 1) handlePageChange(currentPage - 1);
                   }}
@@ -255,22 +251,17 @@ const SWTDDashboard = () => {
                   <Pagination.Item
                     key={index + 1}
                     active={index + 1 === currentPage}
-                    className={styles.pageNum}
                     onClick={() => handlePageChange(index + 1)}>
                     {index + 1}
                   </Pagination.Item>
                 ))}
                 <Pagination.Next
-                  className={styles.pageNum}
                   onClick={() => {
                     if (currentPage < totalPages)
                       handlePageChange(currentPage + 1);
                   }}
                 />
-                <Pagination.Last
-                  className={styles.pageNum}
-                  onClick={() => handlePageChange(totalPages)}
-                />
+                <Pagination.Last onClick={() => handlePageChange(totalPages)} />
               </Pagination>
             </Col>
           </Row>
