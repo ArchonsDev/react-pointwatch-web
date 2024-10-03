@@ -37,9 +37,8 @@ const Admin = () => {
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      setLoading(false);
-      if (!user?.is_staff && !user?.is_superuser)
-        console.log("User is neither staff nor superuser, navigating away.");
+      if (user?.is_admin) navigate("/dashboard");
+      else if (!user?.is_staff && !user?.is_superuser) navigate("/swtd");
     }
   }, [user, navigate]);
 

@@ -307,7 +307,7 @@ const EmployeeSWTD = () => {
             </InputGroup.Text>
             <Form.Control
               type="search"
-              placeholder="Search by SWTD tistle"
+              placeholder="Search by SWTD title"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

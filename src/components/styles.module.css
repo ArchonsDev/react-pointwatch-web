@@ -12,6 +12,11 @@
   font-size: 1.3em;
 }
 
+.barSWTD {
+  font-size: 1em;
+  font-family: "Poppins-Medium";
+}
+
 .barLabel {
   font-size: 1em;
   font-family: "Poppins-Regular";
@@ -24,6 +29,8 @@
   box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
   --bs-progress-bar-bg: #9d084a !important;
   color: var(--bs-progress-bar-bg) !important;
+  font-family: "Poppins-Medium";
+  font-size: 0.9em !important;
 }
 
 .bar .progress-bar {

@@ -189,8 +189,8 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      if (!user?.is_admin && !user?.is_staff && !user?.is_superuser)
-        navigate("/swtd");
+      if (user?.is_staff) navigate("/hr");
+      else if (!user?.is_admin && !user?.is_superuser) navigate("/swtd");
       else {
         setLoading(true);
         const fetchData = async () => {
@@ -320,7 +320,6 @@ const Dashboard = () => {
 
                 {topUsers.map((user) => (
                   <Row className={styles.cardBody} key={user.userId}>
-                    <Col md="1">{user.employee_id}</Col>
                     <Col>
                       {user.firstname} {user.lastname}
                     </Col>
@@ -359,7 +358,7 @@ const Dashboard = () => {
             ) : (
               <div className="mb-3">
                 <ListGroup className="w-100" variant="flush">
-                  <ListGroup.Item className={styles.tableHeader}>
+                  <ListGroup.Item className={styles.swtdHeader}>
                     <Row>
                       <Col md={2}>ID No.</Col>
                       <Col>Name</Col>

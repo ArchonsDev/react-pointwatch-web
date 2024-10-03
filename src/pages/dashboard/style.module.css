@@ -14,6 +14,12 @@
   border: none;
 }
 
+.swtdHeader {
+  background-color: #e8b4bc !important;
+  font-family: "Poppins-SemiBold";
+  border-radius: 10px 10px 0 0 !important;
+}
+
 .filterText {
   font-family: "Poppins-Medium";
 }

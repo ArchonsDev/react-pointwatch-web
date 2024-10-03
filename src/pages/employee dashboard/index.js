@@ -149,7 +149,7 @@ const SWTDDashboard = () => {
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
-      <Row className="w-100 mb-3">
+      <Row className="w-100 mb-1">
         <Col>
           <h3 className={`${styles.label} d-flex align-items-center`}>
             Dashboard
@@ -175,7 +175,7 @@ const SWTDDashboard = () => {
         <Col
           className={`d-flex align-items-center ${styles.employeeDetails}`}
           xs="auto">
-          <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
+          <i className="fa-regular fa-calendar fa-lg me-2"></i> Term:{" "}
           {terms.length === 0 ? (
             <>No terms were added yet.</>
           ) : (
@@ -209,18 +209,18 @@ const SWTDDashboard = () => {
         <Col className="d-flex align-items-center">
           <Row>
             <Col className="d-flex align-items-center" xs="auto">
-              <i className="fa-solid fa-building me-2"></i>Department:{" "}
+              <i className="fa-solid fa-landmark fa-lg me-2"></i>Department:{" "}
               {user?.department}
             </Col>
 
             <Col className="d-flex align-items-center" xs="auto">
-              <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
-              {user?.point_balance}
+              <i className="fa-solid fa-circle-plus fa-lg me-2"></i>Point
+              Balance: {user?.point_balance}
             </Col>
 
             {selectedTerm !== null && (
               <Col className="d-flex align-items-center" xs="auto">
-                <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
+                <i className="fa-solid fa-user-check fa-lg me-2"></i>Status:{" "}
                 <span
                   className={`ms-2 text-${
                     termStatus?.is_cleared ? "success" : "danger"
@@ -241,6 +241,7 @@ const SWTDDashboard = () => {
               onClick={() =>
                 user?.department === null ? openModal() : handleAddRecordClick()
               }>
+              <i className="fa-solid fa-file-circle-plus fa-lg me-2"></i>
               Add SWTD
             </BtnPrimary>
           </Row>
@@ -248,6 +249,7 @@ const SWTDDashboard = () => {
             <BtnSecondary
               onClick={handlePrint}
               disabled={userSWTDs.length === 0}>
+              <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i>
               Export PDF
             </BtnSecondary>
           </Row>
@@ -295,7 +297,7 @@ const SWTDDashboard = () => {
         <Col>
           <Card className={`${styles.statCard} text-center`}>
             <Card.Header className={styles.statHeader}>
-              SWTDs For Revisions
+              SWTDs For Revision
             </Card.Header>
             <Card.Body className={styles.statBody}>
               <Card.Text>{rejectedSWTDCount}</Card.Text>
@@ -379,7 +381,7 @@ const SWTDDashboard = () => {
           </Row>
           <Row className="w-100 mb-3">
             <ListGroup className="w-100" variant="flush">
-              <ListGroup.Item className={styles.tableHeader}>
+              <ListGroup.Item className={styles.swtdHeader}>
                 <Row>
                   <Col md={9}>Title</Col>
                   <Col md={2}>Status</Col>

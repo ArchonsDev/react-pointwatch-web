@@ -1,42 +1,26 @@
-.label {
+.pageTitle {
   font-family: "Degradasi";
-  color: #3a3238;
+  color: #180018;
 }
 
-.navHeader {
+.termDropdown {
   font-family: "Poppins-Medium";
-  margin-right: 5px;
+  color: #180018;
 }
 
-.activeTab {
-  font-family: "Poppins-Bold";
-  color: #f5e3e0 !important;
-  background-color: #9d084a !important;
-}
-
-.inactiveTab {
-  color: #f5e3e0 !important;
+.statCard {
   background-color: #180018 !important;
+  color: white !important;
 }
 
-.card {
-  border-top-left-radius: 0 !important;
+.cardTitle {
+  font-family: "Poppins-SemiBold";
+  font-size: 1.15em;
 }
 
-.form {
+.cardStat {
   font-family: "Poppins-Regular";
-}
-
-.formLabel {
-  font-family: "Poppins-Medium";
-}
-
-.formBox {
-  border: grey 1px solid !important;
-}
-
-.table {
-  font-family: "Poppins-Regular";
+  font-size: 0.9em;
 }
 
 .searchBar {
@@ -45,13 +29,26 @@
   border: none;
 }
 
-.icon {
-  cursor: pointer;
+.deptDropdown {
+  font-family: "Poppins-Regular";
 }
 
-.loading {
+.msg {
   font-family: "Poppins-SemiBold";
   color: #9d084a;
+}
+
+.tableHeader {
+  background-color: #e8b4bc !important;
+  font-family: "Poppins-Medium";
+  color: #180018 !important;
+  border-radius: 10px 10px 0 0 !important;
+}
+
+.tableBody {
+  font-family: "Poppins-Regular";
+  border-radius: 0 0 0 0 !important;
+  cursor: pointer;
 }
 
 .pageNum {
