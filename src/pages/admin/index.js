@@ -39,6 +39,7 @@ const Admin = () => {
     else {
       if (user?.is_admin) navigate("/dashboard");
       else if (!user?.is_staff && !user?.is_superuser) navigate("/swtd");
+      setLoading(false);
     }
   }, [user, navigate]);
 
