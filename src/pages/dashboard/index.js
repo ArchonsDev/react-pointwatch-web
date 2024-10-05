@@ -37,6 +37,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingMessage, setLoadingMessage] = useState("Loading data...");
   const recordsPerPage = 20;
 
   const fetchAllUsers = async () => {
@@ -70,6 +71,13 @@ const Dashboard = () => {
         token: token,
       },
       (response) => {
+        if (response.terms.length === 0)
+          setLoadingMessage(
+            <span>
+              <i className="fa-solid fa-face-grin-beam-sweat"></i> There is no
+              data yet. Come back again when PointWatch is set up for use.
+            </span>
+          );
         const filteredTerms = response.terms.filter((term) =>
           allowedTerm.includes(term.type)
         );
@@ -246,7 +254,7 @@ const Dashboard = () => {
       <Row
         className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
         <Spinner className={`me-2`} animation="border" />
-        Loading data...
+        {loadingMessage}
       </Row>
     );
 
