@@ -245,8 +245,10 @@ const Dashboard = () => {
       <Row
         className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
         <Col></Col>
-        <Col>
-          <Spinner className={`me-2`} animation="border" />
+        <Col className="text-center">
+          <>
+            <Spinner className={`me-2`} animation="border" />
+          </>
           {loadingMessage}
         </Col>
         <Col></Col>
