@@ -71,13 +71,6 @@ const Dashboard = () => {
         token: token,
       },
       (response) => {
-        if (response.terms.length === 0)
-          setLoadingMessage(
-            <span>
-              <i className="fa-solid fa-face-grin-beam-sweat"></i> There is no
-              data yet. Come back again when PointWatch is set up for use.
-            </span>
-          );
         const filteredTerms = response.terms.filter((term) =>
           allowedTerm.includes(term.type)
         );
@@ -87,6 +80,14 @@ const Dashboard = () => {
         );
         setTerms(filteredTerms);
         setSelectedTerm(ongoingTerm || filteredTerms[0]);
+        if (filteredTerms === 0)
+          setLoadingMessage(
+            <span className="text-center mt-2">
+              <i className="fa-solid fa-face-grin-beam-sweat"></i> No terms have
+              been set for your department. For assistance, please reach out to
+              the Human Resources Department.
+            </span>
+          );
       },
       (error) => {
         console.log(error.message);
