@@ -175,19 +175,18 @@ const SWTDDetails = () => {
             </BtnSecondary>
           ) : (
             <>
-              <BtnSecondary
-                onClick={() => {
-                  fetchSWTD();
-                  enableEditing();
-                }}
-                disabled={termStatus === true}>
-                Edit
-              </BtnSecondary>{" "}
-              <BtnPrimary
-                onClick={openDeleteModal}
-                disabled={termStatus === true}>
-                Delete
-              </BtnPrimary>
+              {!termStatus && (
+                <>
+                  <BtnSecondary
+                    onClick={() => {
+                      fetchSWTD();
+                      enableEditing();
+                    }}>
+                    Edit
+                  </BtnSecondary>{" "}
+                  <BtnPrimary onClick={openDeleteModal}>Delete</BtnPrimary>
+                </>
+              )}
             </>
           )}
         </Col>
@@ -278,10 +277,22 @@ const SWTDDetails = () => {
                   Category
                 </Col>
                 <Col md="4">{swtd?.category}</Col>
-                <Col md="2">
-                  <span className={styles.formLabel}>Role</span>
+                <Col className={styles.formLabel} md="2">
+                  Has deliverables
                 </Col>
-                <Col>{swtd?.role}</Col>
+                <Col md="4">
+                  {swtd?.has_deliverables === true ? (
+                    <>
+                      <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
+                      Yes
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
+                      No
+                    </>
+                  )}
+                </Col>
               </Row>
 
               <Row className="mb-4">
@@ -303,25 +314,6 @@ const SWTDDetails = () => {
                   ))}
                 </Col>
                 <Col className={styles.formLabel} md="2">
-                  Has deliverables
-                </Col>
-                <Col md="4">
-                  {swtd?.has_deliverables === true ? (
-                    <>
-                      <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
-                      Yes
-                    </>
-                  ) : (
-                    <>
-                      <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
-                      No
-                    </>
-                  )}
-                </Col>
-              </Row>
-
-              <Row className="mb-4">
-                <Col className={styles.formLabel} md="2">
                   Proof
                 </Col>
                 <Col md="4">
@@ -332,11 +324,11 @@ const SWTDDetails = () => {
                     }}>
                     View
                   </BtnPrimary>{" "}
-                  <BtnSecondary
-                    onClick={() => openEditProof()}
-                    disabled={termStatus === true}>
-                    Change
-                  </BtnSecondary>
+                  {!termStatus && (
+                    <BtnSecondary onClick={() => openEditProof()}>
+                      Change
+                    </BtnSecondary>
+                  )}
                 </Col>
                 <EditProofModal
                   show={showEditProof}

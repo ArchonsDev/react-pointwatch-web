@@ -7,7 +7,11 @@ import departmentTypes from "../../data/departmentTypes.json";
 import status from "../../data/status.json";
 import { getAllSWTDs } from "../../api/swtd";
 import { getTerms } from "../../api/admin";
+import { exportSWTDList } from "../../api/export";
 import SessionUserContext from "../../contexts/SessionUserContext";
+
+import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
 
 const SWTDDashboard = () => {
@@ -70,6 +74,23 @@ const SWTDDashboard = () => {
 
   const handleViewSWTD = (id) => {
     navigate(`/swtd/all/${id}`);
+  };
+
+  const handlePrint = () => {
+    exportSWTDList(
+      {
+        id: id,
+        token: token,
+      },
+      (response) => {
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const blobURL = URL.createObjectURL(blob);
+        window.open(blobURL, "_blank");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   };
 
   const handleFilter = (swtdList, query, stat) => {
@@ -137,9 +158,10 @@ const SWTDDashboard = () => {
             SWTD Submissions
           </h3>
         </Col>
+
         <Col
-          className={`d-flex align-items-center ${styles.employeeDetails}`}
-          xs="auto">
+          className={`d-flex justify-content-end align-items-center mb-3 ${styles.employeeDetails}`}
+          md="auto">
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           {terms.length === 0 ? (
             <>No terms were added yet.</>
@@ -170,7 +192,7 @@ const SWTDDashboard = () => {
       </Row>
 
       <Row className="w-100">
-        <Col className="text-start p-0" md={6}>
+        <Col className="text-start p-0" md="6">
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
@@ -193,7 +215,7 @@ const SWTDDashboard = () => {
               onChange={(e) => {
                 setSelectedStatus(e.target.value);
               }}>
-              <option value="">Select Status</option>
+              <option value="">All Statuses</option>
               {status.status.map((status, index) => (
                 <option key={index} value={status}>
                   {status === "REJECTED" ? "FOR REVISION" : status}
@@ -201,6 +223,23 @@ const SWTDDashboard = () => {
               ))}
             </Form.Select>
           </InputGroup>
+        </Col>
+        <Col className="text-end">
+          <BtnPrimary
+            onClick={() =>
+              user?.department === null
+                ? navigate("/dashboard")
+                : navigate("/swtd/form")
+            }>
+            <i className="fa-solid fa-file-circle-plus fa-lg me-2"></i>
+            Add SWTD
+          </BtnPrimary>
+        </Col>
+        <Col className="text-end" md="auto">
+          <BtnSecondary onClick={handlePrint} disabled={userSWTDs.length === 0}>
+            <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i>
+            Export PDF
+          </BtnSecondary>
         </Col>
       </Row>
 

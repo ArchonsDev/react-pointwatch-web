@@ -61,7 +61,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     venue: "",
     category: "",
     term_id: 0,
-    role: "",
+    role: "Attendee",
     dates: formDates,
     points: 0,
     proof: "",
@@ -134,6 +134,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
       },
       (response) => {
         const data = response.data;
+
         if (id !== data.author_id) {
           navigate("/swtd");
           return;
@@ -156,7 +157,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
         setFormDates(formattedDates);
         setForm({
           ...data,
-          selectedRole: data.role,
           term_id: data.term.id,
         });
         setLoading(false);
@@ -190,9 +190,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     if (name === "category" && value.startsWith("Degree")) {
       setForm((prevForm) => ({
         ...prevForm,
-        time_started: "00:00",
-        time_finished: "00:00",
-        points: 0,
         [name]: value,
       }));
     } else if (name === "term_id") {
@@ -347,7 +344,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     } else {
       setForm((prevForm) => ({
         ...prevForm,
-        points: 0,
       }));
     }
   }, [formDates, form.category]);
@@ -387,7 +383,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
 
         <Form noValidate>
           {/* POINTS & CHECKBOX */}
-          <Row className="mb-3">
+          {/* <Row className="mb-3">
             <Form.Group as={Row} className="mb-3" controlId="inputPoints">
               <Form.Label className={`${styles.formLabel}`} column md="auto">
                 Points
@@ -444,7 +440,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                 </Form.Check.Label>
               </Col>
             </Form.Group>
-          </Row>
+          </Row> */}
 
           {/* GENERAL INFORMATION */}
           <Row className="mb-2">
@@ -519,7 +515,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
             </Col>
           </Row>
 
-          {/* CATEGORY & ROLE */}
+          {/* CATEGORY, POINTS, CHECKBOX */}
           <Row className="mb-4">
             <Col md="6">
               <FloatingLabel
@@ -544,48 +540,45 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
               </FloatingLabel>
             </Col>
 
-            <Col md="3">
+            <Col md="auto">
               <FloatingLabel
-                controlId="floatingSelectRole"
-                label="Role"
+                controlId="floatingInputPoints"
+                label="Points"
                 className="mb-3">
-                <Form.Select
-                  className={styles.formBox}
-                  name="role"
-                  onChange={handleCustomRoleChange}
-                  value={selectedRole}
-                  disabled={loading}>
-                  <option value="" disabled>
-                    Select a role
-                  </option>
-                  {roles.roles.map((role, index) => (
-                    <option key={index} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                  <option value="Other">Other</option>
-                </Form.Select>
+                <Form.Control
+                  type="number"
+                  min={0}
+                  placeholder="Points"
+                  className={styles.pointsBox}
+                  name="points"
+                  onChange={handleChange}
+                  value={form.points}
+                  disabled={loading}
+                  readOnly={
+                    !form?.category.startsWith("Degree") &&
+                    !checkbox.deliverable
+                  }
+                />
+                <Form.Text>
+                  {checkbox.deliverable || form?.category.startsWith("Degree")
+                    ? "Enter points for this SWTD."
+                    : "Points calculated automatically."}
+                </Form.Text>
               </FloatingLabel>
             </Col>
 
-            {selectedRole === "Other" && (
-              <Col md="3">
-                <FloatingLabel
-                  controlId="floatingInputOther"
-                  label="Enter role"
-                  className="mb-3">
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter role"
-                    name="role"
-                    className={styles.formBox}
-                    onChange={handleChange}
-                    value={form.role}
-                    disabled={loading}
-                  />
-                </FloatingLabel>
-              </Col>
-            )}
+            <Col className="d-flex p-3">
+              <Form.Check
+                inline
+                type="checkbox"
+                id="deliverable"
+                checked={checkbox.deliverable}
+                onChange={handleBoxChange}
+              />
+              <Form.Check.Label>
+                Does the SWTD have deliverables?
+              </Form.Check.Label>
+            </Col>
           </Row>
 
           {/* DATE & TIME */}
@@ -650,53 +643,65 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                 </Col>
 
                 {/* Start Time */}
-                <Col md="3">
-                  <FloatingLabel
-                    controlId={`floatingInputStartTime-${index}`}
-                    label="Start Time"
-                    className="mb-3">
-                    <Form.Control
-                      type="time"
-                      className={styles.formBox}
-                      onChange={(e) =>
-                        handleFormDatesChange(
-                          index,
-                          "time_started",
-                          e.target.value
-                        )
-                      }
-                      value={dateEntry.time_started || ""}
-                      isInvalid={dateEntry.time_started > dateEntry.time_ended}
-                      disabled={form?.category.startsWith("Degree") || loading}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      Time must be valid.
-                    </Form.Control.Feedback>
-                  </FloatingLabel>
-                </Col>
+                {!form?.category.startsWith("Degree") && (
+                  <>
+                    <Col md="3">
+                      <FloatingLabel
+                        controlId={`floatingInputStartTime-${index}`}
+                        label="Start Time"
+                        className="mb-3">
+                        <Form.Control
+                          type="time"
+                          className={styles.formBox}
+                          onChange={(e) =>
+                            handleFormDatesChange(
+                              index,
+                              "time_started",
+                              e.target.value
+                            )
+                          }
+                          value={dateEntry.time_started || ""}
+                          isInvalid={
+                            dateEntry.time_started > dateEntry.time_ended
+                          }
+                          disabled={
+                            form?.category.startsWith("Degree") || loading
+                          }
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          Time must be valid.
+                        </Form.Control.Feedback>
+                      </FloatingLabel>
+                    </Col>
 
-                {/* End Time */}
-                <Col md="3">
-                  <FloatingLabel
-                    controlId={`floatingInputEndTime-${index}`}
-                    label="End Time"
-                    className="mb-3">
-                    <Form.Control
-                      type="time"
-                      className={styles.formBox}
-                      onChange={(e) =>
-                        handleFormDatesChange(
-                          index,
-                          "time_ended",
-                          e.target.value
-                        )
-                      }
-                      value={dateEntry.time_ended || ""}
-                      isInvalid={dateEntry.time_started > dateEntry.time_ended}
-                      disabled={form?.category.startsWith("Degree") || loading}
-                    />
-                  </FloatingLabel>
-                </Col>
+                    {/* End Time */}
+                    <Col md="3">
+                      <FloatingLabel
+                        controlId={`floatingInputEndTime-${index}`}
+                        label="End Time"
+                        className="mb-3">
+                        <Form.Control
+                          type="time"
+                          className={styles.formBox}
+                          onChange={(e) =>
+                            handleFormDatesChange(
+                              index,
+                              "time_ended",
+                              e.target.value
+                            )
+                          }
+                          value={dateEntry.time_ended || ""}
+                          isInvalid={
+                            dateEntry.time_started > dateEntry.time_ended
+                          }
+                          disabled={
+                            form?.category.startsWith("Degree") || loading
+                          }
+                        />
+                      </FloatingLabel>
+                    </Col>
+                  </>
+                )}
               </Row>
             ))}
           </Row>

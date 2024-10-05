@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
 
 import departmentTypes from "../../data/departmentTypes.json";
+import status from "../../data/status.json";
 import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
 import { getUser, getClearanceStatus } from "../../api/user";
@@ -315,25 +316,24 @@ const EmployeeSWTD = () => {
         </Col>
 
         {/* STATUS FILTER */}
-        <Col>
-          <Form.Group as={Row} controlId="inputFilter">
-            <Form.Label className={styles.filterText} column sm="2">
-              Status
-            </Form.Label>
-            <Col sm="8">
-              <Form.Select
-                className={styles.filterOption}
-                name="filter"
-                onChange={(e) => {
-                  setSelectedStatus(e.target.value);
-                }}>
-                <option value="">All Statuses</option>
-                <option value="PENDING">PENDING</option>
-                <option value="APPROVED">APPROVED</option>
-                <option value="REJECTED">REJECTED</option>
-              </Form.Select>
-            </Col>
-          </Form.Group>
+        <Col className={styles.filterOption} md="auto">
+          <InputGroup>
+            <InputGroup.Text>
+              <i className="fa-solid fa-tags fa-lg"></i>
+            </InputGroup.Text>
+            <Form.Select
+              name="filter"
+              onChange={(e) => {
+                setSelectedStatus(e.target.value);
+              }}>
+              <option value="">All Statuses</option>
+              {status.status.map((status, index) => (
+                <option key={index} value={status}>
+                  {status === "REJECTED" ? "FOR REVISION" : status}
+                </option>
+              ))}
+            </Form.Select>
+          </InputGroup>
         </Col>
 
         {/* CLEARANCE BUTTONS */}
@@ -348,23 +348,23 @@ const EmployeeSWTD = () => {
               </>
             ) : (
               <>
-                <BtnSecondary
+                <BtnPrimary
                   onClick={openModal}
                   disabled={
                     termStatus?.points?.valid_points + employee?.point_balance <
                     termStatus?.points?.required_points
                   }>
                   Grant Clearance
-                </BtnSecondary>{" "}
+                </BtnPrimary>{" "}
               </>
             ))}
           {selectedTerm === null && (
-            <BtnPrimary
+            <BtnSecondary
               onClick={handlePrint}
               disabled={loading || userSWTDs.length === 0}>
               <i className="fa-solid fa-file-arrow-down me-2"></i>
               Export PDF
-            </BtnPrimary>
+            </BtnSecondary>
           )}
         </Col>
 

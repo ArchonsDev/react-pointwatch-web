@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, Card, ProgressBar, Dropdown, DropdownButton } from "react-bootstrap"; /* prettier-ignore */
 
+import status from "../../data/status.json";
 import departmentTypes from "../../data/departmentTypes.json";
 import { getAllUsers, getTerms } from "../../api/admin";
 import { getClearanceStatus } from "../../api/user";
@@ -20,6 +21,7 @@ const Dashboard = () => {
   const [noUsers, setNoUsers] = useState(true);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [userClearanceStatus, setUserClearanceStatus] = useState([]);
   const [requiredPoints, setRequiredPoints] = useState(0);
   const lackingUsers = Object.values(userClearanceStatus).filter(
@@ -154,6 +156,27 @@ const Dashboard = () => {
   const topUsers = getTopEmployeePoints();
 
   //Pagination
+  const handleFilter = (employeeList, query, status) => {
+    return Object.values(employeeList)
+      .filter((employee) => {
+        const matchesQuery =
+          employee.employee_id.includes(query) ||
+          employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
+          employee.lastname.toLowerCase().includes(query.toLowerCase());
+
+        return matchesQuery;
+      })
+      .sort((a, b) => {
+        const countStatusA = a.swtds.filter(
+          (item) => item.validation.status === status
+        ).length;
+        const countStatusB = b.swtds.filter(
+          (item) => item.validation.status === status
+        ).length;
+        return countStatusB - countStatusA;
+      });
+  };
+
   const handleSearchFilter = (employeeList, query) => {
     return Object.values(employeeList).filter((employee) => {
       const match =
@@ -164,9 +187,11 @@ const Dashboard = () => {
     });
   };
 
-  const filteredEmployees = searchQuery
-    ? handleSearchFilter(userClearanceStatus, searchQuery)
-    : Object.values(userClearanceStatus);
+  const filteredEmployees = handleFilter(
+    userClearanceStatus,
+    searchQuery,
+    selectedStatus
+  );
 
   const totalRecords = filteredEmployees.length;
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
@@ -332,9 +357,9 @@ const Dashboard = () => {
             )}
           </Row>
 
-          <Row className="w-100">
+          <Row className="w-100 mb-3">
             <Col className="text-start" md={7}>
-              <InputGroup className={`${styles.searchBar} mb-3`}>
+              <InputGroup className={`${styles.searchBar}`}>
                 <InputGroup.Text>
                   <i className="fa-solid fa-magnifying-glass"></i>
                 </InputGroup.Text>
@@ -345,6 +370,28 @@ const Dashboard = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+              </InputGroup>
+            </Col>
+
+            <Col md="auto">
+              <InputGroup className={styles.filterOption}>
+                <InputGroup.Text>
+                  <i className="fa-solid fa-filter fa-lg"></i>
+                </InputGroup.Text>
+                <Form.Select
+                  name="filter"
+                  onChange={(e) => {
+                    setSelectedStatus(e.target.value);
+                  }}>
+                  <option value="">Sort by...</option>
+                  {status.status.map((status, index) => (
+                    <option key={index} value={status}>
+                      {status === "REJECTED"
+                        ? "SWTDs FOR REVISION"
+                        : `${status} SWTDs`}
+                    </option>
+                  ))}
+                </Form.Select>
               </InputGroup>
             </Col>
           </Row>
