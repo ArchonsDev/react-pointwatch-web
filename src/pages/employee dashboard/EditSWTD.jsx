@@ -6,9 +6,13 @@ import { Row, Col, Form, Modal, Spinner, FloatingLabel } from "react-bootstrap";
 import SessionUserContext from "../../contexts/SessionUserContext";
 import departmentTypes from "../../data/departmentTypes.json";
 import categories from "../../data/categories.json";
-import roles from "../../data/roles.json";
 
-import { formatDate, wordDate, apiDate } from "../../common/format/date";
+import {
+  formatDate,
+  wordDate,
+  apiDate,
+  monthYearDate,
+} from "../../common/format/date";
 import { isEmpty, isValidSWTDDate } from "../../common/validation/utils";
 import { calculateHourPoints } from "../../common/validation/points"; /* prettier-ignore */
 import { useSwitch } from "../../hooks/useSwitch";
@@ -503,8 +507,8 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   </option>
                   {terms.map((term, index) => (
                     <option key={index} value={term.id}>
-                      {term.name} ({wordDate(term.start_date)} to{" "}
-                      {wordDate(term.end_date)})
+                      {term.name} ({monthYearDate(term.start_date)} to{" "}
+                      {monthYearDate(term.end_date)})
                     </option>
                   ))}
                 </Form.Select>

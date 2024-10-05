@@ -11,7 +11,12 @@ import { getTerms } from "../../api/admin";
 import { addSWTD } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
-import { formatDate, wordDate, apiDate } from "../../common/format/date";
+import {
+  formatDate,
+  wordDate,
+  apiDate,
+  monthYearDate,
+} from "../../common/format/date";
 import { isEmpty, isValidSWTDDate } from "../../common/validation/utils";
 import { calculateHourPoints } from "../../common/validation/points";
 
@@ -476,8 +481,8 @@ const AddSWTD = () => {
                     </option>
                     {terms.map((term, index) => (
                       <option key={index} value={term.id}>
-                        {term.name} ({wordDate(term.start_date)} to{" "}
-                        {wordDate(term.end_date)})
+                        {term.name} ({monthYearDate(term.start_date)} to{" "}
+                        {monthYearDate(term.end_date)})
                       </option>
                     ))}
                   </Form.Select>
