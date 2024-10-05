@@ -80,7 +80,7 @@ const Dashboard = () => {
         );
         setTerms(filteredTerms);
         setSelectedTerm(ongoingTerm || filteredTerms[0]);
-        if (filteredTerms === 0)
+        if (filteredTerms.length === 0)
           setLoadingMessage(
             <span className="text-center mt-2">
               <i className="fa-solid fa-face-grin-beam-sweat"></i> No terms have
@@ -186,16 +186,6 @@ const Dashboard = () => {
       });
   };
 
-  const handleSearchFilter = (employeeList, query) => {
-    return Object.values(employeeList).filter((employee) => {
-      const match =
-        employee.employee_id.includes(query) ||
-        employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
-        employee.lastname.toLowerCase().includes(query.toLowerCase());
-      return match;
-    });
-  };
-
   const filteredEmployees = handleFilter(
     userClearanceStatus,
     searchQuery,
@@ -254,8 +244,12 @@ const Dashboard = () => {
     return (
       <Row
         className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
-        <Spinner className={`me-2`} animation="border" />
-        {loadingMessage}
+        <Col></Col>
+        <Col>
+          <Spinner className={`me-2`} animation="border" />
+          {loadingMessage}
+        </Col>
+        <Col></Col>
       </Row>
     );
 
