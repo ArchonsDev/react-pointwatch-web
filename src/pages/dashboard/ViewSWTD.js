@@ -308,7 +308,9 @@ const ViewSWTD = () => {
                     ? "text-danger"
                     : ""
                 }>
-                {swtdStatus?.status}
+                {swtdStatus?.status === "REJECTED"
+                  ? "FOR REVISION"
+                  : swtdStatus.status}
               </span>
             </Col>
             <Col className={`text-end`}>
@@ -439,7 +441,7 @@ const ViewSWTD = () => {
                   validation === "APPROVED"
                     ? "Do you wish to approve this form?"
                     : validation === "REJECTED"
-                    ? "Do you wish to reject this form?"
+                    ? "Would you like to send this form back for revision?"
                     : "Do you wish to make this change?"
                 }
               />

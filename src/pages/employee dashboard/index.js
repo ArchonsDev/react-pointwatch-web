@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, ListGroup, DropdownButton, Dropdown, Modal, Spinner, Card } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, ListGroup, DropdownButton, Dropdown, Modal, Spinner, Card, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
 
 import departmentTypes from "../../data/departmentTypes.json";
 import { getClearanceStatus } from "../../api/user";
@@ -45,20 +45,18 @@ const SWTDDashboard = () => {
       },
       (response) => {
         setUserSWTDs(response.swtds);
-        const approvedCount = response.swtds.filter(
-          (swtd) => swtd.validation.status === "APPROVED"
-        ).length;
-        const pendingCount = response.swtds.filter(
-          (swtd) => swtd.validation.status === "PENDING"
-        ).length;
-        const rejectedCount = response.swtds.filter(
-          (swtd) => swtd.validation.status === "REJECTED"
-        ).length;
+        const totalCounts = response.swtds.reduce(
+          (counts, swtd) => {
+            counts[swtd.validation.status.toLowerCase()]++;
+            return counts;
+          },
+          { approved: 0, pending: 0, rejected: 0 }
+        );
 
         // Update the state with the counts
-        setApprovedSWTDCount(approvedCount);
-        setPendingSWTDCount(pendingCount);
-        setRejectedSWTDCount(rejectedCount);
+        setApprovedSWTDCount(totalCounts.approved);
+        setPendingSWTDCount(totalCounts.pending);
+        setRejectedSWTDCount(totalCounts.rejected);
         setLoading(false);
       },
       (error) => {
@@ -129,6 +127,24 @@ const SWTDDashboard = () => {
       }
     );
   };
+
+  useEffect(() => {
+    if (selectedTerm) {
+      const termCounts = userSWTDs?.reduce(
+        (counts, swtd) => {
+          if (swtd.term.id === selectedTerm.id) {
+            counts[swtd.validation.status.toLowerCase()]++;
+          }
+          return counts;
+        },
+        { approved: 0, pending: 0, rejected: 0 }
+      );
+
+      setApprovedSWTDCount(termCounts.approved);
+      setPendingSWTDCount(termCounts.pending);
+      setRejectedSWTDCount(termCounts.rejected);
+    }
+  }, [selectedTerm, userSWTDs]);
 
   useEffect(() => {
     if (!user) setLoading(true);
@@ -272,46 +288,90 @@ const SWTDDashboard = () => {
           </Modal>
         </Col>
 
+        {/* APPROVED SWTDs Card */}
         <Col>
-          <Card className={`${styles.statCard} text-center`}>
-            <Card.Header className={styles.statHeader}>
-              Approved SWTDs
-            </Card.Header>
-            <Card.Body className={styles.statBody}>
-              <Card.Text>{approvedSWTDCount}</Card.Text>
-            </Card.Body>
-          </Card>
+          <OverlayTrigger
+            placement="bottom"
+            overlay={
+              <Tooltip id="button-tooltip-1" className={styles.cardBody}>
+                Count updated based on selected term
+              </Tooltip>
+            }>
+            <Card className={`${styles.statCard} text-center`}>
+              <Card.Header className={styles.statHeader}>
+                Approved SWTDs
+              </Card.Header>
+              <Card.Body className={styles.statBody}>
+                <Card.Text>{approvedSWTDCount}</Card.Text>
+              </Card.Body>
+            </Card>
+          </OverlayTrigger>
         </Col>
 
+        {/* PENDING SWTDs Card */}
         <Col>
-          <Card className={`${styles.statCard} text-center`}>
-            <Card.Header className={styles.statHeader}>
-              Pending SWTDs
-            </Card.Header>
-            <Card.Body className={styles.statBody}>
-              <Card.Text>{pendingSWTDCount}</Card.Text>
-            </Card.Body>
-          </Card>
+          <OverlayTrigger
+            placement="bottom"
+            overlay={
+              <Tooltip id="button-tooltip-2" className={styles.cardBody}>
+                Count updated based on selected term.
+              </Tooltip>
+            }>
+            <Card className={`${styles.statCard} text-center`}>
+              <Card.Header className={styles.statHeader}>
+                Pending SWTDs
+              </Card.Header>
+              <Card.Body className={styles.statBody}>
+                <Card.Text>{pendingSWTDCount}</Card.Text>
+              </Card.Body>
+            </Card>
+          </OverlayTrigger>
         </Col>
 
+        {/* REJECTED SWTDs Card */}
         <Col>
-          <Card className={`${styles.statCard} text-center`}>
-            <Card.Header className={styles.statHeader}>
-              SWTDs For Revision
-            </Card.Header>
-            <Card.Body className={styles.statBody}>
-              <Card.Text>{rejectedSWTDCount}</Card.Text>
-            </Card.Body>
-          </Card>
+          <OverlayTrigger
+            placement="bottom"
+            overlay={
+              <Tooltip id="button-tooltip-3" className={styles.cardBody}>
+                Count updated based on selected term.
+              </Tooltip>
+            }>
+            <Card className={`${styles.statCard} text-center`}>
+              <Card.Header className={styles.statHeader}>
+                SWTDs For Revision
+              </Card.Header>
+              <Card.Body className={styles.statBody}>
+                <Card.Text>{rejectedSWTDCount}</Card.Text>
+              </Card.Body>
+            </Card>
+          </OverlayTrigger>
         </Col>
 
+        {/* TOTAL SWTDs Card */}
         <Col>
-          <Card className={`${styles.statCard} text-center`}>
-            <Card.Header className={styles.statHeader}>Total SWTDs</Card.Header>
-            <Card.Body className={styles.statBody}>
-              <Card.Text>{userSWTDs.length}</Card.Text> {/* Total SWTD count */}
-            </Card.Body>
-          </Card>
+          <OverlayTrigger
+            placement="bottom"
+            overlay={
+              <Tooltip id="button-tooltip-4" className={styles.cardBody}>
+                Count updated based on selected term.
+              </Tooltip>
+            }>
+            <Card className={`${styles.statCard} text-center`}>
+              <Card.Header className={styles.statHeader}>
+                Total SWTDs
+              </Card.Header>
+              <Card.Body className={styles.statBody}>
+                <Card.Text>
+                  {selectedTerm
+                    ? userSWTDs.filter(
+                        (swtd) => swtd.term.id === selectedTerm.id
+                      ).length
+                    : userSWTDs.length}
+                </Card.Text>
+              </Card.Body>
+            </Card>
+          </OverlayTrigger>
         </Col>
 
         {/* POINTS */}

@@ -42,12 +42,12 @@
 
 .swtdHeader {
   background-color: #e8b4bc !important;
-  font-family: "Poppins-SemiBold";
+  font-family: "Poppins-Bold";
   border-radius: 10px 10px 0 0 !important;
 }
 
 .cardBody {
-  font-family: "Poppins-Regular";
+  font-family: "Poppins-Regular" !important;
 }
 
 .formLabel {
@@ -152,7 +152,7 @@
 
 .statBody {
   padding: 3% !important;
-  font-family: "Poppins-Medium";
+  font-family: "Poppins-SemiBold";
   color: #180018 !important;
 }
 

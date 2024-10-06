@@ -263,7 +263,11 @@ const SWTDDashboard = () => {
                   onClick={() => handleViewSWTD(item.id)}>
                   <Row>
                     <Col md={9}>{truncateTitle(item.title)}</Col>
-                    <Col md={2}>{item.validation.status}</Col>
+                    <Col md={2}>
+                      {item.validation.status === "REJECTED"
+                        ? "FOR REVISION"
+                        : item.validation.status}
+                    </Col>
                     <Col md={1}>{item.points}</Col>
                   </Row>
                 </ListGroup.Item>
