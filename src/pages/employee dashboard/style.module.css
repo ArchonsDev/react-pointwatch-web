@@ -65,7 +65,7 @@
 .pointsBox {
   border: grey 1px solid !important;
   font-family: "Poppins-SemiBold";
-  color: #d80085 !important;
+  color: #9d084a !important;
 }
 
 .points {
@@ -135,7 +135,7 @@
 
 .loading {
   color: #9d084a;
-  font-family: "Poppins-Medium";
+  font-family: "Poppins-SemiBold";
 }
 
 .statCard {

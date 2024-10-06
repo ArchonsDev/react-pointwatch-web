@@ -7,7 +7,11 @@ import departmentTypes from "../../data/departmentTypes.json";
 import status from "../../data/status.json";
 import { getAllSWTDs } from "../../api/swtd";
 import { getTerms } from "../../api/admin";
+import { exportSWTDList } from "../../api/export";
 import SessionUserContext from "../../contexts/SessionUserContext";
+
+import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
 
 const SWTDDashboard = () => {
@@ -72,18 +76,57 @@ const SWTDDashboard = () => {
     navigate(`/swtd/all/${id}`);
   };
 
-  const handleSearchFilter = (swtdList, query) => {
+  const handlePrint = () => {
+    exportSWTDList(
+      {
+        id: id,
+        token: token,
+      },
+      (response) => {
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const blobURL = URL.createObjectURL(blob);
+        window.open(blobURL, "_blank");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  };
+
+  const handleFilter = (swtdList, query, stat) => {
     return swtdList.filter((swtd) => {
-      const titleMatch = swtd.title.toLowerCase().includes(query.toLowerCase());
-      return titleMatch;
+      const matchesQuery = swtd.title
+        .toLowerCase()
+        .includes(query.toLowerCase());
+      const matchesStat = stat ? swtd.validation.status === stat : true;
+      return matchesQuery && matchesStat;
     });
   };
 
-  const handleStatusFilter = (swtdList, stat) => {
-    return swtdList.filter((swtd) => {
-      const statusMatch = swtd.validation.status === stat;
-      return statusMatch;
-    });
+  // SWTDs with selected term
+  const termSWTDs = userSWTDs?.filter(
+    (swtd) => swtd?.term.id === selectedTerm?.id
+  );
+
+  //If term is selected, use termSWTDs. Else, use default SWTDs.
+  const swtds = selectedTerm ? termSWTDs : userSWTDs;
+
+  //Filtered SWTDs with search bar
+  const filteredSWTDs = handleFilter(swtds, searchQuery, selectedStatus);
+
+  // Calculate pagination
+  const totalRecords = filteredSWTDs.length;
+  const totalPages = Math.ceil(totalRecords / recordsPerPage);
+
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = filteredSWTDs.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   useEffect(() => {
@@ -104,36 +147,6 @@ const SWTDDashboard = () => {
       </Row>
     );
 
-  // SWTDs with selected term
-  const termSWTDs = userSWTDs?.filter(
-    (swtd) => swtd?.term.id === selectedTerm?.id
-  );
-
-  //If term is selected, use termSWTDs. Else, use default SWTDs.
-  const swtds = selectedTerm ? termSWTDs : userSWTDs;
-
-  //Filtered SWTDs with search bar
-  const filteredSWTDs = searchQuery
-    ? handleSearchFilter(swtds, searchQuery)
-    : selectedStatus
-    ? handleStatusFilter(swtds, selectedStatus)
-    : swtds;
-
-  // Calculate pagination
-  const totalRecords = filteredSWTDs.length;
-  const totalPages = Math.ceil(totalRecords / recordsPerPage);
-
-  const indexOfLastRecord = currentPage * recordsPerPage;
-  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredSWTDs.slice(
-    indexOfFirstRecord,
-    indexOfLastRecord
-  );
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
       <Row className="w-100 mb-2">
@@ -145,9 +158,10 @@ const SWTDDashboard = () => {
             SWTD Submissions
           </h3>
         </Col>
+
         <Col
-          className={`d-flex align-items-center ${styles.employeeDetails}`}
-          xs="auto">
+          className={`d-flex justify-content-end align-items-center mb-3 ${styles.employeeDetails}`}
+          md="auto">
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           {terms.length === 0 ? (
             <>No terms were added yet.</>
@@ -178,7 +192,7 @@ const SWTDDashboard = () => {
       </Row>
 
       <Row className="w-100">
-        <Col className="text-start p-0" md={6}>
+        <Col className="text-start p-0" md="6">
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
@@ -191,23 +205,41 @@ const SWTDDashboard = () => {
             />
           </InputGroup>
         </Col>
-        <Col
-          className={`${styles.cardBody} d-flex justify-content-end align-items-center mb-3`}>
-          <span className="me-2">Status</span>
-          <Col md="auto">
+        <Col className={`${styles.cardBody} text-end mb-3`} md="auto">
+          <InputGroup>
+            <InputGroup.Text>
+              <i className="fa-solid fa-tags fa-lg"></i>
+            </InputGroup.Text>
             <Form.Select
               name="filter"
               onChange={(e) => {
                 setSelectedStatus(e.target.value);
               }}>
-              <option value="">Select Status</option>
+              <option value="">All Statuses</option>
               {status.status.map((status, index) => (
                 <option key={index} value={status}>
                   {status === "REJECTED" ? "FOR REVISION" : status}
                 </option>
               ))}
             </Form.Select>
-          </Col>
+          </InputGroup>
+        </Col>
+        <Col className="text-end">
+          <BtnPrimary
+            onClick={() =>
+              user?.department === null
+                ? navigate("/dashboard")
+                : navigate("/swtd/form")
+            }>
+            <i className="fa-solid fa-file-circle-plus fa-lg me-2"></i>
+            Add SWTD
+          </BtnPrimary>
+        </Col>
+        <Col className="text-end" md="auto">
+          <BtnSecondary onClick={handlePrint} disabled={userSWTDs.length === 0}>
+            <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i>
+            Export PDF
+          </BtnSecondary>
         </Col>
       </Row>
 

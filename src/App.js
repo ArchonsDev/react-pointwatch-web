@@ -15,7 +15,7 @@ import Dashboard from "./pages/dashboard";
 import EmployeeSWTD from "./pages/dashboard/EmployeeSWTD";
 import ViewSWTD from "./pages/dashboard/ViewSWTD";
 import DisplaySWTD from "./pages/employee dashboard/DisplaySWTD";
-
+import HRDashboard from "./pages/hr dashboard";
 import Admin from "./pages/admin";
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
@@ -65,7 +65,7 @@ const App = () => {
     );
   };
 
-  const showDrawer = ["/swtd", "/dashboard", "/settings", "/admin"].some(
+  const showDrawer = ["/swtd", "/dashboard", "/settings", "/admin", "/hr"].some(
     (path) => location.pathname.startsWith(path)
   );
 
@@ -79,6 +79,7 @@ const App = () => {
     "/swtd/form": "Add a New Record",
     "/swtd/all": "SWTD Submissions",
     "/admin": "System Management",
+    "/hr": "Departmental Points Overview",
   };
 
   document.title = tabNames[location.pathname] || "PointWatch";
@@ -170,6 +171,11 @@ const App = () => {
             <Route
               path="/admin"
               element={token ? <Admin /> : <Navigate to="/login" />}
+            />
+
+            <Route
+              path="/hr"
+              element={token ? <HRDashboard /> : <Navigate to="/login" />}
             />
           </Routes>
         </SessionUserContext.Provider>

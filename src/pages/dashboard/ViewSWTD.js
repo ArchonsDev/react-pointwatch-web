@@ -343,10 +343,22 @@ const ViewSWTD = () => {
               Category
             </Col>
             <Col md="4">{swtd?.category}</Col>
-            <Col md="2">
-              <span className={styles.formLabel}>Role</span>
+            <Col className={styles.formLabel} md="2">
+              Has deliverables
             </Col>
-            <Col>{swtd?.role}</Col>
+            <Col md="4">
+              {swtd?.has_deliverables === true ? (
+                <>
+                  <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
+                  Yes
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
+                  No
+                </>
+              )}
+            </Col>
           </Row>
 
           <Row className="mb-4">
@@ -367,25 +379,6 @@ const ViewSWTD = () => {
                 </div>
               ))}
             </Col>
-            <Col className={styles.formLabel} md="2">
-              Has deliverables
-            </Col>
-            <Col md="4">
-              {swtd?.has_deliverables === true ? (
-                <>
-                  <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
-                  Yes
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
-                  No
-                </>
-              )}
-            </Col>
-          </Row>
-
-          <Row className="mb-4">
             <Col className={styles.formLabel} md="2">
               Proof
             </Col>
