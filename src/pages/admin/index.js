@@ -1,10 +1,11 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Row, Nav, Card } from "react-bootstrap";
+import { Container, Row, Nav, Card, Spinner } from "react-bootstrap";
 
 import Term from "./Term";
-import ValidationActivity from "./ValidationActivity";
-import ClearanceActivity from "./ClearanceActivity";
+import DepartmentHeadActivity from "./DepartmentHeadActivity";
+import HeadPromotion from "./HeadPromotion";
+import StaffPromotion from "./StaffPromotion";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import styles from "./style.module.css";
@@ -23,10 +24,12 @@ const Admin = () => {
     switch (activeTab) {
       case "term":
         return <Term />;
-      case "validation":
-        return <ValidationActivity />;
-      case "clearance":
-        return <ClearanceActivity />;
+      case "activity":
+        return <DepartmentHeadActivity />;
+      case "head":
+        return <HeadPromotion />;
+      case "staff":
+        return <StaffPromotion />;
       default:
     }
   };
@@ -34,17 +37,25 @@ const Admin = () => {
   useEffect(() => {
     if (!user) setLoading(true);
     else {
+      if (user?.is_admin) navigate("/dashboard");
+      else if (!user?.is_staff && !user?.is_superuser) navigate("/swtd");
       setLoading(false);
-      if (!user?.is_admin && !user?.is_superuser) navigate("/swtd");
     }
   }, [user, navigate]);
 
-  if (loading) return null;
+  if (loading)
+    return (
+      <Row
+        className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
+        <Spinner className={`me-2`} animation="border" />
+        Loading data...
+      </Row>
+    );
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
       <Row className="mb-2">
-        <h3 className={styles.label}>Admin</h3>
+        <h3 className={styles.label}>System Management</h3>
       </Row>
 
       <Row>
@@ -60,26 +71,37 @@ const Admin = () => {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link
-              eventKey="validation"
+              eventKey="activity"
               className={`${styles.navHeader} ${
-                activeTab === "validation"
-                  ? styles.activeTab
-                  : styles.inactiveTab
+                activeTab === "activity" ? styles.activeTab : styles.inactiveTab
               }`}>
-              Validation Activity
+              Department Heads Report
             </Nav.Link>
           </Nav.Item>
-          <Nav.Item>
-            <Nav.Link
-              eventKey="clearance"
-              className={`${styles.navHeader} ${
-                activeTab === "clearance"
-                  ? styles.activeTab
-                  : styles.inactiveTab
-              }`}>
-              Clearance Activity
-            </Nav.Link>
-          </Nav.Item>
+          {user?.is_superuser && (
+            <>
+              <Nav.Item>
+                <Nav.Link
+                  eventKey="head"
+                  className={`${styles.navHeader} ${
+                    activeTab === "head" ? styles.activeTab : styles.inactiveTab
+                  }`}>
+                  Department Heads
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link
+                  eventKey="staff"
+                  className={`${styles.navHeader} ${
+                    activeTab === "staff"
+                      ? styles.activeTab
+                      : styles.inactiveTab
+                  }`}>
+                  HR Staff
+                </Nav.Link>
+              </Nav.Item>
+            </>
+          )}
         </Nav>
       </Row>
       <Row className="w-100">

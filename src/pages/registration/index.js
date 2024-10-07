@@ -96,7 +96,7 @@ const Registration = () => {
       {/* Fake Navbar */}
       <header className={styles.header}>
         {" "}
-        <h3>
+        <h3 className="text-white">
           <Link to="/login">
             <i
               className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}></i>

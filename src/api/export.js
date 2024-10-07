@@ -1,10 +1,11 @@
 import axios from "axios";
-import config from "../config.json";
+
+const apiUrl = process.env.REACT_APP_API_URL;
 
 export const exportSWTDList = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `${config.apiUrl}/users/${data.id}/swtds/export`,
+      `${apiUrl}/users/${data.id}/swtds/export`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -25,7 +26,7 @@ export const exportSWTDList = async (data, onSuccess, onFail, onCleanup) => {
 export const exportStaffReport = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `${config.apiUrl}/users/${data.id}/validations/export`,
+      `${apiUrl}/users/${data.id}/validations/export`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -46,7 +47,7 @@ export const exportStaffReport = async (data, onSuccess, onFail, onCleanup) => {
 export const exportAdminReport = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `${config.apiUrl}/users/${data.id}/clearings/export`,
+      `${apiUrl}/users/${data.id}/clearings/export`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,

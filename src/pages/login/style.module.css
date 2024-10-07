@@ -11,18 +11,18 @@
 .line1 {
   font-family: "Poppins-SemiBold";
   font-size: 60px;
-  color: #474448;
+  color: #180018;
 }
 
 .line2 {
   font-family: "Degradasi";
   font-size: 60px;
-  color: #d80085;
+  color: #9d084a;
   line-height: 1;
 }
 
 .icon {
-  color: #474448;
+  color: #180018;
 }
 
 .formBox {
@@ -57,14 +57,14 @@
 
 .modalTitle {
   font-family: "Degradasi";
-  color: #d80085 !important;
+  color: #9d084a !important;
   vertical-align: middle;
 }
 
 .modalBody {
   font-family: "Poppins-Medium";
   text-align: center;
-  color: #474448;
+  color: #180018;
 }
 
 .image {
@@ -83,15 +83,16 @@
 }
 
 .msButton {
-  background-color: #00a4ef !important;
-  border: none !important;
-  border-radius: 200px !important;
+  color: #180018 !important;
+  background-color: #ffffff !important;
+  border: 2px solid #180018 !important;
+  border-radius: 10px;
   font-family: "Poppins-SemiBold" !important;
-  font-size: 15px !important;
+  font-size: 16px !important;
 }
 
 .spinner {
-  color: #d80085;
+  color: #9d084a;
   font-family: "Poppins-Medium";
   vertical-align: middle;
   margin-right: 10px;

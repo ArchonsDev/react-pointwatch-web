@@ -1,7 +1,7 @@
 {
     "type" : [
         "SEMESTER",
-        "MIDYEAR",
-        "SCHOOLYEAR"
+        "MIDYEAR/SUMMER",
+        "ACADEMIC YEAR"
     ]
 }

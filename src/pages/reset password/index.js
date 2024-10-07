@@ -84,9 +84,9 @@ const ResetPassword = () => {
     <div className={styles.background}>
       <header className={styles.header}>
         {" "}
-        <h3>
+        <h3 className="text-white">
           <Link to="/login">
-            <i className={`${styles.icon} fa-solid fa-caret-left fa-xl`}></i>
+            <i className={`fa-solid fa-caret-left fa-xl text-white`}></i>
           </Link>{" "}
           Reset Password
         </h3>

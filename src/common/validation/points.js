@@ -1,8 +1,13 @@
 import categories from "../../data/categories.json";
 
-export const calculatePoints = (name, start, finish) => {
-  const hours = calculateHours(start, finish);
+export const calculateHourPoints = (name, startTime, endTime) => {
+  const totalHours = calculateHours(startTime, endTime);
   const id = getCategoryID(name);
+  const points = calculatePoints(id, totalHours);
+  return points;
+};
+
+const calculatePoints = (id, totalHours) => {
   let multiplier;
   switch (id) {
     case 1:
@@ -23,10 +28,23 @@ export const calculatePoints = (name, start, finish) => {
       multiplier = 1;
   }
 
-  if (hours >= 8) return 4 * multiplier;
-  if (hours >= 4) return 2 * multiplier;
-  if (hours >= 2) return 1 * multiplier;
-  return 0.5 * multiplier;
+  let points = 0;
+  let remainingHours = totalHours;
+
+  const hourBlocks = [
+    { hours: 8, points: 4 },
+    { hours: 4, points: 2 },
+    { hours: 2, points: 1 },
+    { hours: 1, points: 0.5 },
+  ];
+
+  for (let block of hourBlocks) {
+    while (remainingHours >= block.hours) {
+      points += block.points * multiplier;
+      remainingHours -= block.hours;
+    }
+  }
+  return points;
 };
 
 const getCategoryID = (name) => {
@@ -37,6 +55,11 @@ const getCategoryID = (name) => {
 };
 
 const calculateHours = (start, finish) => {
+  if (!start || !finish) {
+    console.error("Start or finish time is undefined:", { start, finish });
+    return 0;
+  }
+
   const [startHours, startMinutes] = start.split(":").map(Number);
   const [endHours, endMinutes] = finish.split(":").map(Number);
 

@@ -1,5 +1,5 @@
 .navbar {
-  background-color: #d80085 !important;
+  background-color: #9d084a !important;
 }
 
 .header {
@@ -8,8 +8,20 @@
   color: #f5e3e0 !important;
 }
 
+.brand {
+  font-family: "Degradasi";
+  font-size: 1.5rem;
+  color: #f5e3e0 !important;
+}
+
+.line {
+  height: 8px;
+  background: white;
+  color: white;
+}
+
 .sidebar {
-  background-color: #3a3238 !important;
+  background-color: #180018 !important;
 }
 
 .toggle {
@@ -19,23 +31,34 @@
 }
 
 .active {
-  color: #3a3238 !important;
-  background-color: #e8b4bc !important;
+  color: #180018 !important;
+  background-color: #f5e3e0 !important;
   font-family: "Poppins-SemiBold";
   font-size: 1.1em !important;
   border-radius: 10px;
 }
 
 .navItem {
-  color: #e8b4bc !important;
+  color: #f5e3e0 !important;
   font-family: "Poppins-SemiBold";
   font-size: 1.1em !important;
   border-radius: 10px;
 }
 
+.logoutItem {
+  color: #180018 !important;
+  font-family: "Poppins-SemiBold";
+  font-size: 1.1em !important;
+  border-radius: 10px;
+}
+
+.logoutItem:hover {
+  color: #9d084a !important;
+}
+
 .navItem:hover {
-  color: #3a3238 !important;
-  background-color: #e8b4bc !important;
+  color: #180018 !important;
+  background-color: #f5e3e0 !important;
 }
 
 @media screen and (min-width: 1200px) {
@@ -46,18 +69,19 @@
 
 .logout {
   margin-top: auto !important;
-}
-
-.circle {
-  width: 6em;
-  height: 6em;
-  background-color: #f0f0f0;
-  border-radius: 50%;
+  background-color: #f5e3e0 !important;
 }
 
 .name {
   font-family: "Poppins-SemiBold";
-  color: #e8b4bc;
+  font-size: 1.3em;
+  color: #f5e3e0;
+}
+
+.detail {
+  font-family: "Poppins-Medium";
+  font-size: 1em;
+  color: #f5e3e0;
 }
 
 .empId {

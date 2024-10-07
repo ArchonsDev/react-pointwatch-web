@@ -1,20 +1,24 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, Card, Form, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Card, Form, Modal, Spinner, FloatingLabel } from "react-bootstrap"; /* prettier-ignore */
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import departmentTypes from "../../data/departmentTypes.json";
 import categories from "../../data/categories.json";
-import roles from "../../data/roles.json";
 import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { addSWTD } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
-import { formatDate, wordDate } from "../../common/format/date";
+import {
+  formatDate,
+  wordDate,
+  apiDate,
+  monthYearDate,
+} from "../../common/format/date";
 import { isEmpty, isValidSWTDDate } from "../../common/validation/utils";
-import { calculatePoints } from "../../common/validation/points";
+import { calculateHourPoints } from "../../common/validation/points";
 
 import SWTDInfo from "./SWTDInfo";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -26,6 +30,7 @@ const AddSWTD = () => {
   const accessToken = Cookies.get("userToken");
   const navigate = useNavigate();
   const inputFile = useRef(null);
+  const textareaRef = useRef(null);
 
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
@@ -41,20 +46,32 @@ const AddSWTD = () => {
   });
   const [terms, setTerms] = useState([]);
   const [invalidTerm, setInvalidTerm] = useState(false);
+  const [checkbox, setCheckBox] = useState({
+    deliverable: false,
+  });
+  const [numDays, setNumDays] = useState(1);
+  const [formDates, setFormDates] = useState([
+    {
+      date: "",
+      time_started: "",
+      time_ended: "",
+    },
+  ]);
   const [form, setForm] = useState({
     author_id: id,
     title: "",
     venue: "",
     category: "",
     term_id: 0,
-    role: "",
-    date: "",
-    time_started: "",
-    time_finished: "",
+    role: "Attendee",
+    dates: formDates,
     points: 0,
     proof: "",
     benefits: "",
+    has_deliverables: checkbox.deliverable,
   });
+
+  let swtdPoints = 0;
 
   const clearForm = () => {
     if (inputFile.current) {
@@ -63,28 +80,52 @@ const AddSWTD = () => {
       inputFile.current.type = "file";
     }
 
+    setFormDates([
+      {
+        date: "",
+        time_started: "",
+        time_ended: "",
+      },
+    ]);
+
     setForm({
       ...form,
       title: "",
       venue: "",
       category: "",
       term_id: 0,
-      role: "",
-      date: "",
-      time_started: "",
-      time_finished: "",
+      role: "Attendee",
+      dates: formDates,
+      points: 0,
       proof: "",
       benefits: "",
     });
   };
 
+  const handleBoxChange = (e) => {
+    const { id, checked } = e.target;
+    setCheckBox({
+      ...checkbox,
+      [id]: checked,
+    });
+
+    setForm((prevForm) => ({
+      ...prevForm,
+      has_deliverables:
+        id === "deliverable" ? checked : prevForm.has_deliverables,
+    }));
+  };
+
   const handleChange = (e) => {
+    const textarea = textareaRef.current;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+
     if (e.target.name === "category" && e.target.value.startsWith("Degree")) {
       setForm({
         ...form,
         time_started: "00:00",
-        time_finished: "00:00",
-        points: 0,
+        time_ended: "00:00",
         [e.target.name]: e.target.value,
       });
     } else if (e.target.name === "term_id") {
@@ -103,10 +144,8 @@ const AddSWTD = () => {
 
         fetchClearanceStatus(term);
       }
-
       setForm({
         ...form,
-        date: "",
         [e.target.name]: e.target.value,
       });
     } else {
@@ -115,6 +154,42 @@ const AddSWTD = () => {
         [e.target.name]: e.target.value,
       });
     }
+  };
+
+  const handleFormDatesChange = (index, field, value) => {
+    const updatedFormDates = [...formDates];
+    updatedFormDates[index] = {
+      ...updatedFormDates[index],
+      [field]: value,
+    };
+
+    setFormDates(updatedFormDates);
+
+    setForm((prevForm) => ({
+      ...prevForm,
+      dates: updatedFormDates,
+    }));
+  };
+
+  const handleDaysChange = (e) => {
+    let newNumDays = parseInt(e.target.value, 10);
+    if (newNumDays === 0) {
+      newNumDays = 1;
+    }
+    setNumDays(newNumDays);
+
+    const updatedFormDates = [...formDates];
+    while (updatedFormDates.length < newNumDays) {
+      updatedFormDates.push({ date: "", time_started: "", time_ended: "" });
+    }
+    while (updatedFormDates.length > newNumDays) {
+      updatedFormDates.pop();
+    }
+    setFormDates(updatedFormDates);
+    setForm({
+      ...form,
+      dates: updatedFormDates,
+    });
   };
 
   const fetchClearanceStatus = (term) => {
@@ -154,28 +229,10 @@ const AddSWTD = () => {
     }
   };
 
-  const isTimeInvalid = () => {
-    const timeStart = form.time_started;
-    const timeFinish = form.time_finished;
-
-    if (timeStart > timeFinish) return true;
-  };
-
   const invalidFields = () => {
-    const requiredFields = [
-      "title",
-      "venue",
-      "category",
-      "role",
-      "date",
-      "time_started",
-      "time_finished",
-      "benefits",
-    ];
+    const requiredFields = ["title", "venue", "category", "benefits"];
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
-      isTimeInvalid() ||
-      !isValidSWTDDate(form.date, selectedTerm) ||
       form.term_id === 0 ||
       !form.proof ||
       form.points <= 0 ||
@@ -183,26 +240,67 @@ const AddSWTD = () => {
     );
   };
 
-  const getPoints = (name, start, finish) => {
-    const total = calculatePoints(name, start, finish);
-    setForm({
-      ...form,
-      points: total,
+  const getMinDate = (index, formDates, selectedTerm) => {
+    if (index > 0 && formDates[index - 1]?.date) {
+      const previousDate = new Date(formDates[index - 1].date);
+      previousDate.setDate(previousDate.getDate() + 1);
+      return previousDate.toISOString().split("T")[0];
+    }
+    return selectedTerm ? selectedTerm.start : "";
+  };
+
+  const getHourPoints = (name, start, finish) => {
+    return calculateHourPoints(name, start, finish);
+  };
+
+  const calculateTotalPoints = () => {
+    swtdPoints = 0;
+    formDates.forEach((dateEntry, index) => {
+      const isFormValid =
+        !isEmpty(form.category) &&
+        !form.category.startsWith("Degree") &&
+        !isEmpty(dateEntry.date) &&
+        !isEmpty(dateEntry.time_started) &&
+        !isEmpty(dateEntry.time_ended);
+
+      if (isFormValid) {
+        const points = getHourPoints(
+          form.category,
+          dateEntry.time_started,
+          dateEntry.time_ended
+        );
+        swtdPoints += points;
+      }
     });
+
+    return swtdPoints;
   };
 
   const handleSubmit = async () => {
-    if (!isEmpty(form.date)) {
-      const [year, month, day] = form.date.split("-");
-      form.date = `${month}-${day}-${year}`;
-    }
+    //Change date format from YYYY-MM-DD to MM-DD-YYYY
+    const formattedDates = formDates.map((dateEntry) => ({
+      ...dateEntry,
+      date: apiDate(dateEntry.date),
+    }));
+
+    const datesString = JSON.stringify(formattedDates);
+
+    const updatedForm = {
+      ...form,
+      dates: datesString,
+    };
 
     await addSWTD(
-      { ...form, token: accessToken },
+      { ...updatedForm, token: accessToken },
       (response) => {
         setTimeout(() => {
           triggerShowSuccess(4500);
           clearForm();
+          setNumDays(1);
+          setCheckBox({
+            ...checkbox,
+            deliverable: false,
+          });
           setLoading(false);
         });
       },
@@ -212,7 +310,6 @@ const AddSWTD = () => {
           triggerShowError(4500);
           setForm({
             ...form,
-            date: "",
           });
           setLoading(false);
         } else {
@@ -242,16 +339,27 @@ const AddSWTD = () => {
     );
   };
 
+  //USEEFFECT FOR CALCULATING POINTS
   useEffect(() => {
-    const isFormValid =
-      !isEmpty(form.category) &&
-      !form.category.startsWith("Degree") &&
-      !isEmpty(form.time_started) &&
-      !isEmpty(form.time_finished);
-    if (isFormValid)
-      getPoints(form.category, form.time_started, form.time_finished);
-    else form.points = 0;
-  }, [form.category, form.time_started, form.time_finished]);
+    const allEntriesFilled = formDates.every(
+      (dateEntry) =>
+        !isEmpty(dateEntry.date) &&
+        !isEmpty(dateEntry.time_started) &&
+        !isEmpty(dateEntry.time_ended)
+    );
+
+    if (allEntriesFilled && !checkbox.deliverable) {
+      const totalPoints = calculateTotalPoints();
+      setForm((prevForm) => ({
+        ...prevForm,
+        points: totalPoints,
+      }));
+    } else {
+      setForm((prevForm) => ({
+        ...prevForm,
+      }));
+    }
+  }, [formDates, form.category, checkbox.deliverable]);
 
   useEffect(() => {
     if (user?.department === null) navigate("/swtd");
@@ -278,13 +386,15 @@ const AddSWTD = () => {
         </Modal.Body>
       </Modal>
 
-      <Row className="mb-2">
-        <h3 className={styles.label}>
-          <i
-            className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
-            onClick={() => navigate("/swtd")}></i>{" "}
-          Add a New Record
-        </h3>
+      <Row className="w-100 mb-2">
+        <Col md="auto">
+          <h3 className={styles.label}>
+            <i
+              className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
+              onClick={() => navigate("/swtd")}></i>{" "}
+            Add a New Record
+          </h3>
+        </Col>
       </Row>
 
       <Card className="mb-3" style={{ width: "80rem" }}>
@@ -293,7 +403,7 @@ const AddSWTD = () => {
             <Col>SWTD Details</Col>
             <Col className="text-end">
               <i
-                className={`${styles.commentEdit} fa-solid fa-circle-info fa-lg`}
+                className={`${styles.commentEdit} fa-solid fa-circle-info fa-sm`}
                 onClick={openModal}></i>
             </Col>
           </Row>
@@ -310,309 +420,321 @@ const AddSWTD = () => {
             </div>
           )}
           <Form noValidate>
-            {/* Title */}
+            {/* GENERAL INFORMATION */}
+            <Row className="mb-2">
+              <Col className={`p-1 ${styles.categoryLabel}`}>
+                <span className="ms-1">GENERAL INFORMATION</span>
+              </Col>
+            </Row>
+
+            {/* TITLE */}
+            <>
+              <FloatingLabel
+                controlId="floatingInputTitle"
+                label="Title"
+                className="mb-3">
+                <Form.Control
+                  type="text"
+                  placeholder="Title"
+                  name="title"
+                  className={styles.formBox}
+                  onChange={handleChange}
+                  value={form.title}
+                  disabled={loading}
+                />
+              </FloatingLabel>
+            </>
+
+            {/* VENUE & TERM */}
             <Row>
-              <Form.Group as={Row} className="mb-3" controlId="inputTitle">
-                <Form.Label className={styles.formLabel} column sm="1">
-                  Title
-                </Form.Label>
-                <Col
-                  className="d-flex justify-content-start align-items-start"
-                  sm="11">
+              <Col>
+                <FloatingLabel
+                  controlId="floatingInputVenue"
+                  label="Venue"
+                  className="mb-3">
                   <Form.Control
                     type="text"
+                    placeholder="Venue"
                     className={styles.formBox}
-                    name="title"
+                    name="venue"
                     onChange={handleChange}
-                    value={form.title}
+                    value={form.venue}
                     disabled={loading}
                   />
-                </Col>
-              </Form.Group>
-            </Row>
-
-            <Row className="w-100">
-              {/* Venue */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputVenue">
-                  <Form.Label className={styles.formLabel} column sm="2">
-                    Venue
-                  </Form.Label>
-                  <Col sm="10">
-                    <Form.Control
-                      type="text"
-                      className={styles.formBox}
-                      name="venue"
-                      onChange={handleChange}
-                      value={form.venue}
-                      disabled={loading}
-                    />
-                  </Col>
-                </Form.Group>
+                </FloatingLabel>
               </Col>
 
-              {/* Category */}
               <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputCategory">
-                  <Form.Label
-                    className={`${styles.formLabel} text-end`}
-                    column
-                    sm="2">
-                    Category
-                  </Form.Label>
-                  <Col sm="10">
-                    <Form.Select
-                      className={styles.formBox}
-                      name="category"
-                      onChange={handleChange}
-                      value={form.category}
-                      disabled={loading}>
-                      <option value="" disabled>
-                        Select a category
+                <FloatingLabel
+                  controlId="floatingSelectTerm"
+                  label="Term"
+                  className="mb-3">
+                  <Form.Select
+                    className={styles.formBox}
+                    name="term_id"
+                    onChange={handleChange}
+                    value={form.term_id}
+                    isInvalid={invalidTerm}
+                    disabled={loading}>
+                    <option value={0} disabled>
+                      Select a term
+                    </option>
+                    {terms.map((term, index) => (
+                      <option key={index} value={term.id}>
+                        {term.name} ({monthYearDate(term.start_date)} to{" "}
+                        {monthYearDate(term.end_date)})
                       </option>
-                      {categories.categories.map((category) => (
-                        <option key={category.id} value={category.name}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Col>
-                </Form.Group>
+                    ))}
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    You are already cleared for this term. Please select
+                    another.
+                  </Form.Control.Feedback>
+                </FloatingLabel>
               </Col>
             </Row>
 
-            <Row className="w-100">
-              {/* Term */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputTerm">
-                  <Form.Label className={`${styles.formLabel}`} column sm="2">
-                    Term
-                  </Form.Label>
-                  <Col sm="10">
-                    <Form.Select
-                      className={styles.formBox}
-                      name="term_id"
-                      onChange={handleChange}
-                      value={form.term_id}
-                      isInvalid={invalidTerm}
-                      disabled={loading}>
-                      <option value={0} disabled>
-                        Select a term
+            {/* CATEGORY, POINTS, CHECKBOX */}
+            <Row className="mb-4">
+              <Col md="6">
+                <FloatingLabel
+                  controlId="floatingInputCategory"
+                  label="Category"
+                  className="mb-3">
+                  <Form.Select
+                    className={styles.formBox}
+                    name="category"
+                    onChange={handleChange}
+                    value={form.category}
+                    disabled={loading}>
+                    <option value="" disabled>
+                      Select a category
+                    </option>
+                    {categories.categories.map((category) => (
+                      <option key={category.id} value={category.name}>
+                        {category.name}
                       </option>
-                      {terms.map((term, index) => (
-                        <option key={index} value={term.id}>
-                          {term.name} ({wordDate(term.start_date)} to{" "}
-                          {wordDate(term.end_date)})
-                        </option>
-                      ))}
-                    </Form.Select>
-                    <Form.Control.Feedback type="invalid">
-                      You are already cleared for this term. Please select
-                      another.
-                    </Form.Control.Feedback>
-                  </Col>
-                </Form.Group>
+                    ))}
+                  </Form.Select>
+                </FloatingLabel>
               </Col>
 
-              {/* Role */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputRole">
-                  <Form.Label
-                    className={`${styles.formLabel} text-end`}
-                    column
-                    sm="2">
-                    Role
-                  </Form.Label>
-                  <Col sm="10">
-                    <Form.Select
-                      className={styles.formBox}
-                      name="role"
-                      onChange={handleChange}
-                      value={form.role}
-                      disabled={loading}>
-                      <option value="" disabled>
-                        Select a role
-                      </option>
-                      {roles.roles.map((role, index) => (
-                        <option key={index} value={role}>
-                          {role}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Col>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            {/* Date */}
-            <Row className="w-100">
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputDate">
-                  <Form.Label className={styles.formLabel} column sm="2">
-                    Date
-                  </Form.Label>
-                  <Col sm="10">
-                    <Form.Control
-                      type="date"
-                      min={selectedTerm ? selectedTerm.start : ""}
-                      max={
-                        selectedTerm?.ongoing
-                          ? new Date().toISOString().slice(0, 10)
-                          : selectedTerm.end
-                      }
-                      className={styles.formBox}
-                      name="date"
-                      onChange={handleChange}
-                      value={form.date}
-                      isInvalid={
-                        !isEmpty(form.date) &&
-                        !isValidSWTDDate(form.date, selectedTerm)
-                      }
-                      disabled={form.term_id === 0 || loading}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      Date must be valid and within the selected term.
-                    </Form.Control.Feedback>
-                  </Col>
-                </Form.Group>
+              <Col md="auto">
+                <FloatingLabel
+                  controlId="floatingInputPoints"
+                  label="Points"
+                  className="mb-3">
+                  <Form.Control
+                    type="number"
+                    min={0}
+                    placeholder="Points"
+                    className={styles.pointsBox}
+                    name="points"
+                    onChange={handleChange}
+                    value={form.points}
+                    disabled={loading}
+                    readOnly={
+                      !form?.category.startsWith("Degree") &&
+                      !checkbox.deliverable
+                    }
+                  />
+                  <Form.Text>
+                    {checkbox.deliverable || form?.category.startsWith("Degree")
+                      ? "Enter points for this SWTD."
+                      : "Points calculated automatically."}
+                  </Form.Text>
+                </FloatingLabel>
               </Col>
 
-              {/* Time */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputTime">
-                  <Form.Label
-                    className={`${styles.formLabel} text-end`}
-                    column
-                    sm="2">
-                    Time
-                  </Form.Label>
-                  <Col className="text-start" sm="4">
-                    <Form.Control
-                      type="time"
-                      className={styles.formBox}
-                      name="time_started"
-                      onChange={handleChange}
-                      value={form.time_started}
-                      isInvalid={isTimeInvalid()}
-                      disabled={form?.category.startsWith("Degree") || loading}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      Time must be valid.
-                    </Form.Control.Feedback>
-                  </Col>
-                  <Col
-                    className="d-flex justify-content-center align-items-center"
-                    sm="1">
-                    to
-                  </Col>
-                  <Col sm="4">
-                    <Form.Control
-                      type="time"
-                      className={styles.formBox}
-                      name="time_finished"
-                      onChange={handleChange}
-                      value={form.time_finished}
-                      isInvalid={isTimeInvalid()}
-                      disabled={form?.category.startsWith("Degree") || loading}
-                    />
-                  </Col>
-                </Form.Group>
+              <Col className="d-flex p-3">
+                <Form.Check
+                  inline
+                  type="checkbox"
+                  id="deliverable"
+                  checked={checkbox.deliverable}
+                  onChange={handleBoxChange}
+                />
+                <Form.Check.Label>
+                  Does the SWTD have deliverables?
+                </Form.Check.Label>
               </Col>
             </Row>
 
-            {/* Proof */}
-            <Row className="w-100">
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputProof">
-                  <Form.Label className={`${styles.formLabel}`} column sm="2">
-                    Proof
-                  </Form.Label>
-                  <Col sm="6">
-                    <Form.Control
-                      type="file"
-                      className={styles.formBox}
-                      name="proof"
-                      onChange={handleProof}
-                      ref={inputFile}
-                      isInvalid={isProofInvalid}
-                      disabled={loading}
-                    />
-                  </Col>
-                  <Col className="d-flex align-items-center">
-                    <Form.Text muted>PDFs, PNG, JPG/JPEG only.</Form.Text>
-                  </Col>
-                </Form.Group>
+            {/* DATE & TIME */}
+            <Row className="mb-2">
+              <Col className={`p-1 ${styles.categoryLabel}`} md="4">
+                <span className="ms-1">DATE & TIME</span>
               </Col>
+            </Row>
 
-              {/* Points */}
-              <Col>
-                <Form.Group as={Row} className="mb-3" controlId="inputPoints">
-                  <Form.Label
-                    className={`${styles.formLabel} text-end`}
-                    column
-                    sm="2">
-                    Points
-                  </Form.Label>
+            {/* ENTER DAYS */}
+            <Row className="mb-2">
+              <Col md="2">
+                <FloatingLabel
+                  controlId="floatingInputDays"
+                  label="SWTD Duration (Days)"
+                  className="mb-3">
+                  <Form.Control
+                    type="number"
+                    min="1"
+                    className={styles.formBox}
+                    value={numDays}
+                    onChange={handleDaysChange}
+                    disabled={loading}
+                  />
+                </FloatingLabel>
+              </Col>
+            </Row>
 
-                  {form?.category.startsWith("Degree") ? (
+            {/* DATE + TIME ROW */}
+            <Row className="mb-4">
+              {formDates.map((dateEntry, index) => (
+                <Row key={index} className="mb-2">
+                  {/* DATE */}
+                  <Col md="6">
+                    <FloatingLabel
+                      controlId={`floatingInputDate-${index}`}
+                      label="Date"
+                      className="mb-3">
+                      <Form.Control
+                        type="date"
+                        min={getMinDate(index, formDates, selectedTerm)}
+                        max={
+                          selectedTerm?.ongoing
+                            ? new Date().toISOString().slice(0, 10)
+                            : selectedTerm.end
+                        }
+                        className={styles.formBox}
+                        onChange={(e) =>
+                          handleFormDatesChange(index, "date", e.target.value)
+                        }
+                        value={dateEntry.date}
+                        isInvalid={
+                          !isEmpty(dateEntry.date) &&
+                          !isValidSWTDDate(dateEntry.date, selectedTerm)
+                        }
+                        disabled={form.term_id === 0 || loading}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        Date must be valid and within the selected term.
+                      </Form.Control.Feedback>
+                    </FloatingLabel>
+                  </Col>
+
+                  {/* TIME */}
+                  {!form?.category.startsWith("Degree") && (
                     <>
-                      <Col sm="3">
-                        <Form.Control
-                          type="number"
-                          className={`${styles.pointsBox} text-center`}
-                          name="points"
-                          onChange={handleChange}
-                          value={form.points}
-                          isInvalid={form.points <= 0}
-                          disabled={loading}
-                        />
+                      {/* Start Time */}
+                      <Col md="3">
+                        <FloatingLabel
+                          controlId={`floatingInputStartTime-${index}`}
+                          label="Start Time"
+                          className="mb-3">
+                          <Form.Control
+                            type="time"
+                            className={styles.formBox}
+                            onChange={(e) =>
+                              handleFormDatesChange(
+                                index,
+                                "time_started",
+                                e.target.value
+                              )
+                            }
+                            value={dateEntry.time_started || ""}
+                            isInvalid={
+                              dateEntry.time_started > dateEntry.time_ended
+                            }
+                            disabled={loading}
+                          />
+                          <Form.Control.Feedback type="invalid">
+                            Time must be valid.
+                          </Form.Control.Feedback>
+                        </FloatingLabel>
                       </Col>
-                      <Col className="d-flex align-items-center">
-                        <Form.Text muted>
-                          Enter the points for this submission.
-                        </Form.Text>
-                      </Col>
-                    </>
-                  ) : (
-                    <>
-                      <Col sm="2">
-                        <Form.Control
-                          className={`${styles.pointsBox} text-center`}
-                          name="points"
-                          onChange={handleChange}
-                          value={form.points}
-                          readOnly
-                        />
-                      </Col>
-                      <Col className="d-flex align-items-center">
-                        <Form.Text muted>
-                          Points will be calculated automatically.
-                        </Form.Text>
+
+                      {/* End Time */}
+                      <Col md="3">
+                        <FloatingLabel
+                          controlId={`floatingInputEndTime-${index}`}
+                          label="End Time"
+                          className="mb-3">
+                          <Form.Control
+                            type="time"
+                            className={styles.formBox}
+                            onChange={(e) =>
+                              handleFormDatesChange(
+                                index,
+                                "time_ended",
+                                e.target.value
+                              )
+                            }
+                            value={dateEntry.time_ended || ""}
+                            isInvalid={
+                              dateEntry.time_started > dateEntry.time_ended
+                            }
+                            disabled={loading}
+                          />
+                        </FloatingLabel>
                       </Col>
                     </>
                   )}
-                </Form.Group>
+                </Row>
+              ))}
+            </Row>
+
+            {/* DOCUMENTATION */}
+            <Row className="w-100 mb-1">
+              <span className={styles.categoryLabel}>DOCUMENTATION</span>
+            </Row>
+
+            {/* PROOF */}
+            <Row>
+              <Col md="6">
+                <FloatingLabel
+                  controlId="floatingInputProof"
+                  label="Proof"
+                  className="mb-3">
+                  <Form.Control
+                    type="file"
+                    className={styles.formBox}
+                    name="proof"
+                    onChange={handleProof}
+                    ref={inputFile}
+                    isInvalid={isProofInvalid}
+                    disabled={loading}
+                  />
+                </FloatingLabel>
+              </Col>
+
+              <Col className="d-flex align-items-center">
+                <Form.Text muted>
+                  PDFs, PNG, JPG/JPEG only (Max: 5MB).
+                </Form.Text>
               </Col>
             </Row>
 
-            {/* Benefits */}
-            <Row>
-              <Form.Group as={Row} className="mb-3" controlId="inputBenefits">
-                <Form.Label className={styles.formLabel} column sm="1">
-                  Benefits
-                </Form.Label>
-                <Col sm="11">
-                  <Form.Control
-                    as="textarea"
-                    className={styles.formBox}
-                    name="benefits"
-                    onChange={handleChange}
-                    value={form.benefits}
-                    disabled={loading}
-                  />
-                </Col>
-              </Form.Group>
-            </Row>
+            {/* TAKEAWAYS */}
+            <>
+              <FloatingLabel
+                controlId="floatingInputTakeaways"
+                label={`Takeaways (${
+                  2000 - form.benefits.length
+                } characters remaining)`}
+                className="mb-3">
+                <Form.Control
+                  as="textarea"
+                  name="benefits"
+                  ref={textareaRef}
+                  className={styles.formBox}
+                  style={{ wordWrap: "break-word", overflow: "hidden" }}
+                  onChange={handleChange}
+                  value={form.benefits}
+                  maxLength={2000}
+                  disabled={loading}
+                />
+              </FloatingLabel>
+            </>
+
             <Row>
               <Col className="text-end">
                 {loading ? (

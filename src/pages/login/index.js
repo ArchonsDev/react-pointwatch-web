@@ -1,11 +1,10 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button, Container, Row, Col, Form, InputGroup, Modal, ToastContainer, Toast, Spinner } from "react-bootstrap"; /* prettier-ignore */
 import styles from "./style.module.css";
-import config from "../../config.json";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
-import { login, recovery } from "../../api/auth";
+import { login, recovery, register } from "../../api/auth";
 import { isEmpty } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -13,8 +12,12 @@ import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 import logo1 from "../../images/logo1.png";
 
+import { useMsal } from "@azure/msal-react";
+
 const Login = () => {
-  const { user, setUser } = useContext(SessionUserContext);
+  const { instance } = useMsal();
+  const { user, setUser, oauthLogin, setOauthLogin } =
+    useContext(SessionUserContext);
   const navigate = useNavigate();
 
   const [errorMessage, setErrorMessage] = useState(null);
@@ -41,6 +44,11 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [msForm, setMsForm] = useState({
     email: "",
     password: "",
   });
@@ -74,8 +82,15 @@ const Login = () => {
       form,
       (response) => {
         setUser(response.data.user);
-        if (user?.is_admin || user?.is_staff) navigate("/dashboard");
-        else navigate("/swtd");
+        const roles = {
+          is_admin: "/dashboard",
+          is_staff: "/hr",
+          is_superuser: "/admin",
+        };
+        const userRole = Object.keys(roles).find(
+          (role) => response.data.user[role]
+        );
+        navigate(userRole ? roles[userRole] : "/swtd");
         setIsLoading(false);
         clearForm();
       },
@@ -102,11 +117,6 @@ const Login = () => {
         }
       }
     );
-  };
-
-  // I modified this function to set the current tab URL to the backend endpopint for MS auth. THis initiates the sign in process
-  const handleMicrosoftLogin = async () => {
-    window.location.href = `${config.oauthUrl}/auth/microsoft`;
   };
 
   const handleSendEmail = async (e) => {
@@ -136,6 +146,167 @@ const Login = () => {
       setEmail("");
       console.error("Error sending recovery email");
     }
+  };
+
+  const splitFullName = (fullName) => {
+    const nameParts = fullName.trim().split(" ");
+
+    const firstName = nameParts[0];
+    const lastName = nameParts[nameParts.length - 1];
+    const middleInitial =
+      nameParts.length > 2
+        ? nameParts
+            .slice(1, -1)
+            .map((name) => name.charAt(0).toUpperCase())
+            .join(".") + "."
+        : "";
+
+    return {
+      firstName,
+      middleInitial,
+      lastName,
+    };
+  };
+
+  const hashString = async (str) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hash)); // Convert buffer to byte array
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join(""); // Convert bytes to hex string
+    return hashHex;
+  };
+
+  const handleMSLogin = async () => {
+    setIsLoading(true);
+    setIsClicked(true);
+    const loginRequest = {
+      scopes: ["User.Read"], // Scopes needed to access the user profile
+    };
+
+    var response = null;
+
+    // Initiate authentication with MS
+    try {
+      response = await instance.loginPopup(loginRequest);
+    } catch {
+      return;
+    }
+
+    const account = response?.account;
+    if (!account) return;
+
+    // Acquire user token
+    try {
+      response = await instance.acquireTokenSilent({
+        scopes: ["User.Read"],
+        account: account,
+      });
+    } catch {
+      return;
+    }
+    const accessToken = response?.accessToken;
+    if (!accessToken) return;
+
+    // Request MS user data
+    response = await fetch("https://graph.microsoft.com/v1.0/me", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const userData = await response.json();
+    if (!userData) return;
+
+    const email = userData.mail;
+    const password = await hashString(userData.id);
+
+    var isLoginSuccess = false;
+    var error = null;
+
+    await login(
+      {
+        email: email,
+        password: password,
+      },
+      (r) => {
+        console.log("Login successful.");
+        isLoginSuccess = true;
+      },
+      (e) => {
+        console.log("Login failed.");
+        error = e;
+      }
+    );
+
+    if (!isLoginSuccess) {
+      const name = splitFullName(userData.displayName);
+      var isRegistrationSuccess = false;
+
+      await register(
+        {
+          employee_id: userData.jobTitle,
+          email: email,
+          firstname: name.firstName,
+          lastname: name.lastName,
+          password: password,
+        },
+        (r) => {
+          console.log("Registration success");
+          isRegistrationSuccess = true;
+        },
+        (e) => {
+          console.log("Registration failed");
+          console.log(e);
+          error = e;
+        }
+      );
+    }
+
+    if (isRegistrationSuccess) {
+      await login(
+        {
+          email: email,
+          password: password,
+        },
+        (r) => {
+          console.log("Login successful.");
+          isLoginSuccess = true;
+        },
+        (e) => {
+          console.log("Login failed.");
+          error = e;
+        }
+      );
+    }
+
+    if (isLoginSuccess) navigate("/dashboard");
+
+    if (error?.response) {
+      let errorMessage = <b>{error.response.data.error}</b>;
+      let statusCode = error.response.status;
+
+      switch (statusCode) {
+        case 401:
+        case 404:
+        case 403:
+          setIsLoading(false);
+          setErrorMessage(errorMessage);
+          setShowToast(true);
+          clearForm();
+          break;
+        default:
+          handleDefaultError();
+          break;
+      }
+    } else {
+      handleDefaultError();
+    }
+  };
+
+  const handleMSLogout = () => {
+    instance.logout();
   };
 
   return (
@@ -329,29 +500,40 @@ const Login = () => {
                     </Col>
                   </Row>
 
-                  <Row>
-                    <Col md="auto">
-                      <BtnPrimary
-                        type="submit"
-                        onClick={handleSubmit}
-                        className={styles.button}
-                        disabled={
-                          isEmpty(form.email) || isEmpty(form.password)
-                        }>
-                        Login
-                      </BtnPrimary>
+                  <Row className="mb-2">
+                    <Col md={6}>
+                      <Row>
+                        <BtnPrimary
+                          type="submit"
+                          onClick={handleSubmit}
+                          className={`${styles.button} ${styles.buttonLogin}`}
+                          disabled={
+                            isEmpty(form.email) || isEmpty(form.password)
+                          }>
+                          Login
+                        </BtnPrimary>
+                      </Row>
                     </Col>
+                    <Col md={6}>
+                      <Row>
+                        <BtnSecondary
+                          onClick={() => navigate("/register")}
+                          className={`${styles.button} ${styles.buttonRegister}`}>
+                          Register
+                        </BtnSecondary>
+                      </Row>
+                    </Col>
+                  </Row>
+                  <Row className="mt-3 mb-3 text-center">
                     <Col>
-                      <BtnSecondary
-                        onClick={() => navigate("/register")}
-                        className={styles.button}>
-                        Register
-                      </BtnSecondary>
+                      <span className={styles.orText}>or</span>
                     </Col>
-                    <Col className="text-end" md="auto">
+                  </Row>
+                  <Row>
+                    <Col>
                       <Button
-                        className={styles.msButton}
-                        onClick={handleMicrosoftLogin}>
+                        className={`${styles.msButton} w-100`}
+                        onClick={handleMSLogin}>
                         Sign in with <i className="fa-brands fa-microsoft"></i>
                       </Button>
                     </Col>

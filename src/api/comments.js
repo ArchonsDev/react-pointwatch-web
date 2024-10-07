@@ -1,10 +1,11 @@
 import axios from "axios";
-import config from "../config.json";
+
+const apiUrl = process.env.REACT_APP_API_URL;
 
 export const getComments = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `${config.apiUrl}/swtds/${data.id}/comments`,
+      `${apiUrl}/swtds/${data.id}/comments`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -25,7 +26,7 @@ export const getComments = async (data, onSuccess, onFail, onCleanup) => {
 export const postComment = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.post(
-      `${config.apiUrl}/swtds/${data.id}/comments`,
+      `${apiUrl}/swtds/${data.id}/comments`,
       {
         message: data.message,
       },
@@ -50,7 +51,7 @@ export const postComment = async (data, onSuccess, onFail, onCleanup) => {
 export const editComment = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.put(
-      `${config.apiUrl}/swtds/${data.swtd_id}/comments/${data.comment_id}`,
+      `${apiUrl}/swtds/${data.swtd_id}/comments/${data.comment_id}`,
       {
         message: data.message,
       },
@@ -75,7 +76,7 @@ export const editComment = async (data, onSuccess, onFail, onCleanup) => {
 export const deleteComment = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.delete(
-      `${config.apiUrl}/swtds/${data.swtd_id}/comments/${data.comment_id}`,
+      `${apiUrl}/swtds/${data.swtd_id}/comments/${data.comment_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
