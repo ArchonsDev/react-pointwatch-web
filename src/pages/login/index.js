@@ -48,10 +48,10 @@ const Login = () => {
     password: "",
   });
 
-  // const [msForm, setMsForm] = useState({
-  //   email: "",
-  //   password: "",
-  // });
+  const [msForm, setMsForm] = useState({
+    email: "",
+    password: "",
+  });
 
   const clearForm = () => setForm({ email: "", password: "" });
 

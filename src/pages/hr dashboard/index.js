@@ -10,6 +10,7 @@ import { getClearanceStatus } from "../../api/user";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
 
 const HRDashboard = () => {
@@ -185,10 +186,24 @@ const HRDashboard = () => {
         </Col>
       </Row>
 
-      <Row className="mb-3">
-        <span className={`${styles.deptDropdown} text-muted`}>
-          Select a department and term below to see the records of employees.
-        </span>
+      <Row className="w-100 mb-3">
+        <Col md="6">
+          <span className={`${styles.deptDropdown} text-muted`}>
+            Select a department and term below to see the records of employees.
+          </span>
+        </Col>
+        <Col className="text-end">
+          <BtnPrimary
+            onClick={() => {
+              setSelectedDepartment("");
+              setSelectedTerm("");
+            }}>
+            <i className="fa-solid fa-trash-can me-2"></i>Reset
+          </BtnPrimary>{" "}
+          <BtnSecondary disabled={!selectedDepartment || !selectedTerm}>
+            <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i> Export
+          </BtnSecondary>
+        </Col>
       </Row>
 
       <Row className="w-100">
@@ -209,7 +224,7 @@ const HRDashboard = () => {
         </Col>
 
         {/* DEPARTMENTS */}
-        <Col md="auto">
+        <Col>
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
               <i className="fa-solid fa-landmark fa-lg"></i>
@@ -253,16 +268,6 @@ const HRDashboard = () => {
               ))}
             </Form.Select>
           </InputGroup>
-        </Col>
-
-        <Col md="auto">
-          <BtnPrimary
-            onClick={() => {
-              setSelectedDepartment("");
-              setSelectedTerm("");
-            }}>
-            <i className="fa-solid fa-trash-can me-2"></i>Reset
-          </BtnPrimary>
         </Col>
       </Row>
 
