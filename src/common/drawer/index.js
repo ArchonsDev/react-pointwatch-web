@@ -93,9 +93,9 @@ const Drawer = () => {
             {/* Navigate Pages */}
             <Offcanvas.Body className="d-flex flex-column p-0">
               <div className="flex-grow-1">
-                {/* Dashboard */}
                 <Nav>
-                  {(user?.is_admin || user?.is_staff || user?.is_superuser) && (
+                  {/* Dashboard */}
+                  {(user?.is_admin || user?.is_superuser) && (
                     <Nav.Link
                       className={`mx-3 my-1 p-3 ${
                         location.pathname === "/dashboard"
@@ -104,8 +104,22 @@ const Drawer = () => {
                       }`}
                       onClick={(e) => navigate("/dashboard")}>
                       <i
-                        className={`fa-solid fa-house fa-lg ${styles.drawerIcon}`}></i>
+                        className={`fa-solid fa-square-poll-vertical fa-lg ${styles.drawerIcon}`}></i>
                       <span className="px-2">Dashboard</span>
+                    </Nav.Link>
+                  )}
+
+                  {(user?.is_staff || user?.is_superuser) && (
+                    <Nav.Link
+                      className={`mx-3 my-1 p-3 ${
+                        location.pathname === "/hr"
+                          ? styles.active
+                          : styles.navItem
+                      }`}
+                      onClick={(e) => navigate("/hr")}>
+                      <i
+                        className={`fa-solid fa-list-check fa-lg ${styles.drawerIcon}`}></i>
+                      <span className="px-2">Points Overview</span>
                     </Nav.Link>
                   )}
 
@@ -130,10 +144,10 @@ const Drawer = () => {
                           ? styles.active
                           : styles.navItem
                       }`}
-                      onClick={(e) => navigate("/hr")}>
+                      onClick={(e) => navigate("/admin")}>
                       <i
                         className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}></i>
-                      <span className="px-2">HR Management</span>
+                      <span className="px-2">System Management</span>
                     </Nav.Link>
                   )}
 

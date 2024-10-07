@@ -25,13 +25,12 @@ export const ProgBars = ({ swtd, term }) => {
           {topCategories.map(([category, count]) => (
             <div key={category} className="mb-3">
               {" "}
-              <span
-                className={
-                  styles.barLabel
-                }>{`${category}: ${count} SWTDs`}</span>
+              <span className={styles.barSWTD}>{category}: </span>
+              <span className={styles.barLabel}>{`${count} SWTDs`}</span>
               <ProgressBar
                 className={styles.bar}
                 now={(count / termSWTDs.length) * 100}
+                label={`${Math.round((count / termSWTDs.length) * 100)}%`}
               />
             </div>
           ))}

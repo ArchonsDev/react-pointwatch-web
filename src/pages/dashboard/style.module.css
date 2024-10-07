@@ -1,16 +1,23 @@
 .label {
   font-family: "Degradasi";
-  color: #3a3238;
+  color: #180018;
 }
 
 .employeeDetails {
   font-family: "Poppins-Medium";
+  color: #180018;
 }
 
 .searchBar {
   font-family: "Poppins-Regular";
   border-radius: 7px;
   border: none;
+}
+
+.swtdHeader {
+  background-color: #e8b4bc !important;
+  font-family: "Poppins-SemiBold";
+  border-radius: 10px 10px 0 0 !important;
 }
 
 .filterText {
@@ -24,6 +31,7 @@
 .tableHeader {
   background-color: #e8b4bc !important;
   font-family: "Poppins-Medium";
+  color: #180018 !important;
   border-radius: 10px 10px 0 0 !important;
 }
 
@@ -74,18 +82,18 @@
 }
 
 .button {
-  background-color: #d80085 !important;
+  background-color: #9d084a !important;
   border: none !important;
 }
 
 .pointsBox {
   font-family: "Poppins-SemiBold";
-  color: #d80085 !important;
+  color: #9d084a !important;
 }
 
 .msg {
   font-family: "Poppins-SemiBold";
-  color: #d80085;
+  color: #9d084a;
 }
 
 .termPoints {
@@ -99,4 +107,75 @@
 
 .requiredPoints {
   font-size: 1.3em;
+}
+
+.blackCard {
+  background-color: #180018 !important;
+}
+
+.cardTitle {
+  color: white;
+}
+
+.listColor {
+  background-color: black !important;
+  color: white !important;
+}
+
+.depCol {
+  color: white !important;
+}
+
+.depTitle {
+  font-family: "Poppins-SemiBold";
+  font-size: 1.15em;
+}
+
+.depStat {
+  font-family: "Poppins-Regular";
+  font-size: 0.9em;
+}
+
+.cardCol1 {
+  font-family: "Poppins-Medium";
+  color: white;
+}
+
+.lackingPercent {
+  font-size: 2.3rem;
+  font-family: "Poppins-Bold";
+  text-align: center;
+}
+
+.pointsDisplay {
+  padding-left: 1%;
+  padding-right: 1%;
+  background-color: white;
+  border-radius: 5px;
+  border: #9d084a solid;
+  color: #9d084a;
+}
+
+.pageNum {
+  --bs-pagination-active-bg: #9d084a !important;
+  --bs-pagination-bg: #180018 !important;
+  --bs-pagination-border: none !important;
+  --bs-pagination-active-border-color: #9d084a !important;
+  --bs-pagination-color: white !important;
+  --bs-pagination-hover-bg: #9d084a !important;
+  --bs-pagination-hover-color: white !important;
+  --bs-pagination-focus-color: white !important;
+  --bs-pagination-focus-bg: #9d084a !important;
+  --bs-pagination-focus-border: none !important;
+  --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(157, 8, 74, 0.25);
+  font-family: "Poppins-SemiBold" !important;
+}
+
+.bar {
+  border-radius: 15px !important;
+  border: 2px solid white !important;
+  background-color: #e8b4bc !important;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+  --bs-progress-bar-bg: #9d084a !important;
+  color: var(--bs-progress-bar-bg) !important;
 }

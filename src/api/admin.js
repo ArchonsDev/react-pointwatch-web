@@ -162,3 +162,53 @@ export const revokeEmployee = async (data, onSuccess, onFail) => {
     onFail && onFail(error);
   }
 };
+
+export const updateHead = async (data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.put(
+      `${apiUrl}/users/${data.id}`,
+      {
+        is_admin: data.is_admin,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};
+
+export const updateStaff = async (data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.put(
+      `${apiUrl}/users/${data.id}`,
+      {
+        is_staff: data.is_staff,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};

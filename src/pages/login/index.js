@@ -16,7 +16,8 @@ import { useMsal } from "@azure/msal-react";
 
 const Login = () => {
   const { instance } = useMsal();
-  const { user, setUser, oauthLogin, setOauthLogin } = useContext(SessionUserContext);
+  const { user, setUser, oauthLogin, setOauthLogin } =
+    useContext(SessionUserContext);
   const navigate = useNavigate();
 
   const [errorMessage, setErrorMessage] = useState(null);
@@ -49,7 +50,7 @@ const Login = () => {
 
   const [msForm, setMsForm] = useState({
     email: "",
-    password: ""
+    password: "",
   });
 
   const clearForm = () => setForm({ email: "", password: "" });
@@ -81,8 +82,15 @@ const Login = () => {
       form,
       (response) => {
         setUser(response.data.user);
-        if (user?.is_admin || user?.is_staff) navigate("/dashboard");
-        else navigate("/swtd");
+        const roles = {
+          is_admin: "/dashboard",
+          is_staff: "/hr",
+          is_superuser: "/admin",
+        };
+        const userRole = Object.keys(roles).find(
+          (role) => response.data.user[role]
+        );
+        navigate(userRole ? roles[userRole] : "/swtd");
         setIsLoading(false);
         clearForm();
       },
@@ -141,25 +149,33 @@ const Login = () => {
   };
 
   const splitFullName = (fullName) => {
-    const nameParts = fullName.trim().split(' ');
-  
+    const nameParts = fullName.trim().split(" ");
+
     const firstName = nameParts[0];
     const lastName = nameParts[nameParts.length - 1];
-    const middleInitial = nameParts.length > 2 ? nameParts.slice(1, -1).map(name => name.charAt(0).toUpperCase()).join('.') + '.' : '';
-  
+    const middleInitial =
+      nameParts.length > 2
+        ? nameParts
+            .slice(1, -1)
+            .map((name) => name.charAt(0).toUpperCase())
+            .join(".") + "."
+        : "";
+
     return {
       firstName,
       middleInitial,
       lastName,
     };
-  }  
+  };
 
   const hashString = async (str) => {
     const encoder = new TextEncoder();
     const data = encoder.encode(str);
-    const hash = await crypto.subtle.digest('SHA-256', data);
+    const hash = await crypto.subtle.digest("SHA-256", data);
     const hashArray = Array.from(new Uint8Array(hash)); // Convert buffer to byte array
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); // Convert bytes to hex string
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join(""); // Convert bytes to hex string
     return hashHex;
   };
 
@@ -180,13 +196,13 @@ const Login = () => {
     }
 
     const account = response?.account;
-    if(!account) return;
+    if (!account) return;
 
     // Acquire user token
     try {
       response = await instance.acquireTokenSilent({
         scopes: ["User.Read"],
-        account: account
+        account: account,
       });
     } catch {
       return;
@@ -195,59 +211,24 @@ const Login = () => {
     if (!accessToken) return;
 
     // Request MS user data
-    response = await fetch('https://graph.microsoft.com/v1.0/me', {
+    response = await fetch("https://graph.microsoft.com/v1.0/me", {
       headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
     const userData = await response.json();
-    if(!userData) return;
-    
+    if (!userData) return;
+
     const email = userData.mail;
     const password = await hashString(userData.id);
 
     var isLoginSuccess = false;
     var error = null;
 
-    await login({
-      'email': email,
-      'password': password
-    },
-    (r) => {
-      console.log("Login successful.");
-      isLoginSuccess = true;
-    },
-    (e) => {
-      console.log("Login failed.");
-      error = e;
-    });
-
-    if (!isLoginSuccess) {
-      const name = splitFullName(userData.displayName);
-      var isRegistrationSuccess = false;
-
-      await register({
-        'employee_id': userData.jobTitle,
-        'email': email,
-        'firstname': name.firstName,
-        'lastname': name.lastName,
-        'password': password
-      },
-      (r) => {
-        console.log("Registration success");
-        isRegistrationSuccess = true;
-      },
-      (e) => {
-        console.log("Registration failed");
-        console.log(e);
-        error = e;
-      });
-    };
-
-    if (isRegistrationSuccess) {
-      await login({
-        'email': email,
-        'password': password
+    await login(
+      {
+        email: email,
+        password: password,
       },
       (r) => {
         console.log("Login successful.");
@@ -256,7 +237,48 @@ const Login = () => {
       (e) => {
         console.log("Login failed.");
         error = e;
-      });
+      }
+    );
+
+    if (!isLoginSuccess) {
+      const name = splitFullName(userData.displayName);
+      var isRegistrationSuccess = false;
+
+      await register(
+        {
+          employee_id: userData.jobTitle,
+          email: email,
+          firstname: name.firstName,
+          lastname: name.lastName,
+          password: password,
+        },
+        (r) => {
+          console.log("Registration success");
+          isRegistrationSuccess = true;
+        },
+        (e) => {
+          console.log("Registration failed");
+          console.log(e);
+          error = e;
+        }
+      );
+    }
+
+    if (isRegistrationSuccess) {
+      await login(
+        {
+          email: email,
+          password: password,
+        },
+        (r) => {
+          console.log("Login successful.");
+          isLoginSuccess = true;
+        },
+        (e) => {
+          console.log("Login failed.");
+          error = e;
+        }
+      );
     }
 
     if (isLoginSuccess) navigate("/dashboard");
@@ -284,14 +306,13 @@ const Login = () => {
   };
 
   const handleMSLogout = () => {
-      instance.logout();
+    instance.logout();
   };
 
   return (
     <div className={`${styles.Login} d-flex`}>
       <div
-        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}
-      >
+        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}>
         <Container>
           {/* Error Toast */}
           <ToastContainer className="p-3" position="top-start">
@@ -300,8 +321,7 @@ const Login = () => {
               show={showToast}
               delay={5000}
               onClose={toggleShow}
-              autohide
-            >
+              autohide>
               <Toast.Header className={styles.toastHeader}>
                 <img
                   src={logo1}
@@ -331,8 +351,7 @@ const Login = () => {
                 {isEmailSending ? (
                   <Row className="mt-3">
                     <Col
-                      className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}
-                    >
+                      className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}>
                       <Spinner className={styles.spinner} animation="border" />
                       Checking email...
                     </Col>
@@ -365,8 +384,7 @@ const Login = () => {
                         <InputGroup className="mt-3">
                           <InputGroup.Text>
                             <i
-                              className={`${styles.icon} fa-solid fa-envelope fa-lg`}
-                            ></i>
+                              className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
                           </InputGroup.Text>
                           <Form.Control
                             type="email"
@@ -420,8 +438,7 @@ const Login = () => {
                 <InputGroup hasValidation>
                   <InputGroup.Text className={styles.iconBox}>
                     <i
-                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}
-                    ></i>
+                      className={`${styles.icon} fa-solid fa-envelope fa-lg`}></i>
                   </InputGroup.Text>
                   <Form.Control
                     type="email"
@@ -460,8 +477,7 @@ const Login = () => {
                           ? "fa-solid fa-eye fa-lg"
                           : "fa-solid fa-eye-slash fa-lg"
                       }`}
-                      onClick={() => setShowPassword(!showPassword)}
-                    ></i>
+                      onClick={() => setShowPassword(!showPassword)}></i>
                   </InputGroup.Text>
                 </InputGroup>
               </Form.Group>
@@ -469,8 +485,7 @@ const Login = () => {
               {isLoading ? (
                 <Row className="mt-3">
                   <Col
-                    className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}
-                  >
+                    className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}>
                     <Spinner className={styles.spinner} animation="border" />{" "}
                     Signing in...
                   </Col>
@@ -494,8 +509,7 @@ const Login = () => {
                           className={`${styles.button} ${styles.buttonLogin}`}
                           disabled={
                             isEmpty(form.email) || isEmpty(form.password)
-                          }
-                        >
+                          }>
                           Login
                         </BtnPrimary>
                       </Row>
@@ -504,8 +518,7 @@ const Login = () => {
                       <Row>
                         <BtnSecondary
                           onClick={() => navigate("/register")}
-                          className={`${styles.button} ${styles.buttonRegister}`}
-                        >
+                          className={`${styles.button} ${styles.buttonRegister}`}>
                           Register
                         </BtnSecondary>
                       </Row>
@@ -520,8 +533,7 @@ const Login = () => {
                     <Col>
                       <Button
                         className={`${styles.msButton} w-100`}
-                        onClick={handleMSLogin}
-                      >
+                        onClick={handleMSLogin}>
                         Sign in with <i className="fa-brands fa-microsoft"></i>
                       </Button>
                     </Col>

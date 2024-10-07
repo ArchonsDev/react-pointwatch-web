@@ -148,6 +148,11 @@ const Term = () => {
 
   return (
     <>
+      <Row className={`${styles.table} w-100`}>
+        <span className="text-muted mb-3">
+          Terms are required for employees to submit SWTDs.
+        </span>
+      </Row>
       <Form className={styles.form}>
         {showError && (
           <div className="alert alert-danger mb-3" role="alert">
@@ -182,17 +187,18 @@ const Term = () => {
           {/* Term Type */}
           <Row>
             <Form.Group as={Row} className="mb-3" controlId="inputType">
-              <Form.Label className={`${styles.formLabel}`} column sm="2">
+              <Form.Label className={`${styles.formLabel}`} column md="2">
                 Term Type
               </Form.Label>
               <Col
                 className="d-flex justify-content-start align-items-center"
-                sm="10">
+                md="10">
                 {types.type.map((item, index) => (
                   <Form.Check
                     key={index}
                     type="radio"
                     name="type"
+                    className="me-5"
                     label={item}
                     value={item}
                     onChange={handleChange}
@@ -216,17 +222,32 @@ const Term = () => {
                   className={styles.formBox}
                   name="start_date"
                   onChange={(e) => {
-                    const [year, month] = e.target.value.split("-");
-                    const startOfMonth = new Date(Date.UTC(year, month - 1, 1)); // Month is 0-indexed
-                    handleChange({
-                      target: {
-                        name: "start_date",
-                        value: startOfMonth.toISOString().slice(0, 10),
-                      },
-                    });
+                    const value = e.target.value;
+                    if (value) {
+                      const [year, month] = value.split("-");
+                      const startOfMonth = new Date(
+                        Date.UTC(year, month - 1, 1)
+                      );
+                      handleChange({
+                        target: {
+                          name: "start_date",
+                          value: startOfMonth.toISOString().slice(0, 10),
+                        },
+                      });
+                    } else {
+                      handleChange({
+                        target: {
+                          name: "start_date",
+                          value: "",
+                        },
+                      });
+                    }
                   }}
                   value={form.start_date.slice(0, 7)}
                 />
+              </Col>
+              <Col className={`d-flex align-items-center`}>
+                <Form.Text>(MONTH & YEAR)</Form.Text>
               </Col>
             </Form.Group>
 
@@ -241,18 +262,28 @@ const Term = () => {
                   className={styles.formBox}
                   name="end_date"
                   onChange={(e) => {
-                    const date = new Date(e.target.value);
-                    const endOfMonth = new Date(
-                      date.getFullYear(),
-                      date.getMonth() + 1,
-                      0
-                    );
-                    handleChange({
-                      target: {
-                        name: "end_date",
-                        value: endOfMonth.toISOString().slice(0, 10),
-                      },
-                    });
+                    const value = e.target.value;
+                    if (value) {
+                      const date = new Date(value);
+                      const endOfMonth = new Date(
+                        date.getFullYear(),
+                        date.getMonth() + 1,
+                        0
+                      );
+                      handleChange({
+                        target: {
+                          name: "end_date",
+                          value: endOfMonth.toISOString().slice(0, 10),
+                        },
+                      });
+                    } else {
+                      handleChange({
+                        target: {
+                          name: "end_date",
+                          value: "",
+                        },
+                      });
+                    }
                   }}
                   value={form.end_date.slice(0, 7)}
                   isInvalid={form.end_date < form.start_date}
@@ -260,6 +291,9 @@ const Term = () => {
                 <Form.Control.Feedback type="invalid">
                   End date must be after the start date.
                 </Form.Control.Feedback>
+              </Col>
+              <Col className={`d-flex align-items-center`}>
+                <Form.Text>(MONTH & YEAR)</Form.Text>
               </Col>
             </Form.Group>
           </Row>
@@ -297,25 +331,23 @@ const Term = () => {
         </div>
       )}
       <Row className={`${styles.table}  w-100`}>
-        {terms.length === 0 && !loading && (
-          <Col className="text-center">No terms added yet.</Col>
-        )}
-
         {loading ? (
           <Row
             className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
             <Spinner className={`me-2`} animation="border" />
             Loading terms...
           </Row>
+        ) : terms.length === 0 ? (
+          <Col className="text-center">No terms added yet.</Col>
         ) : (
           <Table striped bordered hover responsive>
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Type</th>
-                <th>Start Date</th>
-                <th>End Date</th>
+                <th className="col-1">Type</th>
+                <th className="col-2">Start Date</th>
+                <th className="col-2">End Date</th>
                 <th className="text-center">Actions</th>
               </tr>
             </thead>
@@ -336,13 +368,13 @@ const Term = () => {
                     <td>{monthYearDate(term.end_date)}</td>
                     <td className="text-center">
                       <i
-                        className={`${styles.icon} fa-solid fa-pen-to-square text-dark me-3`}
+                        className={`${styles.icon} fa-solid fa-pen-to-square fa-xl text-dark me-3`}
                         onClick={() => {
                           openEditModal();
                           setSelectedTerm(term);
                         }}></i>
                       <i
-                        className={`${styles.icon} fa-solid fa-trash-can text-danger`}
+                        className={`${styles.icon} fa-solid fa-trash-can fa-xl text-danger`}
                         onClick={() => {
                           openDeleteModal();
                           setSelectedTerm(term);

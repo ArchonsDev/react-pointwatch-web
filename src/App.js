@@ -15,7 +15,7 @@ import Dashboard from "./pages/dashboard";
 import EmployeeSWTD from "./pages/dashboard/EmployeeSWTD";
 import ViewSWTD from "./pages/dashboard/ViewSWTD";
 import DisplaySWTD from "./pages/employee dashboard/DisplaySWTD";
-
+import HRDashboard from "./pages/hr dashboard";
 import Admin from "./pages/admin";
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
@@ -25,9 +25,9 @@ import { getUser } from "./api/user";
 
 import styles from "./styles/App.module.css";
 
-import { MsalProvider } from '@azure/msal-react';
-import { PublicClientApplication } from '@azure/msal-browser';
-import msalConfig from './oauth/msalConfig';
+import { MsalProvider } from "@azure/msal-react";
+import { PublicClientApplication } from "@azure/msal-browser";
+import msalConfig from "./oauth/msalConfig";
 
 const msalInstance = new PublicClientApplication(msalConfig);
 
@@ -40,7 +40,7 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [oauthLogin, setOauthLogin] = useState({
     email: "",
-    password: ""
+    password: "",
   });
 
   let id = null;
@@ -65,8 +65,8 @@ const App = () => {
     );
   };
 
-  const showDrawer = ["/swtd", "/dashboard", "/settings", "/hr"].some((path) =>
-    location.pathname.startsWith(path)
+  const showDrawer = ["/swtd", "/dashboard", "/settings", "/admin", "/hr"].some(
+    (path) => location.pathname.startsWith(path)
   );
 
   const tabNames = {
@@ -78,7 +78,8 @@ const App = () => {
     "/swtd": "Dashboard",
     "/swtd/form": "Add a New Record",
     "/swtd/all": "SWTD Submissions",
-    "/hr": "HR Management Dashboard",
+    "/admin": "System Management",
+    "/hr": "Departmental Points Overview",
   };
 
   document.title = tabNames[location.pathname] || "PointWatch";
@@ -91,8 +92,8 @@ const App = () => {
     user,
     setUser,
     oauthLogin,
-    setOauthLogin
-  }
+    setOauthLogin,
+  };
 
   useEffect(() => {
     const isTokenExpired = (token) => {
@@ -124,7 +125,9 @@ const App = () => {
           <Routes>
             <Route
               path="/"
-              element={token ? <Navigate to="/swtd" /> : <Navigate to="/login" />}
+              element={
+                token ? <Navigate to="/swtd" /> : <Navigate to="/login" />
+              }
             />
             <Route
               path="/login"
@@ -137,7 +140,7 @@ const App = () => {
             <Route
               path="/swtd"
               element={token ? <SWTDDashboard /> : <Navigate to="/login" />}
-              />
+            />
             <Route
               path="/swtd/form"
               element={token ? <AddSWTD /> : <Navigate to="/login" />}
@@ -158,17 +161,22 @@ const App = () => {
             <Route
               path="/dashboard/:id"
               element={token ? <EmployeeSWTD /> : <Navigate to="/login" />}
-              />
+            />
 
             <Route
               path="/dashboard/:id/:swtd_id"
               element={token ? <ViewSWTD /> : <Navigate to="/login" />}
-              />
+            />
+
+            <Route
+              path="/admin"
+              element={token ? <Admin /> : <Navigate to="/login" />}
+            />
 
             <Route
               path="/hr"
-              element={token ? <Admin /> : <Navigate to="/login" />}
-              />
+              element={token ? <HRDashboard /> : <Navigate to="/login" />}
+            />
           </Routes>
         </SessionUserContext.Provider>
       </div>
