@@ -222,17 +222,32 @@ const Term = () => {
                   className={styles.formBox}
                   name="start_date"
                   onChange={(e) => {
-                    const [year, month] = e.target.value.split("-");
-                    const startOfMonth = new Date(Date.UTC(year, month - 1, 1)); // Month is 0-indexed
-                    handleChange({
-                      target: {
-                        name: "start_date",
-                        value: startOfMonth.toISOString().slice(0, 10),
-                      },
-                    });
+                    const value = e.target.value;
+                    if (value) {
+                      const [year, month] = value.split("-");
+                      const startOfMonth = new Date(
+                        Date.UTC(year, month - 1, 1)
+                      );
+                      handleChange({
+                        target: {
+                          name: "start_date",
+                          value: startOfMonth.toISOString().slice(0, 10),
+                        },
+                      });
+                    } else {
+                      handleChange({
+                        target: {
+                          name: "start_date",
+                          value: "",
+                        },
+                      });
+                    }
                   }}
                   value={form.start_date.slice(0, 7)}
                 />
+              </Col>
+              <Col className={`d-flex align-items-center`}>
+                <Form.Text>(MONTH & YEAR)</Form.Text>
               </Col>
             </Form.Group>
 
@@ -247,18 +262,28 @@ const Term = () => {
                   className={styles.formBox}
                   name="end_date"
                   onChange={(e) => {
-                    const date = new Date(e.target.value);
-                    const endOfMonth = new Date(
-                      date.getFullYear(),
-                      date.getMonth() + 1,
-                      0
-                    );
-                    handleChange({
-                      target: {
-                        name: "end_date",
-                        value: endOfMonth.toISOString().slice(0, 10),
-                      },
-                    });
+                    const value = e.target.value;
+                    if (value) {
+                      const date = new Date(value);
+                      const endOfMonth = new Date(
+                        date.getFullYear(),
+                        date.getMonth() + 1,
+                        0
+                      );
+                      handleChange({
+                        target: {
+                          name: "end_date",
+                          value: endOfMonth.toISOString().slice(0, 10),
+                        },
+                      });
+                    } else {
+                      handleChange({
+                        target: {
+                          name: "end_date",
+                          value: "",
+                        },
+                      });
+                    }
                   }}
                   value={form.end_date.slice(0, 7)}
                   isInvalid={form.end_date < form.start_date}
@@ -266,6 +291,9 @@ const Term = () => {
                 <Form.Control.Feedback type="invalid">
                   End date must be after the start date.
                 </Form.Control.Feedback>
+              </Col>
+              <Col className={`d-flex align-items-center`}>
+                <Form.Text>(MONTH & YEAR)</Form.Text>
               </Col>
             </Form.Group>
           </Row>
