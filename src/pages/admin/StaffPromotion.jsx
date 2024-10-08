@@ -24,7 +24,6 @@ const StaffPromotion = () => {
         const filter = response.users.filter(
           (user) => user.id !== parseInt(userID, 10)
         );
-        console.log(filter);
         setEmployees(filter);
         setLoading(false);
       },
@@ -129,10 +128,7 @@ const StaffPromotion = () => {
                 <tbody>
                   {currentRecords
                     .sort((a, b) =>
-                      b.is_staff !== a.is_staff
-                        ? b.is_staff - a.is_staff
-                        : a.department.localeCompare(b.department)
-                    )
+                      b.is_staff - a.is_staff)
                     .map((item) => (
                       <tr key={item.id}>
                         <td>{item.employee_id}</td>
