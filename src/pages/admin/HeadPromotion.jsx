@@ -129,10 +129,7 @@ const HeadPromotion = () => {
                 <tbody>
                   {currentRecords
                     .sort((a, b) =>
-                      b.is_admin !== a.is_admin
-                        ? b.is_admin - a.is_admin
-                        : a.department.localeCompare(b.department)
-                    )
+                     b.is_admin - a.is_admin)
                     .map((item) => (
                       <tr key={item.id}>
                         <td>{item.employee_id}</td>
