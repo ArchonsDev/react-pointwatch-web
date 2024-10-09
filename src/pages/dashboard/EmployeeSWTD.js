@@ -237,7 +237,10 @@ const EmployeeSWTD = () => {
         <h3 className={styles.label}>
           <i
             className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
-            onClick={() => navigate("/dashboard")}></i>{" "}
+            onClick={() => {
+              if (user?.is_staff) navigate("/hr");
+              else navigate("/dashboard");
+            }}></i>{" "}
           {pageTitle}
           <i
             className={`${styles.commentEdit} fa-solid fa-circle-info fa-xs ms-2`}
