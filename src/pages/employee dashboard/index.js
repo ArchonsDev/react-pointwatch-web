@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, ListGroup, DropdownButton, Dropdown, Modal, Spinner, Card, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
 
 import departmentTypes from "../../data/departmentTypes.json";
+import categories from "../../data/categories.json";
 import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
@@ -15,8 +16,7 @@ import SWTDInfo from "./SWTDInfo";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
-import { LineGraph } from "../../components/Line";
-import { ProgBars } from "../../components/ProgressBar";
+import { BarGraph } from "../../components/Bar";
 
 const SWTDDashboard = () => {
   const id = Cookies.get("userID");
@@ -29,7 +29,6 @@ const SWTDDashboard = () => {
 
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [terms, setTerms] = useState([]);
-  const [approvedSWTDCount, setApprovedSWTDCount] = useState(0);
   const [pendingSWTDCount, setPendingSWTDCount] = useState(0);
   const [rejectedSWTDCount, setRejectedSWTDCount] = useState(0);
 
@@ -50,11 +49,10 @@ const SWTDDashboard = () => {
             counts[swtd.validation.status.toLowerCase()]++;
             return counts;
           },
-          { approved: 0, pending: 0, rejected: 0 }
+          { pending: 0, rejected: 0 }
         );
 
         // Update the state with the counts
-        setApprovedSWTDCount(totalCounts.approved);
         setPendingSWTDCount(totalCounts.pending);
         setRejectedSWTDCount(totalCounts.rejected);
         setLoading(false);
@@ -82,7 +80,13 @@ const SWTDDashboard = () => {
         const filteredTerms = response.terms.filter((term) =>
           allowedTerm.includes(term.type)
         );
+
+        const ongoingTerm = filteredTerms.find(
+          (term) => term.is_ongoing === true
+        );
+
         setTerms(filteredTerms);
+        setSelectedTerm(ongoingTerm || filteredTerms[0]);
       },
       (error) => {
         console.log(error.message);
@@ -130,6 +134,7 @@ const SWTDDashboard = () => {
 
   useEffect(() => {
     if (selectedTerm) {
+      fetchClearanceStatus(selectedTerm);
       const termCounts = userSWTDs?.reduce(
         (counts, swtd) => {
           if (swtd.term.id === selectedTerm.id) {
@@ -137,10 +142,9 @@ const SWTDDashboard = () => {
           }
           return counts;
         },
-        { approved: 0, pending: 0, rejected: 0 }
+        { pending: 0, rejected: 0 }
       );
 
-      setApprovedSWTDCount(termCounts.approved);
       setPendingSWTDCount(termCounts.pending);
       setRejectedSWTDCount(termCounts.rejected);
     }
@@ -201,10 +205,7 @@ const SWTDDashboard = () => {
                 selectedTerm?.is_ongoing === true ? "success" : "secondary"
               }
               size="sm"
-              title={selectedTerm ? selectedTerm.name : "All terms"}>
-              <Dropdown.Item onClick={() => setSelectedTerm(null)}>
-                All terms
-              </Dropdown.Item>
+              title={selectedTerm?.name}>
               {terms &&
                 terms.map((term) => (
                   <Dropdown.Item
@@ -222,36 +223,27 @@ const SWTDDashboard = () => {
       </Row>
 
       <Row className={`${styles.employeeDetails} w-100 mb-3`}>
-        <Col className="d-flex align-items-center">
-          <Row>
-            <Col className="d-flex align-items-center" xs="auto">
-              <i className="fa-solid fa-landmark fa-lg me-2"></i>Department:{" "}
-              {user?.department}
-            </Col>
-
-            <Col className="d-flex align-items-center" xs="auto">
-              <i className="fa-solid fa-circle-plus fa-lg me-2"></i>Point
-              Balance: {user?.point_balance}
-            </Col>
-
-            {selectedTerm !== null && (
-              <Col className="d-flex align-items-center" xs="auto">
-                <i className="fa-solid fa-user-check fa-lg me-2"></i>Status:{" "}
-                <span
-                  className={`ms-2 text-${
-                    termStatus?.is_cleared ? "success" : "danger"
-                  }`}>
-                  {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
-                </span>
-              </Col>
-            )}
-          </Row>
+        <Col className="d-flex align-items-center" md="auto">
+          <i className="fa-solid fa-landmark fa-lg me-2"></i>Office:
+          <span className={`${styles.userStat} ms-2`}>{user?.department}</span>
         </Col>
+
+        {selectedTerm !== null && (
+          <Col className="d-flex align-items-center" md="auto">
+            <i className="fa-solid fa-user-check fa-lg me-2"></i>Status:
+            <span
+              className={`ms-2 text-${
+                termStatus?.is_cleared ? "success" : "danger"
+              } ${styles.userStat}`}>
+              {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
+            </span>
+          </Col>
+        )}
       </Row>
 
       <Row className="w-100 mb-3">
         {/* BUTTONS */}
-        <Col md="auto">
+        <Col md="2">
           <Row className="mb-1">
             <BtnPrimary
               onClick={() =>
@@ -288,37 +280,18 @@ const SWTDDashboard = () => {
           </Modal>
         </Col>
 
-        {/* APPROVED SWTDs Card */}
-        <Col>
-          <OverlayTrigger
-            placement="bottom"
-            overlay={
-              <Tooltip id="button-tooltip-1" className={styles.cardBody}>
-                Count updated based on selected term
-              </Tooltip>
-            }>
-            <Card className={`${styles.statCard} text-center`}>
-              <Card.Header className={styles.statHeader}>
-                Approved SWTDs
-              </Card.Header>
-              <Card.Body className={styles.statBody}>
-                <Card.Text>{approvedSWTDCount}</Card.Text>
-              </Card.Body>
-            </Card>
-          </OverlayTrigger>
-        </Col>
-
         {/* PENDING SWTDs Card */}
-        <Col>
+        <Col md="3">
           <OverlayTrigger
             placement="bottom"
             overlay={
               <Tooltip id="button-tooltip-2" className={styles.cardBody}>
-                Count updated based on selected term.
+                Unreviewed SWTDs by your department head.
               </Tooltip>
             }>
             <Card className={`${styles.statCard} text-center`}>
-              <Card.Header className={styles.statHeader}>
+              <Card.Header className={styles.pendingStat}>
+                <i className="fa-solid fa-hourglass-half me-2"></i>
                 Pending SWTDs
               </Card.Header>
               <Card.Body className={styles.statBody}>
@@ -329,16 +302,17 @@ const SWTDDashboard = () => {
         </Col>
 
         {/* REJECTED SWTDs Card */}
-        <Col>
+        <Col md="3">
           <OverlayTrigger
             placement="bottom"
             overlay={
               <Tooltip id="button-tooltip-3" className={styles.cardBody}>
-                Count updated based on selected term.
+                Reviewed SWTDs that require revision.
               </Tooltip>
             }>
             <Card className={`${styles.statCard} text-center`}>
-              <Card.Header className={styles.statHeader}>
+              <Card.Header className={styles.rejectedStat}>
+                <i className="fa-solid fa-file-pen me-2"></i>
                 SWTDs For Revision
               </Card.Header>
               <Card.Body className={styles.statBody}>
@@ -348,85 +322,72 @@ const SWTDDashboard = () => {
           </OverlayTrigger>
         </Col>
 
-        {/* TOTAL SWTDs Card */}
+        {/* POINTS */}
         <Col>
-          <OverlayTrigger
-            placement="bottom"
-            overlay={
-              <Tooltip id="button-tooltip-4" className={styles.cardBody}>
-                Count updated based on selected term.
-              </Tooltip>
-            }>
-            <Card className={`${styles.statCard} text-center`}>
-              <Card.Header className={styles.statHeader}>
-                Total SWTDs
-              </Card.Header>
-              <Card.Body className={styles.statBody}>
-                <Card.Text>
-                  {selectedTerm
-                    ? userSWTDs.filter(
-                        (swtd) => swtd.term.id === selectedTerm.id
-                      ).length
-                    : userSWTDs.length}
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          </OverlayTrigger>
+          {selectedTerm !== null && (
+            <div className={styles.termPoints}>
+              <span className="mb-2">Points for this term:</span>
+              <span
+                className={`${styles.validPoints} ${
+                  termStatus?.points?.valid_points <
+                  termStatus?.points?.required_points
+                    ? "text-danger"
+                    : "text-success"
+                }`}>
+                {termStatus?.points?.valid_points} pts
+              </span>
+            </div>
+          )}
         </Col>
 
-        {/* POINTS */}
-        <Col className="d-flex align-items-center" md="auto">
+        <Col>
           {selectedTerm !== null && (
-            <>
-              <div className={styles.termPoints}>
-                <span
-                  className={`${styles.validPoints} ${
-                    termStatus?.points?.valid_points <
-                    termStatus?.points?.required_points
-                      ? "text-danger"
-                      : "text-success"
-                  }`}>
-                  {termStatus?.points?.valid_points}
-                </span>
-                <span className={styles.requiredPoints}>
-                  {" "}
-                  / {termStatus?.points?.required_points} points
-                </span>
-              </div>
-            </>
+            <div className={styles.termPoints}>
+              <span className="mb-2">Excess points:</span>
+              <span className={`${styles.validPoints} `}>
+                {user?.point_balance} pts
+              </span>
+            </div>
           )}
         </Col>
       </Row>
 
-      <Row className="w-100 mb-3">
-        <hr />
-      </Row>
-
-      <Row className="w-100 mb-3">
+      <Row className="w-100 mb-4">
         {userSWTDs.length > 0 ? (
           <>
             <Col
-              className={`${styles.graphBackground} d-flex justify-content-center align-items-center`}>
-              <LineGraph swtd={userSWTDs} term={selectedTerm} />
+              className={`${styles.graphBackground} d-flex justify-content-center align-items-center me-2`}>
+              <BarGraph swtd={userSWTDs} term={selectedTerm} />
             </Col>
 
-            <Col>
-              <ProgBars swtd={userSWTDs} term={selectedTerm} />
+            <Col className="p-2">
+              <span className={`${styles.points}`}>
+                Legend (Category ID - Name)
+                <hr className="m-0 mb-2" />
+              </span>
+              {categories.categories.map((category) => (
+                <Row className={`mt-1`} key={category.id}>
+                  <Col className={`${styles.employeeDetails} pe-0`} md="auto">
+                    {category.id}
+                  </Col>
+                  <Col className={styles.cardBody}>{category.name}</Col>
+                </Row>
+              ))}
             </Col>
           </>
         ) : (
           <Col className={`${styles.employeeDetails} text-center`}>
+            <hr className="mb-4" />
             <h5>No statistics to show yet.</h5>
           </Col>
         )}
       </Row>
 
-      <Row className="w-100 mb-3">
-        <hr />
-      </Row>
-
       {userSWTDs.length !== 0 && (
         <>
+          <Row className="w-100 mb-3">
+            <hr />
+          </Row>
           <Row className="w-100 mb-3">
             <Col>
               <h3 className={`${styles.label} d-flex align-items-center`}>

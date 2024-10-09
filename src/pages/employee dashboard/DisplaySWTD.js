@@ -57,7 +57,13 @@ const SWTDDashboard = () => {
         const filteredTerms = response.terms.filter((term) =>
           allowedTerm.includes(term.type)
         );
+
+        const ongoingTerm = filteredTerms.find(
+          (term) => term.is_ongoing === true
+        );
+
         setTerms(filteredTerms);
+        setSelectedTerm(ongoingTerm || filteredTerms[0]);
       },
       (error) => {
         console.log(error.message);
@@ -172,10 +178,7 @@ const SWTDDashboard = () => {
                 selectedTerm?.is_ongoing === true ? "success" : "secondary"
               }
               size="sm"
-              title={selectedTerm ? selectedTerm.name : "All terms"}>
-              <Dropdown.Item onClick={() => setSelectedTerm(null)}>
-                All terms
-              </Dropdown.Item>
+              title={selectedTerm?.name}>
               {terms &&
                 terms.map((term) => (
                   <Dropdown.Item

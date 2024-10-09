@@ -240,11 +240,12 @@ const Dashboard = () => {
       setLoading(false);
   }, [userClearanceStatus, departmentUsers]);
 
+  console.log(currentRecords);
+
   if (loading)
     return (
       <Row
-        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}
-      >
+        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
         <Col></Col>
         <Col className="text-center">
           <div>
@@ -266,8 +267,7 @@ const Dashboard = () => {
         </Col>
         <Col
           className={`d-flex align-items-center ${styles.employeeDetails}`}
-          md="auto"
-        >
+          md="auto">
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           {terms.length === 0 ? (
             <>No terms were added yet.</>
@@ -278,16 +278,14 @@ const Dashboard = () => {
                 selectedTerm?.is_ongoing === true ? "success" : "secondary"
               }
               size="sm"
-              title={selectedTerm?.name}
-            >
+              title={selectedTerm?.name}>
               {terms &&
                 terms.map((term) => (
                   <Dropdown.Item
                     key={term.id}
                     onClick={() => {
                       setSelectedTerm(term);
-                    }}
-                  >
+                    }}>
                     {term.name}
                   </Dropdown.Item>
                 ))}
@@ -306,8 +304,7 @@ const Dashboard = () => {
                   <Row>
                     <Col
                       className={`${styles.cardCol1} d-flex justify-content-center align-items-center flex-column p-2`}
-                      md="5"
-                    >
+                      md="5">
                       <Row className="text-center">
                         % of employees lacking points
                       </Row>
@@ -392,8 +389,7 @@ const Dashboard = () => {
                   name="filter"
                   onChange={(e) => {
                     setSelectedStatus(e.target.value);
-                  }}
-                >
+                  }}>
                   <option value="">Sort by...</option>
                   {status.status.map((status, index) => (
                     <option key={index} value={status}>
@@ -410,8 +406,7 @@ const Dashboard = () => {
           <Row className="w-100">
             {currentRecords.length === 0 ? (
               <span
-                className={`${styles.msg} d-flex justify-content-center align-items-center mt-3 mb-3 w-100`}
-              >
+                className={`${styles.msg} d-flex justify-content-center align-items-center mt-3 mb-3 w-100`}>
                 No employees found.
               </span>
             ) : (
@@ -438,8 +433,7 @@ const Dashboard = () => {
                     <ListGroup.Item
                       key={item.employee_id}
                       className={styles.tableBody}
-                      onClick={() => handleEmployeeSWTDClick(item.id)}
-                    >
+                      onClick={() => handleEmployeeSWTDClick(item.id)}>
                       <Row>
                         <Col md={2}>{item.employee_id}</Col>
                         <Col>
@@ -492,8 +486,7 @@ const Dashboard = () => {
                     key={index + 1}
                     active={index + 1 === currentPage}
                     className={styles.pageNum}
-                    onClick={() => handlePageChange(index + 1)}
-                  >
+                    onClick={() => handlePageChange(index + 1)}>
                     {index + 1}
                   </Pagination.Item>
                 ))}
@@ -519,8 +512,7 @@ const Dashboard = () => {
         <>
           <hr className="w-100" style={{ opacity: "1" }} />
           <span
-            className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}
-          >
+            className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
             No employees in this department yet.
           </span>
         </>
