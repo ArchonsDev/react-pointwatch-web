@@ -293,7 +293,7 @@ const EmployeeSWTD = () => {
             </Col>
 
             <Col className="d-flex align-items-center" xs="auto">
-              <i className="fa-solid fa-circle-plus me-2"></i>Point Balance:{" "}
+              <i className="fa-solid fa-circle-plus me-2"></i>Excess Points:{" "}
               {employee?.point_balance}
             </Col>
 
@@ -372,7 +372,7 @@ const EmployeeSWTD = () => {
 
         {/* CLEARANCE BUTTONS */}
         <Col className="text-end">
-          {user?.is_admin &&
+          {(user?.is_admin || user?.is_staff) &&
             selectedTerm !== null &&
             (termStatus?.is_cleared ? (
               <>

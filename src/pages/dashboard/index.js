@@ -32,7 +32,7 @@ const Dashboard = () => {
     (status) => status.points.valid_points >= requiredPoints
   ).length;
 
-  const lackingUsersPercentage = (lackingUsers / departmentUsers.length) * 100;
+  const clearedUsersPercentage = (validUsers / departmentUsers.length) * 100;
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -306,16 +306,16 @@ const Dashboard = () => {
                       className={`${styles.cardCol1} d-flex justify-content-center align-items-center flex-column p-2`}
                       md="5">
                       <Row className="text-center">
-                        % of employees lacking points
+                        % of employees with required points
                       </Row>
                       <Row className={styles.lackingPercent}>
-                        {lackingUsersPercentage ? lackingUsersPercentage : "0"}%
+                        {clearedUsersPercentage ? clearedUsersPercentage : "0"}%
                       </Row>
                       <Row className="w-100">
                         <Col>
                           <ProgressBar
                             className={styles.bar}
-                            now={lackingUsersPercentage}
+                            now={clearedUsersPercentage}
                           />
                         </Col>
                       </Row>
@@ -330,12 +330,12 @@ const Dashboard = () => {
                         <Col className="text-end">{departmentUsers.length}</Col>
                       </Row>
                       <Row className={`${styles.depStat} w-100 mb-2`}>
-                        <Col md="auto">Employees Lacking Points</Col>
-                        <Col className="text-end">{lackingUsers}</Col>
+                        <Col md="auto">Cleared Employees</Col>
+                        <Col className="text-end">{validUsers}</Col>
                       </Row>
                       <Row className={`${styles.depStat} w-100`}>
-                        <Col md="auto">Employees with Required Points</Col>
-                        <Col className="text-end">{validUsers}</Col>
+                        <Col md="auto">Non-Cleared Employees</Col>
+                        <Col className="text-end">{lackingUsers}</Col>
                       </Row>
                     </Col>
                   </Row>
