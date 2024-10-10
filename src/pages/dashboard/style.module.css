@@ -55,6 +55,16 @@
   font-family: "Poppins-Regular";
 }
 
+.swtdStat {
+  font-family: "Poppins-SemiBold";
+  font-size: 1.15em;
+}
+
+.swtdContent {
+  font-family: "Poppins-Regular";
+  font-size: 1.05em;
+}
+
 .formLabel {
   font-family: "Poppins-SemiBold";
 }
