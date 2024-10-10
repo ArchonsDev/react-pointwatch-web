@@ -32,7 +32,7 @@ const Dashboard = () => {
     (status) => status.points.valid_points >= requiredPoints
   ).length;
 
-  const lackingUsersPercentage = (lackingUsers / departmentUsers.length) * 100;
+  const clearedUsersPercentage = ((1 / 6) * 100).toFixed(2);
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -302,16 +302,16 @@ const Dashboard = () => {
                       className={`${styles.cardCol1} d-flex justify-content-center align-items-center flex-column p-2`}
                       md="5">
                       <Row className="text-center">
-                        % of employees lacking points
+                        % of employees with required points
                       </Row>
                       <Row className={styles.lackingPercent}>
-                        {lackingUsersPercentage ? lackingUsersPercentage : "0"}%
+                        {clearedUsersPercentage ? clearedUsersPercentage : "0"}%
                       </Row>
                       <Row className="w-100">
                         <Col>
                           <ProgressBar
                             className={styles.bar}
-                            now={lackingUsersPercentage}
+                            now={clearedUsersPercentage}
                           />
                         </Col>
                       </Row>
@@ -326,12 +326,12 @@ const Dashboard = () => {
                         <Col className="text-end">{departmentUsers.length}</Col>
                       </Row>
                       <Row className={`${styles.depStat} w-100 mb-2`}>
-                        <Col md="auto">Employees Lacking Points</Col>
-                        <Col className="text-end">{lackingUsers}</Col>
+                        <Col md="auto">Cleared Employees</Col>
+                        <Col className="text-end">{validUsers}</Col>
                       </Row>
                       <Row className={`${styles.depStat} w-100`}>
-                        <Col md="auto">Employees with Required Points</Col>
-                        <Col className="text-end">{validUsers}</Col>
+                        <Col md="auto">Non-Cleared Employees</Col>
+                        <Col className="text-end">{lackingUsers}</Col>
                       </Row>
                     </Col>
                   </Row>
@@ -342,20 +342,37 @@ const Dashboard = () => {
             {noUsers === false && terms.length !== 0 && (
               <Col>
                 <span className={styles.formLabel}>
-                  Point Standings for {selectedTerm?.name}
+                  SWTDs Statistics for {selectedTerm?.name}
                 </span>
                 <hr className="m-0 mb-1" style={{ opacity: "1" }} />
 
-                {topUsers.map((user) => (
-                  <Row className={styles.cardBody} key={user.userId}>
-                    <Col>
-                      {user.firstname} {user.lastname}
-                    </Col>
-                    <Col className="text-end">
-                      {user.points?.valid_points || 0}
-                    </Col>
-                  </Row>
-                ))}
+                <Row className={styles.cardBody}>
+                  <Col>Pending SWTDs</Col>
+                  <Col className="text-end">
+                    {topUsers.reduce(
+                      (totalPending, user) =>
+                        totalPending +
+                        user.swtds.filter(
+                          (swtd) => swtd.validation.status === "PENDING"
+                        ).length,
+                      0
+                    )}
+                  </Col>
+                </Row>
+
+                <Row className={styles.cardBody}>
+                  <Col>SWTDs For Revision</Col>
+                  <Col className="text-end">
+                    {topUsers.reduce(
+                      (totalRevision, user) =>
+                        totalRevision +
+                        user.swtds.filter(
+                          (swtd) => swtd.validation.status === "REJECTED"
+                        ).length,
+                      0
+                    )}
+                  </Col>
+                </Row>
               </Col>
             )}
           </Row>
@@ -415,11 +432,13 @@ const Dashboard = () => {
                       <Col className="text-center" md={2}>
                         Pending SWTDs
                       </Col>
-                      <Col className="text-center" md={2}>
-                        Approved SWTDs
-                      </Col>
+
                       <Col className="text-center" md={2}>
                         SWTDs For Revision
+                      </Col>
+
+                      <Col className="text-center" md={2}>
+                        Points
                       </Col>
                     </Row>
                   </ListGroup.Item>
@@ -442,19 +461,17 @@ const Dashboard = () => {
                             ).length
                           }
                         </Col>
-                        <Col className="text-center" md={2}>
-                          {
-                            item.swtds.filter(
-                              (swtd) => swtd.validation.status === "APPROVED"
-                            ).length
-                          }
-                        </Col>
+
                         <Col className="text-center" md={2}>
                           {
                             item.swtds.filter(
                               (swtd) => swtd.validation.status === "REJECTED"
                             ).length
                           }
+                        </Col>
+
+                        <Col className="text-center" md={2}>
+                          {item.points.valid_points}
                         </Col>
                       </Row>
                     </ListGroup.Item>
