@@ -71,7 +71,7 @@ const SWTDDashboard = () => {
   };
 
   const fetchTerms = () => {
-    const allowedTerm = departmentTypes[user?.department];
+    const allowedTerm = departmentTypes[user?.department?.classification];
     getTerms(
       {
         token: token,
@@ -152,7 +152,10 @@ const SWTDDashboard = () => {
 
   useEffect(() => {
     if (!user) setLoading(true);
-    else {
+    else if (!user?.department) {
+      setLoading(false);
+      openModal();
+    } else {
       fetchTerms();
       fetchAllSWTDs();
     }
@@ -224,8 +227,10 @@ const SWTDDashboard = () => {
 
       <Row className={`${styles.employeeDetails} w-100 mb-3`}>
         <Col className="d-flex align-items-center" md="auto">
-          <i className="fa-solid fa-landmark fa-lg me-2"></i>Office:
-          <span className={`${styles.userStat} ms-2`}>{user?.department}</span>
+          <i className="fa-solid fa-landmark fa-lg me-2"></i>Department:
+          <span className={`${styles.userStat} ms-2`}>
+            {user?.department?.name}
+          </span>
         </Col>
 
         {selectedTerm !== null && (
@@ -247,7 +252,7 @@ const SWTDDashboard = () => {
           <Row className="mb-1">
             <BtnPrimary
               onClick={() =>
-                user?.department === null ? openModal() : handleAddRecordClick()
+                !user?.department ? openModal() : handleAddRecordClick()
               }>
               <i className="fa-solid fa-file-circle-plus fa-lg me-2"></i>
               Add SWTD
@@ -334,7 +339,10 @@ const SWTDDashboard = () => {
                     ? "text-danger"
                     : "text-success"
                 }`}>
-                {termStatus?.points?.valid_points} pts
+                {termStatus?.points?.valid_points > 0
+                  ? termStatus.points.valid_points
+                  : "0"}{" "}
+                pts
               </span>
             </div>
           )}

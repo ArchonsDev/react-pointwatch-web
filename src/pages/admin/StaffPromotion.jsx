@@ -120,22 +120,21 @@ const StaffPromotion = () => {
                   <tr>
                     <th className="col-2">ID No.</th>
                     <th>Name</th>
-                    <th className="col-2">Department</th>
+                    <th>Department</th>
                     <th className="col-1 text-center">HR Staff</th>
                     <th className="col-2 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentRecords
-                    .sort((a, b) =>
-                      b.is_staff - a.is_staff)
+                    .sort((a, b) => b.is_staff - a.is_staff)
                     .map((item) => (
                       <tr key={item.id}>
                         <td>{item.employee_id}</td>
                         <td>
                           {item.lastname}, {item.firstname}
                         </td>
-                        <td>{item.department}</td>
+                        <td>{item.department?.name}</td>
                         <td className="text-center">
                           {item.is_staff ? (
                             <i

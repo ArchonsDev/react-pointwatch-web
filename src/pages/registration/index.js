@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Container, Card, Row, Col, Form, InputGroup, Toast,ToastContainer} from "react-bootstrap"; /* prettier-ignore */
 
-import departments from "../../data/departments.json";
 import { register } from "../../api/auth";
 import { isEmpty, isValidLength, isValidEmail, isValidPassword } from "../../common/validation/utils"; /* prettier-ignore */
 
@@ -26,7 +25,6 @@ const Registration = () => {
     employee_id: "",
     firstname: "",
     lastname: "",
-    department: "",
     password: "",
     confirmPassword: "",
   });
@@ -48,7 +46,6 @@ const Registration = () => {
       "employee_id",
       "firstname",
       "lastname",
-      "department",
       "password",
       "confirmPassword",
     ];
@@ -59,8 +56,7 @@ const Registration = () => {
       !isValidLength(form.firstname, 1) ||
       !isValidLength(form.lastname, 1) ||
       !isValidPassword(form.password) ||
-      !passwordsMatch() ||
-      form.department === ""
+      !passwordsMatch()
     );
   };
 
@@ -254,40 +250,6 @@ const Registration = () => {
                               Last name is too short.
                             </Form.Control.Feedback>
                           )}
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                {/* Row 3: Department */}
-                <Row>
-                  <Col>
-                    <Form.Group className="mb-3" controlId="inputDepartment">
-                      <InputGroup hasValidation>
-                        <InputGroup.Text className={styles.iconBox}>
-                          <i
-                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
-                        </InputGroup.Text>
-                        <Form.Select
-                          aria-label="Example"
-                          value={form.department}
-                          name="department"
-                          onChange={handleChange}
-                          isInvalid={isClicked && form.department === ""}>
-                          <option value="" disabled>
-                            Departments
-                          </option>
-                          {departments.departments.map((department, index) => (
-                            <option key={index} value={department}>
-                              {department}
-                            </option>
-                          ))}
-                        </Form.Select>
-                        {isClicked && (
-                          <Form.Control.Feedback type="invalid">
-                            Please select a department.
-                          </Form.Control.Feedback>
-                        )}
                       </InputGroup>
                     </Form.Group>
                   </Col>

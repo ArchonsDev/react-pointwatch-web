@@ -84,6 +84,7 @@ const EditTermModal = ({ show, onHide, data, editSuccess }) => {
   return (
     <>
       <Modal
+        size="lg"
         show={show}
         onHide={() => {
           onHide();

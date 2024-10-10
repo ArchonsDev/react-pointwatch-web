@@ -13,7 +13,6 @@ export const register = async (data, onSuccess, onFail, onCleanup) => {
         firstname: data.firstname,
         lastname: data.lastname,
         password: data.password,
-        department: data.department,
       },
       {
         headers: {

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Container, Row, Nav, Card, Spinner } from "react-bootstrap";
 
 import Term from "./Term";
+import Department from "./Department";
 import DepartmentHeadActivity from "./DepartmentHeadActivity";
 import HeadPromotion from "./HeadPromotion";
 import StaffPromotion from "./StaffPromotion";
@@ -24,6 +25,8 @@ const Admin = () => {
     switch (activeTab) {
       case "term":
         return <Term />;
+      case "department":
+        return <Department />;
       case "activity":
         return <DepartmentHeadActivity />;
       case "head":
@@ -71,11 +74,22 @@ const Admin = () => {
           </Nav.Item>
           <Nav.Item>
             <Nav.Link
+              eventKey="department"
+              className={`${styles.navHeader} ${
+                activeTab === "department"
+                  ? styles.activeTab
+                  : styles.inactiveTab
+              }`}>
+              Department
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link
               eventKey="activity"
               className={`${styles.navHeader} ${
                 activeTab === "activity" ? styles.activeTab : styles.inactiveTab
               }`}>
-              Department Heads Report
+              Validation & Clearance Reports
             </Nav.Link>
           </Nav.Item>
           {user?.is_superuser && (

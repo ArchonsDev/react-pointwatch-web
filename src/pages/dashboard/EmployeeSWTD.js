@@ -47,7 +47,7 @@ const EmployeeSWTD = () => {
       },
       (response) => {
         setEmployee(response.data);
-        fetchTerms(response.data.department);
+        fetchTerms(response.data.department.classification);
         fetchAllSWTDs(response.data.id);
       },
       (error) => {

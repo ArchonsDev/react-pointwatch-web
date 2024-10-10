@@ -322,7 +322,7 @@ const AddSWTD = () => {
   };
 
   const fetchTerms = () => {
-    const allowedTerm = departmentTypes[user?.department];
+    const allowedTerm = departmentTypes[user?.department?.classification];
     getTerms(
       {
         token: accessToken,
@@ -362,8 +362,7 @@ const AddSWTD = () => {
   }, [formDates, form.category, checkbox.deliverable]);
 
   useEffect(() => {
-    if (user?.department === null) navigate("/swtd");
-
+    if (!user?.department) navigate("/swtd");
     fetchTerms();
     setForm((prevForm) => ({
       ...prevForm,

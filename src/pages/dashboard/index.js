@@ -47,7 +47,8 @@ const Dashboard = () => {
       },
       (response) => {
         const filteredUsers = response.users.filter(
-          (us) => us.department === user?.department && us.id !== user.id
+          (us) =>
+            us.department?.id === user?.department?.id && us.id !== user.id
         );
 
         if (filteredUsers.length !== 0) {
@@ -65,7 +66,7 @@ const Dashboard = () => {
   };
 
   const fetchTerms = () => {
-    const allowedTerm = departmentTypes[user?.department];
+    const allowedTerm = departmentTypes[user?.department?.classification];
     getTerms(
       {
         token: token,
@@ -239,9 +240,6 @@ const Dashboard = () => {
     )
       setLoading(false);
   }, [userClearanceStatus, departmentUsers]);
-
-  console.log(currentRecords);
-
   if (loading)
     return (
       <Row
@@ -261,9 +259,7 @@ const Dashboard = () => {
     <Container className="d-flex flex-column justify-content-start align-items-start">
       <Row className="mb-2 w-100">
         <Col>
-          <h3 className={styles.label}>
-            {user?.department} Department Dashboard
-          </h3>
+          <h3 className={styles.label}>Department Head Dashboard</h3>
         </Col>
         <Col
           className={`d-flex align-items-center ${styles.employeeDetails}`}

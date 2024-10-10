@@ -1,13 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, Form, InputGroup, ListGroup, Spinner, Pagination, Dropdown, DropdownButton } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Form, InputGroup, ListGroup, Spinner, Pagination, Dropdown, DropdownButton, Modal } from "react-bootstrap"; /* prettier-ignore */
 
 import departmentTypes from "../../data/departmentTypes.json";
 import status from "../../data/status.json";
 import { getAllSWTDs } from "../../api/swtd";
 import { getTerms } from "../../api/admin";
 import { exportSWTDList } from "../../api/export";
+import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -19,6 +20,8 @@ const SWTDDashboard = () => {
   const token = Cookies.get("userToken");
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
+
+  const [showModal, openModal, closeModal] = useSwitch();
 
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [terms, setTerms] = useState([]);
@@ -48,7 +51,7 @@ const SWTDDashboard = () => {
   };
 
   const fetchTerms = () => {
-    const allowedTerm = departmentTypes[user?.department];
+    const allowedTerm = departmentTypes[user?.department?.classification];
     getTerms(
       {
         token: token,
@@ -230,9 +233,7 @@ const SWTDDashboard = () => {
         <Col className="text-end">
           <BtnPrimary
             onClick={() =>
-              user?.department === null
-                ? navigate("/dashboard")
-                : navigate("/swtd/form")
+              !user?.department ? openModal() : navigate("/swtd/form")
             }>
             <i className="fa-solid fa-file-circle-plus fa-lg me-2"></i>
             Add SWTD
@@ -244,6 +245,23 @@ const SWTDDashboard = () => {
             Export PDF
           </BtnSecondary>
         </Col>
+        <Modal show={showModal} onHide={closeModal} size="md" centered>
+          <Modal.Header closeButton>
+            <Modal.Title className={styles.formLabel}>
+              Missing Required Fields
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body
+            className={`${styles.filterText} d-flex justify-content-center align-items-center`}>
+            Department is required before adding a new record. Please proceed to
+            your settings to make this change.
+          </Modal.Body>
+          <Modal.Footer>
+            <BtnPrimary onClick={() => navigate("/settings")}>
+              Go to Settings
+            </BtnPrimary>
+          </Modal.Footer>
+        </Modal>
       </Row>
 
       {currentRecords.length !== 0 ? (

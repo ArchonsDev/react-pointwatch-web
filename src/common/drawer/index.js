@@ -170,7 +170,9 @@ const Drawer = () => {
                   {user?.firstname} {user?.lastname}
                 </Col>
                 <Col className={`${styles.detail}`}>{user?.employee_id}</Col>
-                <Col className={`${styles.detail}`}>{user?.department}</Col>
+                <Col className={`${styles.detail}`}>
+                  {user?.department?.name}
+                </Col>
               </Row>
               {/* Logout */}
               <Nav.Item className={styles.logout}>

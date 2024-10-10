@@ -121,22 +121,21 @@ const HeadPromotion = () => {
                   <tr>
                     <th className="col-2">ID No.</th>
                     <th>Name</th>
-                    <th className="col-2">Department</th>
+                    <th>Department</th>
                     <th className="col-2 text-center">Department Head</th>
                     <th className="col-2 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentRecords
-                    .sort((a, b) =>
-                     b.is_admin - a.is_admin)
+                    .sort((a, b) => b.is_admin - a.is_admin)
                     .map((item) => (
                       <tr key={item.id}>
                         <td>{item.employee_id}</td>
                         <td>
                           {item.lastname}, {item.firstname}
                         </td>
-                        <td>{item.department}</td>
+                        <td>{item.department.name}</td>
                         <td className="text-center">
                           {item.is_admin ? (
                             <i

@@ -7,12 +7,7 @@ import SessionUserContext from "../../contexts/SessionUserContext";
 import departmentTypes from "../../data/departmentTypes.json";
 import categories from "../../data/categories.json";
 
-import {
-  formatDate,
-  wordDate,
-  apiDate,
-  monthYearDate,
-} from "../../common/format/date";
+import { formatDate, apiDate, monthYearDate } from "../../common/format/date";
 import { isEmpty, isValidSWTDDate } from "../../common/validation/utils";
 import { calculateHourPoints } from "../../common/validation/points"; /* prettier-ignore */
 import { useSwitch } from "../../hooks/useSwitch";
@@ -99,7 +94,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
   };
 
   const fetchTerms = () => {
-    const allowedTerm = departmentTypes[user?.department];
+    const allowedTerm = departmentTypes[user?.department?.classificcation];
     getTerms(
       {
         token: token,

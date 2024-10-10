@@ -1,10 +1,10 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { Form, Row, Col } from "react-bootstrap";
 
-import departments from "../../data/departments.json";
 import SessionUserContext from "../../contexts/SessionUserContext";
 import { updateUser } from "../../api/user";
+import { getAllDepartments } from "../../api/admin";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { isValidLength, isEmpty } from "../../common/validation/utils";
@@ -24,25 +24,42 @@ const General = () => {
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const [departments, setDepartments] = useState([]);
   const [form, setForm] = useState({
-    employee_id: user?.employee_id ? user.employee_id : "",
-    firstname: user?.firstname,
-    lastname: user?.lastname,
-    department: user?.department ? user?.department : "",
+    employee_id: "",
+    firstname: "",
+    lastname: "",
+    department_id: 0,
   });
 
+  const fetchDepartments = async () => {
+    getAllDepartments(
+      {
+        token: token,
+      },
+      (response) => {
+        setDepartments(response.departments);
+      },
+      (error) => {
+        console.log(error.message);
+      }
+    );
+  };
+
   const handleChange = (e) => {
-    if (e.target.name === "employee_id" && user?.employee_id !== null) {
+    const { name, value } = e.target;
+
+    if (name === "employee_id" && user?.employee_id !== null) {
       return;
     }
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm((prevForm) => ({
+      ...prevForm,
+      [name]: name === "department_id" ? parseInt(value, 10) || 0 : value,
+    }));
   };
 
   const invalidFields = () => {
-    const emptyFields = ["employee_id", "firstname", "lastname", "department"];
+    const emptyFields = ["employee_id", "firstname", "lastname"];
     const lengthFields = ["employee_id", "firstname", "lastname"];
 
     return (
@@ -59,13 +76,7 @@ const General = () => {
         ...form,
       },
       (response) => {
-        setUser({
-          ...user,
-          employee_id: form.employee_id,
-          firstname: form.firstname,
-          lastname: form.lastname,
-          department: form.department,
-        });
+        setUser(response.data);
         cancelEditing();
         triggerShowSuccess(4500);
       },
@@ -81,10 +92,22 @@ const General = () => {
       ...form,
       firstname: user?.firstname,
       lastname: user?.lastname,
-      department: user?.department,
+      department_id: user?.department?.id,
     });
     cancelEditing();
   };
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        employee_id: user.employee_id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        department_id: user.department?.id ? user.department.id : 0,
+      });
+    }
+    fetchDepartments();
+  }, [user]);
 
   return (
     <Form className={styles.form} noValidate>
@@ -208,17 +231,17 @@ const General = () => {
               {isEditing ? (
                 <Col md="10">
                   <Form.Select
-                    name="department"
+                    name="department_id"
                     className={styles.formBox}
                     onChange={handleChange}
-                    value={form.department}
-                    isInvalid={isEmpty(form.department)}>
-                    <option value="" disabled>
-                      Departments
+                    value={form.department_id}
+                    isInvalid={form.department_id === 0}>
+                    <option value="0" disabled>
+                      Select Department
                     </option>
-                    {departments.departments.map((department, index) => (
-                      <option key={index} value={department}>
-                        {department}
+                    {departments.map((department) => (
+                      <option key={department.id} value={department.id}>
+                        {department.name}
                       </option>
                     ))}
                   </Form.Select>
@@ -230,7 +253,9 @@ const General = () => {
                 <Col
                   className="d-flex justify-content-start align-items-center"
                   md="9">
-                  {user?.department}
+                  {user?.department?.name
+                    ? user.department.name
+                    : "No department set."}
                 </Col>
               )}
             </Form.Group>

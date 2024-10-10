@@ -47,7 +47,7 @@ export const updateUser = async (data, onSuccess, onFail, onCleanup) => {
         employee_id: data.employee_id,
         firstname: data.firstname,
         lastname: data.lastname,
-        department: data.department,
+        department_id: data.department_id,
       },
       {
         headers: {
@@ -94,15 +94,12 @@ export const updatePassword = async (data, onSuccess, onFail, onCleanup) => {
 
 export const deleteUser = async (data, onSuccess, onFail, onCleanup) => {
   try {
-    const response = await axios.delete(
-      `${apiUrl}/users/${data.id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${data.token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.delete(`${apiUrl}/users/${data.id}`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (response.status === 200) {
       onSuccess && onSuccess(response);

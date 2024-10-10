@@ -3,9 +3,8 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
 
-import departments from "../../data/departments.json";
 import departmentTypes from "../../data/departmentTypes.json";
-import { getAllUsers, getTerms } from "../../api/admin";
+import { getAllUsers, getTerms, getAllDepartments, getDepartment } from "../../api/admin"; /* prettier-ignore */
 import { getClearanceStatus } from "../../api/user";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
@@ -18,11 +17,12 @@ const HRDashboard = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
-  const [departmentUsers, setDepartmentUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [terms, setTerms] = useState([]);
+  const [departmentUsers, setDepartmentUsers] = useState([]);
   const [departmentTerms, setDepartmentTerms] = useState([]);
-  const [selectedTerm, setSelectedTerm] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [selectedTerm, setSelectedTerm] = useState(0);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [userClearanceStatus, setUserClearanceStatus] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -44,6 +44,36 @@ const HRDashboard = () => {
       },
       (error) => {
         console.log(error);
+      }
+    );
+  };
+
+  const fetchDepartment = async (id) => {
+    getDepartment(
+      {
+        department_id: id,
+        token: token,
+      },
+      (response) => {
+        setSelectedDepartment(response.data);
+      },
+      (error) => {
+        console.log(error.message);
+      }
+    );
+  };
+
+  const fetchDepartments = async () => {
+    getAllDepartments(
+      {
+        token: token,
+      },
+      (response) => {
+        setDepartments(response.departments);
+        setLoading(false);
+      },
+      (error) => {
+        console.log(error.message);
       }
     );
   };
@@ -109,7 +139,7 @@ const HRDashboard = () => {
         employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
         employee.lastname.toLowerCase().includes(query.toLowerCase());
 
-      const matchesDept = dept ? employee.department === dept : true;
+      const matchesDept = dept ? employee.department.id === dept.id : true;
 
       return matchesQuery && matchesDept;
     });
@@ -147,6 +177,7 @@ const HRDashboard = () => {
       else {
         setLoading(true);
         const fetchData = async () => {
+          fetchDepartments();
           fetchTerms();
           await fetchAllUsers();
         };
@@ -156,10 +187,13 @@ const HRDashboard = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    const allowedTerm = departmentTypes[selectedDepartment];
+    const allowedTerm = departmentTypes[selectedDepartment?.classification];
     const filteredTerms = terms?.filter((term) =>
       allowedTerm?.includes(term.type)
     );
+
+    const ongoingTerm = filteredTerms.find((term) => term.is_ongoing === true);
+    setSelectedTerm(ongoingTerm?.id);
     setDepartmentTerms(filteredTerms);
   }, [selectedDepartment]);
 
@@ -182,25 +216,26 @@ const HRDashboard = () => {
     <Container className="d-flex flex-column justify-content-start align-items-start">
       <Row className="w-100">
         <Col>
-          <h3 className={styles.pageTitle}>Departmental Points Overview</h3>
+          <h3 className={styles.pageTitle}>Points Overview</h3>
         </Col>
       </Row>
 
       <Row className="w-100 mb-3">
         <Col md="6">
           <span className={`${styles.deptDropdown} text-muted`}>
-            Select a department and term below to see the records of employees.
+            Select a department below to see the records of employees.
           </span>
         </Col>
+
         <Col className="text-end">
           <BtnPrimary
             onClick={() => {
-              setSelectedDepartment("");
-              setSelectedTerm("");
+              setSelectedDepartment(null);
+              setSelectedTerm(0);
             }}>
             <i className="fa-solid fa-trash-can me-2"></i>Reset
           </BtnPrimary>{" "}
-          <BtnSecondary disabled={!selectedDepartment || !selectedTerm}>
+          <BtnSecondary disabled={!selectedDepartment || selectedTerm !== 0}>
             <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i> Export
           </BtnSecondary>
         </Col>
@@ -230,15 +265,15 @@ const HRDashboard = () => {
               <i className="fa-solid fa-landmark fa-lg"></i>
             </InputGroup.Text>
             <Form.Select
-              value={selectedDepartment}
+              value={selectedDepartment?.id || ""}
               className={styles.deptDropdown}
-              onChange={(e) => setSelectedDepartment(e.target.value)}>
+              onChange={(e) => fetchDepartment(e.target.value)}>
               <option value="" disabled>
                 Select department
               </option>
-              {departments.departments.map((department, idx) => (
-                <option key={idx} value={department}>
-                  {department}
+              {departments.map((department) => (
+                <option key={department.id} value={department.id}>
+                  {department.name}
                 </option>
               ))}
             </Form.Select>
@@ -255,10 +290,10 @@ const HRDashboard = () => {
               value={selectedTerm}
               className={styles.deptDropdown}
               onChange={(e) => {
-                setSelectedTerm(e.target.value);
+                setSelectedTerm(e.target.value.id);
               }}
               disabled={!selectedDepartment}>
-              <option value="" disabled>
+              <option value="0" disabled>
                 Select term
               </option>
               {departmentTerms.map((term) => (
@@ -275,7 +310,7 @@ const HRDashboard = () => {
         <hr className="w-100" style={{ opacity: "1" }} />
       )}
 
-      {selectedDepartment && selectedTerm && (
+      {selectedDepartment && selectedTerm !== 0 && (
         <>
           <Row className="w-100">
             {currentRecords.length === 0 ? (
@@ -285,17 +320,36 @@ const HRDashboard = () => {
               </span>
             ) : (
               <div className="mb-3">
+                <Row className={`${styles.userStatus} mb-3`}>
+                  <Col md="auto">
+                    <i className="fa-solid fa-users fa-lg me-2"></i>Total
+                    Employees: {currentRecords.length}
+                  </Col>
+                  <Col md="auto">
+                    <i className="fa-solid fa-user-check fa-lg me-2"></i>Cleared
+                    Employees:{" "}
+                    {
+                      currentRecords.filter((item) => item.is_cleared === true)
+                        .length
+                    }
+                  </Col>
+                  <Col md="auto">
+                    <i className="fa-solid fa-user-xmark fa-lg me-2"></i>
+                    Non-cleared Employees:{" "}
+                    {
+                      currentRecords.filter((item) => item.is_cleared === false)
+                        .length
+                    }
+                  </Col>
+                  <Col></Col>
+                </Row>
                 <ListGroup className="w-100" variant="flush">
                   <ListGroup.Item className={styles.tableHeader}>
                     <Row>
                       <Col md={2}>ID No.</Col>
-                      <Col>Name</Col>
-                      <Col md={2}>Department</Col>
-                      {selectedDepartment && (
-                        <Col className="text-center" md={2}>
-                          Points
-                        </Col>
-                      )}
+                      <Col md={7}>Name</Col>
+                      <Col>Clearance Status</Col>
+                      <Col md={1}>Points</Col>
                     </Row>
                   </ListGroup.Item>
                 </ListGroup>
@@ -307,15 +361,16 @@ const HRDashboard = () => {
                       onClick={() => handleEmployeeSWTDClick(item.id)}>
                       <Row>
                         <Col md={2}>{item.employee_id}</Col>
-                        <Col>
+                        <Col md={7}>
                           {item.firstname} {item.lastname}
                         </Col>
-                        <Col md={2}>{item.department}</Col>
-                        {selectedDepartment && (
-                          <Col className="text-center" md={2}>
-                            {item.points.valid_points}
-                          </Col>
-                        )}
+                        <Col
+                          className={`text-${
+                            item.is_cleared ? "success" : "danger"
+                          } ${styles.userStatus}`}>
+                          {item.is_cleared ? "CLEARED" : "NOT CLEARED"}
+                        </Col>
+                        <Col md={1}>{item.points.valid_points}</Col>
                       </Row>
                     </ListGroup.Item>
                   ))}
