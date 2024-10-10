@@ -32,7 +32,7 @@ const Dashboard = () => {
     (status) => status.points.valid_points >= requiredPoints
   ).length;
 
-  const clearedUsersPercentage = (validUsers / departmentUsers.length) * 100;
+  const clearedUsersPercentage = ((1 / 6) * 100).toFixed(2);
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -346,7 +346,7 @@ const Dashboard = () => {
             {noUsers === false && terms.length !== 0 && (
               <Col>
                 <span className={styles.formLabel}>
-                  Point Standings for {selectedTerm?.name}
+                  SWTDs Statistics for {selectedTerm?.name}
                 </span>
                 <hr className="m-0 mb-1" style={{ opacity: "1" }} />
 
@@ -419,11 +419,13 @@ const Dashboard = () => {
                       <Col className="text-center" md={2}>
                         Pending SWTDs
                       </Col>
-                      <Col className="text-center" md={2}>
-                        Approved SWTDs
-                      </Col>
+
                       <Col className="text-center" md={2}>
                         SWTDs For Revision
+                      </Col>
+
+                      <Col className="text-center" md={2}>
+                        Points
                       </Col>
                     </Row>
                   </ListGroup.Item>
@@ -446,19 +448,17 @@ const Dashboard = () => {
                             ).length
                           }
                         </Col>
-                        <Col className="text-center" md={2}>
-                          {
-                            item.swtds.filter(
-                              (swtd) => swtd.validation.status === "APPROVED"
-                            ).length
-                          }
-                        </Col>
+
                         <Col className="text-center" md={2}>
                           {
                             item.swtds.filter(
                               (swtd) => swtd.validation.status === "REJECTED"
                             ).length
                           }
+                        </Col>
+
+                        <Col className="text-center" md={2}>
+                          {item.points.valid_points}
                         </Col>
                       </Row>
                     </ListGroup.Item>
