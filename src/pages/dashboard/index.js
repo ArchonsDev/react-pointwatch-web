@@ -32,7 +32,10 @@ const Dashboard = () => {
     (status) => status.points.valid_points >= requiredPoints
   ).length;
 
-  const clearedUsersPercentage = ((1 / 6) * 100).toFixed(2);
+  const clearedUsersPercentage = (
+    (validUsers / departmentUsers.length) *
+    100
+  ).toFixed(2);
 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -322,15 +325,15 @@ const Dashboard = () => {
                       </span>
                       <hr className="m-0 mb-2" style={{ opacity: "1" }} />
                       <Row className={`${styles.depStat} w-100 mb-2`}>
-                        <Col md="auto">Total Employees</Col>
+                        <Col md={7}>Total Employees</Col>
                         <Col className="text-end">{departmentUsers.length}</Col>
                       </Row>
                       <Row className={`${styles.depStat} w-100 mb-2`}>
-                        <Col md="auto">Cleared Employees</Col>
+                        <Col md={7}>Cleared Employees</Col>
                         <Col className="text-end">{validUsers}</Col>
                       </Row>
                       <Row className={`${styles.depStat} w-100`}>
-                        <Col md="auto">Non-Cleared Employees</Col>
+                        <Col md={7}>Non-Cleared Employees</Col>
                         <Col className="text-end">{lackingUsers}</Col>
                       </Row>
                     </Col>
@@ -340,14 +343,19 @@ const Dashboard = () => {
             </Col>
 
             {noUsers === false && terms.length !== 0 && (
-              <Col>
-                <span className={styles.formLabel}>
+              <Col className="flex-row">
+                <Row className={styles.swtdStat}>
+                  <span>{user?.department?.classification}</span>
+                </Row>
+                <Row className={`${styles.swtdContent} mb-1`}>
+                  <span>{user?.department?.name}</span>
+                </Row>
+                {/* <span className={styles.swtdStat}>
                   SWTDs Statistics for {selectedTerm?.name}
-                </span>
-                <hr className="m-0 mb-1" style={{ opacity: "1" }} />
-
-                <Row className={styles.cardBody}>
-                  <Col>Pending SWTDs</Col>
+                </span> */}
+                <hr className="m-0 mb-2" style={{ opacity: "1" }} />
+                <Row className={styles.filterText}>
+                  <Col>Total Pending SWTDs</Col>
                   <Col className="text-end">
                     {topUsers.reduce(
                       (totalPending, user) =>
@@ -360,8 +368,10 @@ const Dashboard = () => {
                   </Col>
                 </Row>
 
-                <Row className={styles.cardBody}>
-                  <Col>SWTDs For Revision</Col>
+                <Row className={styles.filterText}>
+                  <Col className={styles.filterText}>
+                    Total SWTDs For Revision
+                  </Col>
                   <Col className="text-end">
                     {topUsers.reduce(
                       (totalRevision, user) =>
@@ -432,11 +442,9 @@ const Dashboard = () => {
                       <Col className="text-center" md={2}>
                         Pending SWTDs
                       </Col>
-
                       <Col className="text-center" md={2}>
                         SWTDs For Revision
                       </Col>
-
                       <Col className="text-center" md={2}>
                         Points
                       </Col>
