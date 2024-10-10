@@ -350,16 +350,33 @@ const Dashboard = () => {
                 </span>
                 <hr className="m-0 mb-1" style={{ opacity: "1" }} />
 
-                {topUsers.map((user) => (
-                  <Row className={styles.cardBody} key={user.userId}>
-                    <Col>
-                      {user.firstname} {user.lastname}
-                    </Col>
-                    <Col className="text-end">
-                      {user.points?.valid_points || 0}
-                    </Col>
-                  </Row>
-                ))}
+                <Row className={styles.cardBody}>
+                  <Col>Pending SWTDs</Col>
+                  <Col className="text-end">
+                    {topUsers.reduce(
+                      (totalPending, user) =>
+                        totalPending +
+                        user.swtds.filter(
+                          (swtd) => swtd.validation.status === "PENDING"
+                        ).length,
+                      0
+                    )}
+                  </Col>
+                </Row>
+
+                <Row className={styles.cardBody}>
+                  <Col>SWTDs For Revision</Col>
+                  <Col className="text-end">
+                    {topUsers.reduce(
+                      (totalRevision, user) =>
+                        totalRevision +
+                        user.swtds.filter(
+                          (swtd) => swtd.validation.status === "REJECTED"
+                        ).length,
+                      0
+                    )}
+                  </Col>
+                </Row>
               </Col>
             )}
           </Row>
