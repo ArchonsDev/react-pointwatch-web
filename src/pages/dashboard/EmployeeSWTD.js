@@ -106,6 +106,7 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
+        console.log(response);
         setTermStatus(response);
       }
     );
@@ -372,7 +373,7 @@ const EmployeeSWTD = () => {
 
         {/* CLEARANCE BUTTONS */}
         <Col className="text-end">
-          {(user?.is_admin || user?.is_staff) &&
+          {(user?.is_admin || user?.is_staff || user?.is_superuser) &&
             selectedTerm !== null &&
             (termStatus?.is_cleared ? (
               <>
