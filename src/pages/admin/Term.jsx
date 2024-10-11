@@ -150,7 +150,8 @@ const Term = () => {
     <>
       <Row className={`${styles.table} w-100`}>
         <span className="text-muted mb-3">
-          Terms are required for employees to submit SWTDs.
+          Terms are required for employees to submit SWTDs. All fields (Term
+          Type, term Name, and Dates) are required.
         </span>
       </Row>
       <Form className={styles.form}>

@@ -84,17 +84,8 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     }));
   };
 
-  const handleCustomRoleChange = (e) => {
-    const value = e.target.value;
-    setSelectedRole(value);
-    setForm((prevForm) => ({
-      ...prevForm,
-      role: value,
-    }));
-  };
-
   const fetchTerms = () => {
-    const allowedTerm = departmentTypes[user?.department?.classificcation];
+    const allowedTerm = departmentTypes[user?.department?.classification];
     getTerms(
       {
         token: token,

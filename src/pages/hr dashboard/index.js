@@ -139,7 +139,7 @@ const HRDashboard = () => {
         employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
         employee.lastname.toLowerCase().includes(query.toLowerCase());
 
-      const matchesDept = dept ? employee.department.id === dept.id : true;
+      const matchesDept = dept ? employee.department?.id === dept.id : true;
 
       return matchesQuery && matchesDept;
     });

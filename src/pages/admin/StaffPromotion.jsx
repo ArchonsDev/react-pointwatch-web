@@ -134,7 +134,11 @@ const StaffPromotion = () => {
                         <td>
                           {item.lastname}, {item.firstname}
                         </td>
-                        <td>{item.department?.name}</td>
+                        <td className={item.department ? "" : "text-danger"}>
+                          {item.department
+                            ? item.department.name
+                            : "No department set."}
+                        </td>
                         <td className="text-center">
                           {item.is_staff ? (
                             <i
@@ -145,21 +149,34 @@ const StaffPromotion = () => {
                           )}
                         </td>
                         <td className="text-center">
-                          {item.is_staff ? (
-                            <div
-                              className={styles.icon}
-                              onClick={() => grantRevokeStaff(item.id, false)}>
-                              <i
-                                className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
-                              DEMOTE
-                            </div>
+                          {item.department ? (
+                            <>
+                              {item.is_staff ? (
+                                <div
+                                  className={styles.icon}
+                                  onClick={() =>
+                                    grantRevokeStaff(item.id, false)
+                                  }>
+                                  <i
+                                    className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
+                                  DEMOTE
+                                </div>
+                              ) : (
+                                <div
+                                  className={styles.icon}
+                                  onClick={() =>
+                                    grantRevokeStaff(item.id, true)
+                                  }>
+                                  <i
+                                    className={`${styles.icon} fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
+                                  PROMOTE
+                                </div>
+                              )}
+                            </>
                           ) : (
-                            <div
-                              className={styles.icon}
-                              onClick={() => grantRevokeStaff(item.id, true)}>
+                            <div className={styles.icon}>
                               <i
-                                className={`${styles.icon} fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
-                              PROMOTE
+                                className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>{" "}
                             </div>
                           )}
                         </td>

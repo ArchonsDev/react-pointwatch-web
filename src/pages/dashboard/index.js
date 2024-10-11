@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, Card, ProgressBar, Dropdown, DropdownButton } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, Card, ProgressBar, Dropdown, DropdownButton, Modal } from "react-bootstrap"; /* prettier-ignore */
 
 import status from "../../data/status.json";
 import departmentTypes from "../../data/departmentTypes.json";
@@ -82,8 +82,10 @@ const Dashboard = () => {
         const ongoingTerm = filteredTerms.find(
           (term) => term.is_ongoing === true
         );
+
         setTerms(filteredTerms);
         setSelectedTerm(ongoingTerm || filteredTerms[0]);
+
         if (filteredTerms.length === 0)
           setLoadingMessage(
             <span className="text-center mt-2">

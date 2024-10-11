@@ -107,7 +107,6 @@ const Department = () => {
   };
 
   const handleSubmit = async () => {
-    console.log(form);
     await addDepartment(
       {
         ...form,
