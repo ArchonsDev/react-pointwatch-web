@@ -238,7 +238,7 @@ const EmployeeSWTD = () => {
           <i
             className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
             onClick={() => {
-              if (user?.is_staff) navigate("/hr");
+              if (user?.is_staff || user?.is_superuser) navigate("/hr");
               else navigate("/dashboard");
             }}></i>{" "}
           {pageTitle}
