@@ -372,66 +372,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
         )}
 
         <Form noValidate>
-          {/* POINTS & CHECKBOX */}
-          {/* <Row className="mb-3">
-            <Form.Group as={Row} className="mb-3" controlId="inputPoints">
-              <Form.Label className={`${styles.formLabel}`} column md="auto">
-                Points
-              </Form.Label>
-
-              {form?.category.startsWith("Degree") || checkbox.deliverable ? (
-                <>
-                  <Col md="2">
-                    <Form.Control
-                      type="number"
-                      className={`${styles.pointsBox} text-center`}
-                      name="points"
-                      onChange={handleChange}
-                      value={form.points}
-                      isInvalid={form.points <= 0}
-                      disabled={loading}
-                    />
-                  </Col>
-                  <Col className="d-flex align-items-center">
-                    <Form.Text muted>
-                      Enter the points for this submission.
-                    </Form.Text>
-                  </Col>
-                </>
-              ) : (
-                <>
-                  <Col md="2">
-                    <Form.Control
-                      type="number"
-                      className={`${styles.pointsBox} text-center`}
-                      name="points"
-                      onChange={handleChange}
-                      value={form.points}
-                      readOnly
-                    />
-                  </Col>
-                  <Col className="d-flex align-items-center">
-                    <Form.Text muted>
-                      Points will be calculated automatically.
-                    </Form.Text>
-                  </Col>
-                </>
-              )}
-              <Col className="d-flex align-items-center">
-                <Form.Check
-                  inline
-                  type="checkbox"
-                  id="deliverable"
-                  checked={checkbox.deliverable}
-                  onChange={handleBoxChange}
-                />
-                <Form.Check.Label>
-                  Does the SWTD have deliverables?
-                </Form.Check.Label>
-              </Col>
-            </Form.Group>
-          </Row> */}
-
           {/* GENERAL INFORMATION */}
           <Row className="mb-2">
             <Col className={`p-1 ${styles.categoryLabel}`}>

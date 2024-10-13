@@ -54,6 +54,10 @@
   color: #9d084a;
 }
 
+.formSection {
+  font-family: "Poppins-SemiBold";
+}
+
 .pageNum {
   --bs-pagination-active-bg: #9d084a !important;
   --bs-pagination-bg: #180018 !important;

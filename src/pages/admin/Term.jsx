@@ -140,9 +140,8 @@ const Term = () => {
   };
 
   useEffect(() => {
-    if (!user?.is_staff && !user?.is_superuser) {
-      navigate("/swtd");
-    }
+    if (user?.access_level === 1) navigate("/dashboard");
+    else if (user?.access_level < 1) navigate("/swtd");
     fetchTerms();
   }, []);
 
@@ -150,8 +149,7 @@ const Term = () => {
     <>
       <Row className={`${styles.table} w-100`}>
         <span className="text-muted mb-3">
-          Terms are required for employees to submit SWTDs. All fields (Term
-          Type, term Name, and Dates) are required.
+          Terms are required for employees to submit SWTDs.
         </span>
       </Row>
       <Form className={styles.form}>
@@ -168,29 +166,25 @@ const Term = () => {
         )}
 
         {/* Term Type */}
-        <Row>
-          <Form.Group as={Row} className="mb-3" controlId="inputType">
-            <Form.Label className={`${styles.formLabel}`} column md="2">
-              Term Type
-            </Form.Label>
-            <Col
-              className="d-flex justify-content-start align-items-center"
-              md="10">
-              {types.type.map((item, index) => (
-                <Form.Check
-                  key={index}
-                  type="radio"
-                  name="type"
-                  className="me-5"
-                  label={item}
-                  value={item}
-                  onChange={handleChange}
-                  checked={selectedType === item}
-                  inline
-                />
-              ))}
-            </Col>
-          </Form.Group>
+        <Row className="mb-3">
+          <Col md="auto">
+            <Form.Label className={`${styles.formLabel}`}>Term Type</Form.Label>
+          </Col>
+          <Col>
+            {types.type.map((item, index) => (
+              <Form.Check
+                key={index}
+                type="radio"
+                name="type"
+                className="me-4"
+                label={item}
+                value={item}
+                onChange={handleChange}
+                checked={selectedType === item}
+                inline
+              />
+            ))}
+          </Col>
         </Row>
 
         {/* Term Name */}
@@ -208,8 +202,8 @@ const Term = () => {
         </Row>
 
         {/* Dates */}
-        <Row className="mb-3">
-          <Col>
+        <Row>
+          <Col className="mb-3">
             <FloatingLabel
               controlId="floatingStartDate"
               label="Start Date (Month & Year)">
@@ -242,7 +236,7 @@ const Term = () => {
             </FloatingLabel>
           </Col>
 
-          <Col>
+          <Col className="mb-3">
             <FloatingLabel
               controlId="floatingEndDate"
               label="End Date (Month & Year)">
@@ -303,6 +297,7 @@ const Term = () => {
           />
         </Row>
       </Form>
+
       <hr />
 
       {showEditSuccess && (
@@ -316,7 +311,8 @@ const Term = () => {
           Term deleted.
         </div>
       )}
-      <Row className={`${styles.table}  w-100`}>
+
+      <Row className={`${styles.table} w-100`}>
         {loading ? (
           <Row
             className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
@@ -354,13 +350,14 @@ const Term = () => {
                     <td>{monthYearDate(term.end_date)}</td>
                     <td className="text-center">
                       <i
-                        className={`${styles.icon} fa-solid fa-pen-to-square fa-xl text-dark me-3`}
+                        className={`${styles.icon} fa-solid fa-pen-to-square fa-lg text-dark me-3`}
                         onClick={() => {
                           openEditModal();
                           setSelectedTerm(term);
                         }}></i>
+
                       <i
-                        className={`${styles.icon} fa-solid fa-trash-can fa-xl text-danger`}
+                        className={`${styles.icon} fa-solid fa-trash-can fa-lg text-danger`}
                         onClick={() => {
                           openDeleteModal();
                           setSelectedTerm(term);

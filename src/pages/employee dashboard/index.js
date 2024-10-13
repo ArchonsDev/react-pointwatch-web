@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, ListGroup, DropdownButton, Dropdown, Modal, Spinner, Card, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, ListGroup, DropdownButton, Dropdown, 
+        Modal, Spinner, Card, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
 
 import departmentTypes from "../../data/departmentTypes.json";
 import categories from "../../data/categories.json";
@@ -22,6 +23,7 @@ const SWTDDashboard = () => {
   const id = Cookies.get("userID");
   const token = Cookies.get("userToken");
   const { user } = useContext(SessionUserContext);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
 
   const [showModal, openModal, closeModal] = useSwitch();
@@ -35,6 +37,10 @@ const SWTDDashboard = () => {
   const [termStatus, setTermStatus] = useState(null);
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const handleResize = () => {
+    setIsMobile(window.innerWidth <= 768);
+  };
 
   const fetchAllSWTDs = async () => {
     await getAllSWTDs(
@@ -64,8 +70,8 @@ const SWTDDashboard = () => {
   };
 
   const truncateTitle = (title) => {
-    if (title.length > 50) {
-      return title.substring(0, 50) + "...";
+    if (title.length > 40) {
+      return title.substring(0, 40) + "...";
     }
     return title;
   };
@@ -158,20 +164,29 @@ const SWTDDashboard = () => {
     } else {
       fetchTerms();
       fetchAllSWTDs();
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
     }
   }, [user]);
 
   if (loading)
     return (
       <Row
-        className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
-        <Spinner className={`me-2`} animation="border" />
-        Loading data...
+        className={`${styles.loading} d-flex flex-column justify-content-center align-items-center w-100`}
+        style={{ height: "100vh" }}>
+        <Col></Col>
+        <Col className="text-center">
+          <div>
+            <Spinner animation="border" />
+          </div>
+          Loading data...
+        </Col>
+        <Col></Col>
       </Row>
     );
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
       <Row className="w-100 mb-1">
         <Col>
           <h3 className={`${styles.label} d-flex align-items-center`}>
@@ -225,16 +240,16 @@ const SWTDDashboard = () => {
         </Col>
       </Row>
 
-      <Row className={`${styles.employeeDetails} w-100 mb-3`}>
-        <Col className="d-flex align-items-center" md="auto">
-          <i className="fa-solid fa-landmark fa-lg me-2"></i>Department:
-          <span className={`${styles.userStat} ms-2`}>
-            {user?.department?.name}
+      <Row className={`${styles.employeeDetails} w-100`}>
+        <Col className="d-flex align-items-center mb-lg-3 mb-2" md="auto">
+          <i className="fa-solid fa-landmark fa-lg me-2"></i>
+          <span className={`${styles.userStat}`}>
+            {user?.department ? user.department.name : "No department set."}
           </span>
         </Col>
 
         {selectedTerm !== null && (
-          <Col className="d-flex align-items-center" md="auto">
+          <Col className="d-flex align-items-center mb-3" md="auto">
             <i className="fa-solid fa-user-check fa-lg me-2"></i>Status:
             <span
               className={`ms-2 text-${
@@ -246,9 +261,9 @@ const SWTDDashboard = () => {
         )}
       </Row>
 
+      {/* BUTTONS */}
       <Row className="w-100 mb-3">
-        {/* BUTTONS */}
-        <Col md="2">
+        <Col lg="2" md="3">
           <Row className="mb-1">
             <BtnPrimary
               onClick={() =>
@@ -258,7 +273,7 @@ const SWTDDashboard = () => {
               Add SWTD
             </BtnPrimary>
           </Row>
-          <Row>
+          <Row className="mb-lg-0 mb-3">
             <BtnSecondary
               onClick={handlePrint}
               disabled={userSWTDs.length === 0}>
@@ -286,7 +301,7 @@ const SWTDDashboard = () => {
         </Col>
 
         {/* PENDING SWTDs Card */}
-        <Col md="3">
+        <Col className="mb-3" lg="3" md="4">
           <OverlayTrigger
             placement="bottom"
             overlay={
@@ -307,7 +322,7 @@ const SWTDDashboard = () => {
         </Col>
 
         {/* REJECTED SWTDs Card */}
-        <Col md="3">
+        <Col className="mb-3" lg="3" md="4">
           <OverlayTrigger
             placement="bottom"
             overlay={
@@ -331,7 +346,7 @@ const SWTDDashboard = () => {
         <Col>
           {selectedTerm !== null && (
             <div className={styles.termPoints}>
-              <span className="mb-2">Points for this term:</span>
+              <span className="mb-2">Term Points:</span>
               <span
                 className={`${styles.validPoints} ${
                   termStatus?.points?.valid_points <
@@ -351,7 +366,7 @@ const SWTDDashboard = () => {
         <Col>
           {selectedTerm !== null && (
             <div className={styles.termPoints}>
-              <span className="mb-2">Excess points:</span>
+              <span className="mb-2">Excess Points:</span>
               <span className={`${styles.validPoints} `}>
                 {user?.point_balance} pts
               </span>
@@ -360,6 +375,7 @@ const SWTDDashboard = () => {
         </Col>
       </Row>
 
+      {/* GRAPHS */}
       <Row className="w-100 mb-4">
         {userSWTDs.length > 0 ? (
           <>
@@ -375,10 +391,15 @@ const SWTDDashboard = () => {
               </span>
               {categories.categories.map((category) => (
                 <Row className={`mt-1`} key={category.id}>
-                  <Col className={`${styles.employeeDetails} pe-0`} md="auto">
+                  <Col
+                    className={`${styles.employeeDetails} pe-0`}
+                    md="auto"
+                    xs={1}>
                     {category.id}
                   </Col>
-                  <Col className={styles.cardBody}>{category.name}</Col>
+                  <Col className={styles.cardBody} md={11} xs={11}>
+                    {category.name}
+                  </Col>
                 </Row>
               ))}
             </Col>
@@ -412,9 +433,20 @@ const SWTDDashboard = () => {
             <ListGroup className="w-100" variant="flush">
               <ListGroup.Item className={styles.swtdHeader}>
                 <Row>
-                  <Col md={9}>Title</Col>
-                  <Col md={2}>Status</Col>
-                  <Col md={1}>Points</Col>
+                  <Col lg={5} md={5} xs={isMobile ? 6 : 4}>
+                    Title
+                  </Col>
+                  {!isMobile && (
+                    <Col lg={4} md={4} xs={2}>
+                      Category
+                    </Col>
+                  )}
+                  <Col lg={2} md={2} xs={isMobile ? 4 : 2}>
+                    Status
+                  </Col>
+                  <Col lg={1} md={1} xs={2}>
+                    Points
+                  </Col>
                 </Row>
               </ListGroup.Item>
             </ListGroup>
@@ -428,13 +460,22 @@ const SWTDDashboard = () => {
                     className={styles.tableBody}
                     onClick={() => handleViewSWTD(item.id)}>
                     <Row>
-                      <Col md={9}>{truncateTitle(item.title)}</Col>
-                      <Col md={2}>
+                      <Col lg={5} md={5} xs={isMobile ? 6 : 4}>
+                        {truncateTitle(item.title)}
+                      </Col>
+                      {!isMobile && (
+                        <Col lg={4} md={4} xs={2}>
+                          {truncateTitle(item.category)}
+                        </Col>
+                      )}
+                      <Col lg={2} md={2} xs={isMobile ? 4 : 2}>
                         {item.validation.status === "REJECTED"
                           ? "FOR REVISION"
                           : item.validation.status}
                       </Col>
-                      <Col md={1}>{item.points}</Col>
+                      <Col lg={1} md={1} xs={2}>
+                        {item.points}
+                      </Col>
                     </Row>
                   </ListGroup.Item>
                 ))}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Container, Card, Row, Col, Form, InputGroup, Toast,ToastContainer} from "react-bootstrap"; /* prettier-ignore */
+import { Container, Card, Row, Col, Form, FloatingLabel, InputGroup, Toast,ToastContainer} from "react-bootstrap"; /* prettier-ignore */
 
 import { register } from "../../api/auth";
 import { isEmpty, isValidLength, isValidEmail, isValidPassword } from "../../common/validation/utils"; /* prettier-ignore */
@@ -89,9 +89,7 @@ const Registration = () => {
 
   return (
     <div className={styles.background}>
-      {/* Fake Navbar */}
-      <header className={styles.header}>
-        {" "}
+      <header className={`${styles.header} mb-3`}>
         <h3 className="text-white">
           <Link to="/login">
             <i
@@ -126,7 +124,7 @@ const Registration = () => {
 
       {/* Registration Form */}
       <Container className="d-flex justify-content-center align-items-center">
-        <Card className="w-75 p-4">
+        <Card className="w-75 p-lg-4 p-2">
           {!isRegistrationComplete ? (
             <Card.Body>
               <Row className="mb-4">
@@ -143,7 +141,7 @@ const Registration = () => {
               <Form className={styles.form} noValidate>
                 {/* Row 1: Email & ID Number */}
                 <Row>
-                  <Col>
+                  <Col lg={6} md={12} xs={12}>
                     <Form.Group className="mb-3" controlId="inputEmail">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -168,7 +166,7 @@ const Registration = () => {
                       </InputGroup>
                     </Form.Group>
                   </Col>
-                  <Col>
+                  <Col lg={6} md={12} xs={12}>
                     <Form.Group className="mb-3" controlId="inputEmployeeID">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -199,7 +197,7 @@ const Registration = () => {
 
                 {/* Row 2: First name & last name  */}
                 <Row>
-                  <Col>
+                  <Col md={6} xs={12}>
                     <Form.Group className="mb-3" controlId="inputFirstname">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -226,7 +224,7 @@ const Registration = () => {
                       </InputGroup>
                     </Form.Group>
                   </Col>
-                  <Col>
+                  <Col md={6} xs={12}>
                     <Form.Group className="mb-3" controlId="inputLastname">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -296,6 +294,7 @@ const Registration = () => {
                     </Form.Group>
                   </Col>
                 </Row>
+
                 <Row>
                   <Col>
                     <Form.Group

@@ -60,7 +60,7 @@ const App = () => {
         id: data.id,
       },
       (response) => {
-        setUser(response?.data);
+        setUser(response?.data.data);
       }
     );
   };

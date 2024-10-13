@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Row, Nav, Card, Spinner } from "react-bootstrap";
+import { Container, Row, Nav, Card, Spinner, Dropdown } from "react-bootstrap";
 
 import Term from "./Term";
 import Department from "./Department";
@@ -16,6 +16,11 @@ const Admin = () => {
 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("term");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 995);
+
+  const handleResize = () => {
+    setIsMobile(window.innerWidth <= 995);
+  };
 
   const handleSelectTab = (selectedTab) => {
     setActiveTab(selectedTab);
@@ -34,16 +39,19 @@ const Admin = () => {
       case "staff":
         return <StaffPromotion />;
       default:
+        return null;
     }
   };
 
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      if (user?.is_admin) navigate("/dashboard");
-      else if (!user?.is_staff && !user?.is_superuser) navigate("/swtd");
+      if (user?.access_level === 1) navigate("/dashboard");
+      else if (user?.access_level < 1) navigate("/swtd");
       setLoading(false);
     }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [user, navigate]);
 
   if (loading)
@@ -56,12 +64,12 @@ const Admin = () => {
     );
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
-      <Row className="mb-2">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
+      <Row className="w-100 mb-2">
         <h3 className={styles.label}>System Management</h3>
       </Row>
 
-      <Row>
+      <Row className="w-100">
         <Nav variant="tabs" defaultActiveKey="term" onSelect={handleSelectTab}>
           <Nav.Item>
             <Nav.Link
@@ -83,37 +91,68 @@ const Admin = () => {
               Department
             </Nav.Link>
           </Nav.Item>
-          <Nav.Item>
-            <Nav.Link
-              eventKey="activity"
-              className={`${styles.navHeader} ${
-                activeTab === "activity" ? styles.activeTab : styles.inactiveTab
-              }`}>
-              Validation & Clearance Reports
-            </Nav.Link>
-          </Nav.Item>
-          {user?.is_superuser && (
+          {isMobile ? (
+            <Dropdown as={Nav.Item}>
+              <Dropdown.Toggle
+                as={Nav.Link}
+                className={`${styles.navHeader} ${styles.inactiveTab}`}>
+                More
+              </Dropdown.Toggle>
+              <Dropdown.Menu className={styles.formLabel}>
+                <Dropdown.Item onClick={() => setActiveTab("activity")}>
+                  Validation & Clearance Reports
+                </Dropdown.Item>
+                {user?.is_superuser && (
+                  <>
+                    <Dropdown.Item onClick={() => setActiveTab("head")}>
+                      Department Heads
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => setActiveTab("staff")}>
+                      HR Staff
+                    </Dropdown.Item>
+                  </>
+                )}
+              </Dropdown.Menu>
+            </Dropdown>
+          ) : (
             <>
               <Nav.Item>
                 <Nav.Link
-                  eventKey="head"
+                  eventKey="activity"
                   className={`${styles.navHeader} ${
-                    activeTab === "head" ? styles.activeTab : styles.inactiveTab
-                  }`}>
-                  Department Heads
-                </Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link
-                  eventKey="staff"
-                  className={`${styles.navHeader} ${
-                    activeTab === "staff"
+                    activeTab === "activity"
                       ? styles.activeTab
                       : styles.inactiveTab
                   }`}>
-                  HR Staff
+                  Validation & Clearance Reports
                 </Nav.Link>
               </Nav.Item>
+              {user?.is_superuser && (
+                <>
+                  <Nav.Item>
+                    <Nav.Link
+                      eventKey="head"
+                      className={`${styles.navHeader} ${
+                        activeTab === "head"
+                          ? styles.activeTab
+                          : styles.inactiveTab
+                      }`}>
+                      Department Heads
+                    </Nav.Link>
+                  </Nav.Item>
+                  <Nav.Item>
+                    <Nav.Link
+                      eventKey="staff"
+                      className={`${styles.navHeader} ${
+                        activeTab === "staff"
+                          ? styles.activeTab
+                          : styles.inactiveTab
+                      }`}>
+                      HR Staff
+                    </Nav.Link>
+                  </Nav.Item>
+                </>
+              )}
             </>
           )}
         </Nav>

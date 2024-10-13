@@ -5,6 +5,7 @@ import { Form, Row, Col, FloatingLabel, Table, Spinner } from "react-bootstrap";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import classifications from "../../data/classification.json";
+import types from "../../data/types.json";
 import { addDepartment, getAllDepartments } from "../../api/admin";
 import { useTrigger } from "../../hooks/useTrigger";
 import { useSwitch } from "../../hooks/useSwitch";
@@ -26,7 +27,7 @@ const Department = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const [departments, setDepartments] = useState([]);
-  const [selectedClassification, setSelectedClassification] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState("");
   const [customClass, setCustomClass] = useState("");
   const [checkbox, setCheckbox] = useState({
     deptName: false,
@@ -34,9 +35,10 @@ const Department = () => {
   });
   const [form, setForm] = useState({
     name: "",
-    classification: "",
+    level: "",
     required_points: 0,
-    has_midyear: false,
+    midyear_points: 0,
+    use_schoolyear: false,
   });
 
   const fetchDepartments = async () => {
@@ -55,7 +57,7 @@ const Department = () => {
   };
 
   const invalidFields = () => {
-    const requiredFields = ["name", "classification"];
+    const requiredFields = ["name", "level"];
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       form?.required_points <= 0
@@ -71,12 +73,7 @@ const Department = () => {
 
     setForm((prevForm) => ({
       ...prevForm,
-      name:
-        id === "deptName"
-          ? checked
-            ? prevForm.classification
-            : ""
-          : prevForm.name,
+      name: id === "deptName" ? (checked ? prevForm.level : "") : prevForm.name,
       has_midyear: id === "midyear" ? checked : prevForm.has_midyear,
     }));
   };
@@ -93,16 +90,17 @@ const Department = () => {
   const clearForm = () => {
     setForm({
       name: "",
-      classification: "",
+      level: "",
       required_points: 0,
-      has_midyear: false,
+      midyear_points: 0,
+      use_schoolyear: false,
     });
 
     setCheckbox({
       deptName: false,
       midyear: false,
     });
-    setSelectedClassification("");
+    setSelectedLevel("");
     setCustomClass("");
   };
 
@@ -125,19 +123,19 @@ const Department = () => {
   };
 
   useEffect(() => {
-    if (selectedClassification !== "Other") {
+    if (selectedLevel !== "Other") {
       setForm({
         ...form,
-        classification: selectedClassification,
+        level: selectedLevel,
       });
     }
-  }, [selectedClassification]);
+  }, [selectedLevel]);
 
   useEffect(() => {
     if (customClass) {
       setForm({
         ...form,
-        classification: customClass,
+        level: customClass,
       });
     }
   }, [customClass]);
@@ -146,13 +144,10 @@ const Department = () => {
     if (checkbox.deptName) {
       setForm((prevForm) => ({
         ...prevForm,
-        name:
-          selectedClassification === "Other"
-            ? customClass
-            : selectedClassification,
+        name: selectedLevel === "Other" ? customClass : selectedLevel,
       }));
     }
-  }, [selectedClassification, customClass, checkbox.deptName]);
+  }, [selectedLevel, customClass, checkbox.deptName]);
 
   useEffect(() => {
     if (!user?.is_staff && !user?.is_superuser) {
@@ -164,12 +159,6 @@ const Department = () => {
 
   return (
     <>
-      <Row className={`${styles.table} w-100`}>
-        <span className="text-muted mb-3">
-          Departments are required for employees to submit SWTDs.
-        </span>
-      </Row>
-
       <Form className={styles.form}>
         {showError && (
           <div className="alert alert-danger mb-3" role="alert">
@@ -183,49 +172,24 @@ const Department = () => {
           </div>
         )}
 
-        {/* CHECKBOX */}
-        <Row className="w-100 mb-3">
-          <Col>
-            <Form.Check
-              inline
-              type="checkbox"
-              id="deptName"
-              checked={checkbox.deptName}
-              onChange={handleBoxChange}
-            />
-            <Form.Check.Label className="me-5">
-              Use classification as department name
-            </Form.Check.Label>
-          </Col>
-
-          <Col>
-            <Form.Check
-              inline
-              type="checkbox"
-              id="midyear"
-              checked={checkbox.midyear}
-              onChange={handleBoxChange}
-            />
-            <Form.Check.Label>
-              Does this dept./office require SWTD points for the mid-year term?
-            </Form.Check.Label>
+        <Row className="mb-2">
+          <Col className={`p-1 ${styles.formSection}`}>
+            <span className="ms-1">GENERAL INFORMATION</span>
           </Col>
         </Row>
 
         <Row className="mb-3">
-          <Col md={6}>
-            <FloatingLabel
-              controlId="floatingSelectClassification"
-              label="Classification">
+          <Col lg={6} md={6}>
+            <FloatingLabel controlId="floatingSelectLevel" label="Level">
               <Form.Select
                 className={styles.formBox}
-                name="classification"
+                name="level"
                 onChange={(e) => {
-                  setSelectedClassification(e.target.value);
+                  setSelectedLevel(e.target.value);
                 }}
-                value={selectedClassification}>
+                value={selectedLevel}>
                 <option value="" disabled>
-                  Select a classification
+                  Select a level
                 </option>
                 {classifications.classifications.map((cl, index) => (
                   <option key={index} value={cl}>
@@ -237,11 +201,9 @@ const Department = () => {
             </FloatingLabel>
           </Col>
 
-          {selectedClassification === "Other" && (
+          {selectedLevel === "Other" && (
             <Col>
-              <FloatingLabel
-                controlId="floatingInputOther"
-                label="Other Classification">
+              <FloatingLabel controlId="floatingInputOther" label="Other Level">
                 <Form.Control
                   className={styles.formBox}
                   onChange={(e) => {
@@ -254,8 +216,24 @@ const Department = () => {
           )}
         </Row>
 
+        {/* CHECKBOX */}
+        <Row className="w-100 mb-3">
+          <Col lg="auto" md={12} xs={12}>
+            <Form.Check
+              inline
+              type="checkbox"
+              id="deptName"
+              checked={checkbox.deptName}
+              onChange={handleBoxChange}
+            />
+            <Form.Check.Label className="me-lg-5 me-0">
+              Use level as department name.
+            </Form.Check.Label>
+          </Col>
+        </Row>
+
         <Row>
-          <Col md={6}>
+          <Col>
             <FloatingLabel
               controlId="floatingInputName"
               label="Department/Office Name"
@@ -269,8 +247,36 @@ const Department = () => {
               />
             </FloatingLabel>
           </Col>
+        </Row>
 
-          <Col md={2}>
+        <Row className="mb-2">
+          <Col className={`p-1 ${styles.formSection}`}>
+            <span className="ms-1">POINTS REQUIREMENT</span>
+          </Col>
+        </Row>
+
+        <Row className="mb-3">
+          <Col className="me-3" md="auto">
+            <Form.Label className={`${styles.formLabel}`}>Term Type</Form.Label>
+          </Col>
+          <Col>
+            {types.type.map((item, index) => (
+              <Form.Check
+                key={index}
+                type="checkbox"
+                name="type"
+                className="me-4"
+                label={item}
+                value={item}
+                onChange={handleChange}
+                inline
+              />
+            ))}
+          </Col>
+        </Row>
+
+        <Row>
+          <Col md={3}>
             <FloatingLabel
               controlId="floatingInputPoints"
               label="Required Points"
@@ -285,8 +291,22 @@ const Department = () => {
               />
             </FloatingLabel>
           </Col>
-          <Col className="d-flex p-3">
-            <Form.Text>(Not for Midyear/Summer if applicable)</Form.Text>
+
+          <Col md={3}>
+            <FloatingLabel
+              controlId="floatingInputMidyearPoints"
+              label="Midyear Points"
+              className="mb-3">
+              <Form.Control
+                type="number"
+                min={0}
+                className={styles.formBox}
+                name="required_points"
+                onChange={handleChange}
+                value={form.midyear_points}
+                disabled={!checkbox.midyear}
+              />
+            </FloatingLabel>
           </Col>
         </Row>
 
@@ -324,7 +344,7 @@ const Department = () => {
           <Table striped bordered hover responsive>
             <thead>
               <tr>
-                <th>Classification</th>
+                <th>Level</th>
                 <th>Department/Office Name</th>
                 <th className="text-center col-1">Required Points</th>
                 <th className="text-center">Has Midyear</th>
@@ -334,7 +354,7 @@ const Department = () => {
             <tbody>
               {departments.map((department) => (
                 <tr key={department.id}>
-                  <td>{department.classification}</td>
+                  <td>{department.level}</td>
                   <td>{department.name}</td>
                   <td className="text-center">{department.required_points}</td>
                   <td className="text-center">
@@ -365,9 +385,9 @@ const Department = () => {
               show={showDeleteModal}
               onHide={closeDeleteModal}
               onConfirm={handleDelete}
-              header={"Delete Term"}
+              header={"Delete Department"}
               message={
-                "Are you sure about deleting this term? It must not have any SWTD submissions linked to it."
+                "Are you sure about deleting this department?"
               }
             /> */}
           </Table>

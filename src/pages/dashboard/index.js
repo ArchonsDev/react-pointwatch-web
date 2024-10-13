@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, Card, ProgressBar, Dropdown, DropdownButton, Modal } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, Card, ProgressBar,
+        Dropdown, DropdownButton, Modal } from "react-bootstrap"; /* prettier-ignore */
 
 import status from "../../data/status.json";
 import departmentTypes from "../../data/departmentTypes.json";
@@ -248,11 +249,12 @@ const Dashboard = () => {
   if (loading)
     return (
       <Row
-        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
+        className={`${styles.msg} d-flex flex-column justify-content-center align-items-center w-100`}
+        style={{ height: "100vh" }}>
         <Col></Col>
         <Col className="text-center">
           <div>
-            <Spinner className={`me-2`} animation="border" />
+            <Spinner animation="border" />
           </div>
           {loadingMessage}
         </Col>
@@ -261,7 +263,7 @@ const Dashboard = () => {
     );
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
       <Row className="mb-2 w-100">
         <Col>
           <h3 className={styles.label}>Department Head Dashboard</h3>

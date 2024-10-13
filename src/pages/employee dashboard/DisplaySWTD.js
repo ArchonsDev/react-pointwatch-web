@@ -19,6 +19,7 @@ const SWTDDashboard = () => {
   const id = Cookies.get("userID");
   const token = Cookies.get("userToken");
   const { user } = useContext(SessionUserContext);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const navigate = useNavigate();
 
   const [showModal, openModal, closeModal] = useSwitch();
@@ -30,7 +31,11 @@ const SWTDDashboard = () => {
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 15;
+  const recordsPerPage = 10;
+
+  const handleResize = () => {
+    setIsMobile(window.innerWidth < 768);
+  };
 
   const fetchAllSWTDs = async () => {
     await getAllSWTDs(
@@ -75,8 +80,8 @@ const SWTDDashboard = () => {
   };
 
   const truncateTitle = (title) => {
-    if (title.length > 50) {
-      return title.substring(0, 50) + "...";
+    if (title.length > 40) {
+      return title.substring(0, 40) + "...";
     }
     return title;
   };
@@ -142,6 +147,8 @@ const SWTDDashboard = () => {
     if (user) {
       fetchTerms();
       fetchAllSWTDs();
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
     } else {
       setLoading(true);
     }
@@ -150,14 +157,21 @@ const SWTDDashboard = () => {
   if (loading)
     return (
       <Row
-        className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
-        <Spinner className={`me-2`} animation="border" />
-        Loading data...
+        className={`${styles.loading} d-flex flex-column justify-content-center align-items-center w-100`}
+        style={{ height: "100vh" }}>
+        <Col></Col>
+        <Col className="text-center">
+          <div>
+            <Spinner animation="border" />
+          </div>
+          Loading data...
+        </Col>
+        <Col></Col>
       </Row>
     );
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
       <Row className="w-100 mb-2">
         <Col className="p-0">
           <h3 className={styles.label}>
@@ -169,8 +183,8 @@ const SWTDDashboard = () => {
         </Col>
 
         <Col
-          className={`d-flex justify-content-end align-items-center mb-3 ${styles.employeeDetails}`}
-          md="auto">
+          className={`d-flex align-items-center mb-3 ${styles.employeeDetails}`}
+          xs="auto">
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           {terms.length === 0 ? (
             <>No terms were added yet.</>
@@ -198,7 +212,7 @@ const SWTDDashboard = () => {
       </Row>
 
       <Row className="w-100">
-        <Col className="text-start p-0" md="6">
+        <Col className="text-start p-0 me-2" md={6} xs={12}>
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
@@ -211,7 +225,12 @@ const SWTDDashboard = () => {
             />
           </InputGroup>
         </Col>
-        <Col className={`${styles.cardBody} text-end mb-3`} md="auto">
+
+        <Col
+          className={`${styles.cardBody} p-0 mb-3 me-3 me-lg-5`}
+          lg="auto"
+          md="auto"
+          xs={12}>
           <InputGroup>
             <InputGroup.Text>
               <i className="fa-solid fa-tags fa-lg"></i>
@@ -230,20 +249,32 @@ const SWTDDashboard = () => {
             </Form.Select>
           </InputGroup>
         </Col>
-        <Col className="text-end">
-          <BtnPrimary
-            onClick={() =>
-              !user?.department ? openModal() : navigate("/swtd/form")
-            }>
-            <i className="fa-solid fa-file-circle-plus fa-lg me-2"></i>
-            Add SWTD
-          </BtnPrimary>
+
+        <Col
+          className="text-end ms-lg-5 ms-0 mb-2 me-2"
+          lg="auto"
+          md="auto"
+          xs={12}>
+          <Row>
+            <BtnPrimary
+              onClick={() =>
+                !user?.department ? openModal() : navigate("/swtd/form")
+              }>
+              <i className="fa-solid fa-file-circle-plus fa-lg me-2"></i>
+              Add SWTD
+            </BtnPrimary>
+          </Row>
         </Col>
-        <Col className="text-end" md="auto">
-          <BtnSecondary onClick={handlePrint} disabled={userSWTDs.length === 0}>
-            <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i>
-            Export PDF
-          </BtnSecondary>
+
+        <Col className="text-end mb-3" lg="auto" md="auto" xs={12}>
+          <Row>
+            <BtnSecondary
+              onClick={handlePrint}
+              disabled={userSWTDs.length === 0}>
+              <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i>
+              Export PDF
+            </BtnSecondary>
+          </Row>
         </Col>
         <Modal show={showModal} onHide={closeModal} size="md" centered>
           <Modal.Header closeButton>
@@ -270,9 +301,20 @@ const SWTDDashboard = () => {
             <ListGroup className="w-100" variant="flush">
               <ListGroup.Item className={styles.swtdHeader}>
                 <Row>
-                  <Col md={9}>Title</Col>
-                  <Col md={2}>Status</Col>
-                  <Col md={1}>Points</Col>
+                  <Col lg={5} md={5} xs={isMobile ? 6 : 4}>
+                    Title
+                  </Col>
+                  {!isMobile && (
+                    <Col lg={4} md={4}>
+                      Category
+                    </Col>
+                  )}
+                  <Col lg={2} md={2} xs={isMobile ? 4 : 2}>
+                    Status
+                  </Col>
+                  <Col lg={1} md={1} xs={2}>
+                    Points
+                  </Col>
                 </Row>
               </ListGroup.Item>
             </ListGroup>
@@ -283,13 +325,22 @@ const SWTDDashboard = () => {
                   className={styles.tableBody}
                   onClick={() => handleViewSWTD(item.id)}>
                   <Row>
-                    <Col md={9}>{truncateTitle(item.title)}</Col>
-                    <Col md={2}>
+                    <Col lg={5} md={5} xs={isMobile ? 6 : 4}>
+                      {truncateTitle(item.title)}
+                    </Col>
+                    {!isMobile && (
+                      <Col lg={4} md={4}>
+                        {truncateTitle(item.category)}
+                      </Col>
+                    )}
+                    <Col lg={2} md={2} xs={isMobile ? 4 : 2}>
                       {item.validation.status === "REJECTED"
                         ? "FOR REVISION"
                         : item.validation.status}
                     </Col>
-                    <Col md={1}>{item.points}</Col>
+                    <Col lg={1} md={1} xs={2}>
+                      {item.points}
+                    </Col>
                   </Row>
                 </ListGroup.Item>
               ))}

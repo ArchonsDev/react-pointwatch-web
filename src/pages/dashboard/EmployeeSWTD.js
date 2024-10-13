@@ -106,7 +106,6 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        console.log(response);
         setTermStatus(response);
       }
     );
@@ -226,9 +225,16 @@ const EmployeeSWTD = () => {
   if (loading)
     return (
       <Row
-        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
-        <Spinner className={`me-2`} animation="border" />
-        Loading data...
+        className={`${styles.msg} d-flex flex-column justify-content-center align-items-center w-100`}
+        style={{ height: "100vh" }}>
+        <Col></Col>
+        <Col className="text-center">
+          <div>
+            <Spinner animation="border" />
+          </div>
+          Loading data...
+        </Col>
+        <Col></Col>
       </Row>
     );
 

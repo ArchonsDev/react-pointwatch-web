@@ -145,14 +145,21 @@ const SWTDDetails = () => {
   if (loading)
     return (
       <Row
-        className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
-        <Spinner className={`${styles.spinner} me-2`} animation="border" />
-        Loading data...
+        className={`${styles.loading} d-flex flex-column justify-content-center align-items-center w-100`}
+        style={{ height: "100vh" }}>
+        <Col></Col>
+        <Col className="text-center">
+          <div>
+            <Spinner animation="border" />
+          </div>
+          Loading data...
+        </Col>
+        <Col></Col>
       </Row>
     );
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
       <Row className="w-100 mb-2">
         <Col>
           <h3 className={styles.label}>
@@ -164,7 +171,7 @@ const SWTDDetails = () => {
         </Col>
 
         {/* Edit/Delete & Cancel Buttons */}
-        <Col className="text-end">
+        <Col lg="auto" md="auto" xs={12}>
           {isEditing ? (
             <BtnSecondary
               onClick={() => {
@@ -254,33 +261,53 @@ const SWTDDetails = () => {
                 </div>
               )}
 
-              <Row className="mb-4">
-                <Col className={styles.formLabel} md="2">
+              <Row className="mb-lg-3 mb-2">
+                <Col className={styles.formLabel} lg={2} md={2} xs={4}>
                   Title
                 </Col>
                 <Col>{truncateTitle(swtd?.title)}</Col>
               </Row>
 
-              <Row className="mb-4">
-                <Col className={styles.formLabel} md="2">
+              <Row>
+                <Col
+                  className={`${styles.formLabel} mb-lg-3 mb-2`}
+                  lg={2}
+                  md={2}
+                  xs={4}>
                   Venue
                 </Col>
-                <Col md="4">{swtd?.venue}</Col>
-                <Col md="2">
+                <Col className="mb-lg-3 mb-2" lg={4} md={4} xs={8}>
+                  {swtd?.venue}
+                </Col>
+                <Col
+                  className={`${styles.formLabel} mb-lg-3 mb-2`}
+                  lg={2}
+                  md={2}
+                  xs={4}>
                   <span className={styles.formLabel}>Term</span>
                 </Col>
                 <Col>{swtd?.term.name}</Col>
               </Row>
 
-              <Row className="mb-4">
-                <Col className={styles.formLabel} md="2">
+              <Row>
+                <Col
+                  className={`${styles.formLabel} mb-lg-3 mb-2`}
+                  lg={2}
+                  md={2}
+                  xs={4}>
                   Category
                 </Col>
-                <Col md="4">{swtd?.category}</Col>
-                <Col className={styles.formLabel} md="2">
+                <Col lg={4} md={4} xs={8}>
+                  {swtd?.category}
+                </Col>
+                <Col
+                  className={`${styles.formLabel} mb-lg-3 mb-2`}
+                  lg={2}
+                  md={2}
+                  xs={4}>
                   Has deliverables
                 </Col>
-                <Col md="4">
+                <Col>
                   {swtd?.has_deliverables === true ? (
                     <>
                       <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
@@ -295,8 +322,12 @@ const SWTDDetails = () => {
                 </Col>
               </Row>
 
-              <Row className="mb-4">
-                <Col className={styles.formLabel} md="2">
+              <Row className="mb-lg-3 mb-2">
+                <Col
+                  className={`${styles.formLabel} mb-lg-3 mb-2`}
+                  lg={2}
+                  md={2}
+                  xs={4}>
                   Date & Time
                 </Col>
                 <Col md="4">
