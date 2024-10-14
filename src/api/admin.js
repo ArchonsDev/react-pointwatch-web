@@ -218,10 +218,11 @@ export const addDepartment = async (data, onSuccess, onFail) => {
     const response = await axios.post(
       `${apiUrl}/departments/`,
       {
+        level: data.level,
         name: data.name,
+        use_schoolyear: data.use_schoolyear,
         required_points: data.required_points,
-        classification: data.classification,
-        has_midyear: data.has_midyear,
+        midyear_points: data.midyear_points,
       },
       {
         headers: {
@@ -274,5 +275,48 @@ export const getDepartment = async (data, onSuccess, onFail, onCleanup) => {
     onFail && onFail(error);
   } finally {
     onCleanup && onCleanup();
+  }
+};
+
+export const deleteDepartment = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.delete(`${apiUrl}/departments/${data.id}`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+      },
+    });
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};
+
+export const updateDepartment = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.put(
+      `${apiUrl}/departments/${data.id}`,
+      {
+        level: data.level,
+        name: data.name,
+        use_schoolyear: data.use_schoolyear,
+        required_points: data.required_points,
+        midyear_points: data.midyear_points,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
   }
 };

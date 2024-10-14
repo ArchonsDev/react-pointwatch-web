@@ -4,7 +4,7 @@ import { Form, Row, Col } from "react-bootstrap";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import { updateUser } from "../../api/user";
-import { getAllDepartments } from "../../api/admin";
+import { getAllDepartments } from "../../api/user";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { isValidLength, isEmpty } from "../../common/validation/utils";

@@ -4,14 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { Form, Row, Col, FloatingLabel, Table, Spinner } from "react-bootstrap";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
-import classifications from "../../data/classification.json";
+import levels from "../../data/levels.json";
 import types from "../../data/types.json";
-import { addDepartment, getAllDepartments } from "../../api/admin";
+import { addDepartment, deleteDepartment, getAllDepartments } from "../../api/admin"; /* prettier-ignore */
 import { useTrigger } from "../../hooks/useTrigger";
 import { useSwitch } from "../../hooks/useSwitch";
 import { isEmpty } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
+import EditDepartmentModal from "../../common/modals/EditDepartmentModal";
 import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import styles from "./style.module.css";
 
@@ -22,17 +23,34 @@ const Department = () => {
   const [loading, setLoading] = useState(true);
 
   const [showModal, openModal, closeModal] = useSwitch();
+  const [showEditModal, openEditModal, closeEditModal] = useSwitch();
+  const [showDeleteModal, openDeleteModal, closeDeleteModal] = useSwitch();
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
+  const [showDeleteSuccess, triggerShowDeleteSuccess] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
   const [departments, setDepartments] = useState([]);
   const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [customClass, setCustomClass] = useState("");
+  const [disable, setDisable] = useState(false);
   const [checkbox, setCheckbox] = useState({
     deptName: false,
-    midyear: false,
   });
+
+  const [termCheckbox, setTermCheckbox] = useState({
+    semester: false,
+    midyear: false,
+    academic: false,
+  });
+
+  const termMapping = {
+    SEMESTER: "semester",
+    "MIDYEAR/SUMMER": "midyear",
+    "ACADEMIC YEAR": "academic",
+  };
+
   const [form, setForm] = useState({
     name: "",
     level: "",
@@ -71,10 +89,23 @@ const Department = () => {
       [id]: checked,
     });
 
+    const updatedTermCheckbox = {
+      ...termCheckbox,
+      semester: id === "SEMESTER" ? checked : termCheckbox.semester,
+      midyear: id === "MIDYEAR/SUMMER" ? checked : termCheckbox.midyear,
+      academic: id === "ACADEMIC YEAR" ? checked : termCheckbox.academic,
+    };
+
+    const checkedCount =
+      Object.values(updatedTermCheckbox).filter(Boolean).length;
+    setTermCheckbox(updatedTermCheckbox);
+    setDisable(checkedCount >= 2);
+
     setForm((prevForm) => ({
       ...prevForm,
       name: id === "deptName" ? (checked ? prevForm.level : "") : prevForm.name,
-      has_midyear: id === "midyear" ? checked : prevForm.has_midyear,
+      use_schoolyear:
+        id === "ACADEMIC YEAR" ? checked : prevForm.use_schoolyear,
     }));
   };
 
@@ -83,7 +114,10 @@ const Department = () => {
 
     setForm((prevForm) => ({
       ...prevForm,
-      [name]: name === "required_points" ? parseInt(value, 10) || 0 : value,
+      [name]:
+        name === "required_points" || name === "midyear_points"
+          ? parseInt(value, 10) || 0
+          : value,
     }));
   };
 
@@ -98,8 +132,14 @@ const Department = () => {
 
     setCheckbox({
       deptName: false,
-      midyear: false,
     });
+
+    setTermCheckbox({
+      semester: false,
+      midyear: false,
+      academic: false,
+    });
+
     setSelectedLevel("");
     setCustomClass("");
   };
@@ -112,8 +152,26 @@ const Department = () => {
       },
       (response) => {
         triggerShowSuccess(3000);
+        setDisable(false);
         fetchDepartments();
         clearForm();
+      },
+      (error) => {
+        setErrorMessage(error.message);
+        triggerShowError(3000);
+      }
+    );
+  };
+
+  const handleDelete = () => {
+    deleteDepartment(
+      {
+        id: selectedDepartment.id,
+        token: token,
+      },
+      (response) => {
+        triggerShowDeleteSuccess(4500);
+        fetchDepartments();
       },
       (error) => {
         setErrorMessage(error.message);
@@ -148,6 +206,15 @@ const Department = () => {
       }));
     }
   }, [selectedLevel, customClass, checkbox.deptName]);
+
+  useEffect(() => {
+    if (!termCheckbox.midyear) {
+      setForm((prevForm) => ({
+        ...prevForm,
+        midyear_points: 0,
+      }));
+    }
+  }, [termCheckbox.midyear]);
 
   useEffect(() => {
     if (!user?.is_staff && !user?.is_superuser) {
@@ -191,7 +258,7 @@ const Department = () => {
                 <option value="" disabled>
                   Select a level
                 </option>
-                {classifications.classifications.map((cl, index) => (
+                {levels.levels.map((cl, index) => (
                   <option key={index} value={cl}>
                     {cl}
                   </option>
@@ -255,23 +322,29 @@ const Department = () => {
           </Col>
         </Row>
 
+        {/* CHECKBOX */}
         <Row className="mb-3">
           <Col className="me-3" md="auto">
             <Form.Label className={`${styles.formLabel}`}>Term Type</Form.Label>
           </Col>
           <Col>
-            {types.type.map((item, index) => (
-              <Form.Check
-                key={index}
-                type="checkbox"
-                name="type"
-                className="me-4"
-                label={item}
-                value={item}
-                onChange={handleChange}
-                inline
-              />
-            ))}
+            {types.type.map((item, index) => {
+              const isDisabled = disable && !termCheckbox[termMapping[item]];
+              return (
+                <Form.Check
+                  key={index}
+                  type="checkbox"
+                  name="type"
+                  className="me-4"
+                  label={item}
+                  id={item}
+                  checked={termCheckbox[termMapping[item]]}
+                  onChange={handleBoxChange}
+                  inline
+                  disabled={isDisabled}
+                />
+              );
+            })}
           </Col>
         </Row>
 
@@ -301,10 +374,10 @@ const Department = () => {
                 type="number"
                 min={0}
                 className={styles.formBox}
-                name="required_points"
+                name="midyear_points"
                 onChange={handleChange}
                 value={form.midyear_points}
-                disabled={!checkbox.midyear}
+                disabled={!termCheckbox.midyear}
               />
             </FloatingLabel>
           </Col>
@@ -332,6 +405,12 @@ const Department = () => {
       <hr />
 
       <Row className={`${styles.table}  w-100`}>
+        {showDeleteSuccess && (
+          <div className="alert alert-success mb-3" role="alert">
+            Department deleted.
+          </div>
+        )}
+
         {loading ? (
           <Row
             className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
@@ -346,8 +425,9 @@ const Department = () => {
               <tr>
                 <th>Level</th>
                 <th>Department/Office Name</th>
+                <th className="col-2">Term Type</th>
                 <th className="text-center col-1">Required Points</th>
-                <th className="text-center">Has Midyear</th>
+                <th className="text-center col-1">Midyear Points</th>
                 <th className="text-center col-1">Actions</th>
               </tr>
             </thead>
@@ -356,40 +436,42 @@ const Department = () => {
                 <tr key={department.id}>
                   <td>{department.level}</td>
                   <td>{department.name}</td>
-                  <td className="text-center">{department.required_points}</td>
-                  <td className="text-center">
-                    {department.has_midyear ? (
-                      <i className="fa-solid fa-circle-check fa-lg text-success"></i>
-                    ) : (
-                      <i className="fa-solid fa-circle-xmark fa-lg text-danger"></i>
-                    )}
+                  <td>
+                    {department.use_schoolyear ? "ACADEMIC YEAR" : "SEMESTER"}
+                    <br />
+                    {department.midyear_points === 0 ? "" : "MIDYEAR"}
                   </td>
+                  <td className="text-center">{department.required_points}</td>
+                  <td className="text-center">{department.midyear_points}</td>
                   <td className="text-center">
                     <i
                       className={`${styles.icon} fa-solid fa-pen-to-square fa-lg text-dark me-3`}
-                      onClick={() => {}}></i>
+                      onClick={() => {
+                        setSelectedDepartment(department);
+                        openEditModal();
+                      }}></i>
                     <i
                       className={`${styles.icon} fa-solid fa-trash-can fa-lg text-danger`}
-                      onClick={() => {}}></i>
+                      onClick={() => {
+                        setSelectedDepartment(department);
+                        openDeleteModal();
+                      }}></i>
                   </td>
                 </tr>
               ))}
             </tbody>
-            {/* <EditTermModal
+            <EditDepartmentModal
               show={showEditModal}
               onHide={closeEditModal}
-              data={selectedTerm}
-              editSuccess={editSuccess}
+              data={selectedDepartment}
             />
             <ConfirmationModal
               show={showDeleteModal}
               onHide={closeDeleteModal}
               onConfirm={handleDelete}
               header={"Delete Department"}
-              message={
-                "Are you sure about deleting this department?"
-              }
-            /> */}
+              message={"Are you sure about deleting this department?"}
+            />
           </Table>
         )}
       </Row>

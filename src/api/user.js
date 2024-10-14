@@ -150,3 +150,19 @@ export const getClearanceStatus = async (data, onSuccess, onFail) => {
     onFail && onFail(error);
   }
 };
+
+export const getAllDepartments = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.get(`${apiUrl}/departments?basic_view=true`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+      },
+    });
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};

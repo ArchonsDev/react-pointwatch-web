@@ -12,6 +12,7 @@ import { isEmpty } from "../validation/utils";
 import ConfirmationModal from "./ConfirmationModal";
 import BtnPrimary from "../buttons/BtnPrimary";
 import styles from "./style.module.css";
+
 const EditTermModal = ({ show, onHide, data, editSuccess }) => {
   const token = Cookies.get("userToken");
   const [showModal, openModal, closeModal] = useSwitch();
