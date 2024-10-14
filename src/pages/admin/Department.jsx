@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Form, Row, Col, FloatingLabel, Table, Spinner } from "react-bootstrap";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
-import levels from "../../data/levels.json";
 import types from "../../data/types.json";
 import { addDepartment, deleteDepartment, getAllDepartments } from "../../api/admin"; /* prettier-ignore */
 import { useTrigger } from "../../hooks/useTrigger";
@@ -28,6 +27,7 @@ const Department = () => {
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [showDeleteSuccess, triggerShowDeleteSuccess] = useTrigger(false);
+  const [showEditSuccess, triggerShowEditSuccess] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
   const [departments, setDepartments] = useState([]);
@@ -35,6 +35,7 @@ const Department = () => {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [customClass, setCustomClass] = useState("");
   const [disable, setDisable] = useState(false);
+  const [levels, setLevels] = useState([]);
   const [checkbox, setCheckbox] = useState({
     deptName: false,
   });
@@ -66,6 +67,10 @@ const Department = () => {
       },
       (response) => {
         setDepartments(response.departments);
+        const uniqueLevels = [
+          ...new Set(response.departments.map((dept) => dept.level)),
+        ];
+        setLevels(uniqueLevels);
         setLoading(false);
       },
       (error) => {
@@ -180,6 +185,11 @@ const Department = () => {
     );
   };
 
+  const editSuccess = async () => {
+    triggerShowEditSuccess(3000);
+    await fetchDepartments();
+  };
+
   useEffect(() => {
     if (selectedLevel !== "Other") {
       setForm({
@@ -258,12 +268,12 @@ const Department = () => {
                 <option value="" disabled>
                   Select a level
                 </option>
-                {levels.levels.map((cl, index) => (
+                {levels.map((cl, index) => (
                   <option key={index} value={cl}>
                     {cl}
                   </option>
                 ))}
-                <option value="Other">OTHER</option>
+                <option value="Other">Add New</option>
               </Form.Select>
             </FloatingLabel>
           </Col>
@@ -411,6 +421,14 @@ const Department = () => {
           </div>
         )}
 
+        {showEditSuccess && (
+          <div
+            className={`${styles.form} alert alert-success mb-3`}
+            role="alert">
+            Department details updated.
+          </div>
+        )}
+
         {loading ? (
           <Row
             className={`${styles.loading} d-flex justify-content-center align-items-center w-100`}>
@@ -464,6 +482,7 @@ const Department = () => {
               show={showEditModal}
               onHide={closeEditModal}
               data={selectedDepartment}
+              editSuccess={editSuccess}
             />
             <ConfirmationModal
               show={showDeleteModal}

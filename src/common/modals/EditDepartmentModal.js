@@ -2,23 +2,23 @@ import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { Modal, Row, Col, Form, FloatingLabel } from "react-bootstrap";
 
-import levels from "../../data/levels.json";
 import types from "../../data/types.json";
-import { updateDepartment } from "../../api/admin";
+import { updateDepartment, getAllDepartments } from "../../api/admin";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
-import { formatDate } from "../format/date";
 import { isEmpty } from "../validation/utils";
 
 import ConfirmationModal from "./ConfirmationModal";
 import BtnPrimary from "../buttons/BtnPrimary";
 import styles from "./style.module.css";
 
-const EditTermModal = ({ show, onHide, data }) => {
+const EditTermModal = ({ show, onHide, data, editSuccess }) => {
   const token = Cookies.get("userToken");
   const [showModal, openModal, closeModal] = useSwitch();
   const [showError, triggerShowError] = useTrigger(false);
 
+  const [departments, setDepartments] = useState([]);
+  const [levels, setLevels] = useState([]);
   const [selectedLevel, setSelectedLevel] = useState("");
   const [customClass, setCustomClass] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
@@ -46,6 +46,24 @@ const EditTermModal = ({ show, onHide, data }) => {
     midyear_points: 0,
     use_schoolyear: false,
   });
+
+  const fetchDepartments = async () => {
+    getAllDepartments(
+      {
+        token: token,
+      },
+      (response) => {
+        setDepartments(response.departments);
+        const uniqueLevels = [
+          ...new Set(response.departments.map((dept) => dept.level)),
+        ];
+        setLevels(uniqueLevels);
+      },
+      (error) => {
+        console.log(error.message);
+      }
+    );
+  };
 
   const handleBoxChange = (e) => {
     const { id, checked } = e.target;
@@ -97,10 +115,28 @@ const EditTermModal = ({ show, onHide, data }) => {
     }
   };
 
-  const handleSubmit = () => {};
+  const handleSubmit = () => {
+    updateDepartment(
+      {
+        ...form,
+        id: data.id,
+        token: token,
+      },
+      (response) => {
+        editSuccess();
+        closeModal();
+        onHide();
+      },
+      (error) => {
+        setErrorMessage(error.response.data);
+        triggerShowError(4500);
+      }
+    );
+  };
 
   useEffect(() => {
     if (data) {
+      fetchDepartments();
       setSelectedLevel(data.level);
       setForm({
         name: data.name,
@@ -112,7 +148,8 @@ const EditTermModal = ({ show, onHide, data }) => {
       if (data.level === data.name) setCheckbox({ deptName: true });
       setTermCheckbox((prev) => ({
         ...prev,
-        academic: data.use_schoolyear === true,
+        semester: data.use_schoolyear === false ? true : false,
+        academic: data.use_schoolyear,
         midyear: data.midyear_points > 0,
       }));
     }
@@ -140,11 +177,19 @@ const EditTermModal = ({ show, onHide, data }) => {
             </div>
           )}
           <Form noValidate onSubmit={(e) => e.preventDefault()}>
+            <Row className="mb-2">
+              <Col className={`p-1 ${styles.header}`}>
+                <span className="ms-1">GENERAL INFORMATION</span>
+              </Col>
+            </Row>
             <Row className="mb-3">
               <Col lg={6} md={6}>
-                <FloatingLabel controlId="floatingSelectLevel" label="Level">
+                <FloatingLabel
+                  className={styles.comment}
+                  controlId="floatingSelectLevel"
+                  label="Level">
                   <Form.Select
-                    className={styles.formBox}
+                    className={styles.comment}
                     name="level"
                     onChange={(e) => {
                       setSelectedLevel(e.target.value);
@@ -153,12 +198,12 @@ const EditTermModal = ({ show, onHide, data }) => {
                     <option value="" disabled>
                       Select a level
                     </option>
-                    {levels.levels.map((cl, index) => (
+                    {levels.map((cl, index) => (
                       <option key={index} value={cl}>
                         {cl}
                       </option>
                     ))}
-                    <option value="Other">OTHER</option>
+                    <option value="Other">Add New</option>
                   </Form.Select>
                 </FloatingLabel>
               </Col>
@@ -166,10 +211,11 @@ const EditTermModal = ({ show, onHide, data }) => {
               {selectedLevel === "Other" && (
                 <Col>
                   <FloatingLabel
+                    className={styles.comment}
                     controlId="floatingInputOther"
                     label="Other Level">
                     <Form.Control
-                      className={styles.formBox}
+                      className={styles.comment}
                       onChange={(e) => {
                         setCustomClass(e.target.value);
                       }}
@@ -181,7 +227,7 @@ const EditTermModal = ({ show, onHide, data }) => {
             </Row>
 
             {/* CHECKBOX */}
-            <Row className="w-100 mb-3">
+            <Row className={`${styles.comment} w-100 mb-3`}>
               <Col lg="auto" md={12} xs={12}>
                 <Form.Check
                   inline
@@ -196,14 +242,13 @@ const EditTermModal = ({ show, onHide, data }) => {
               </Col>
             </Row>
 
-            <Row>
+            <Row className={styles.comment}>
               <Col>
                 <FloatingLabel
                   controlId="floatingInputName"
                   label="Department/Office Name"
                   className="mb-3">
                   <Form.Control
-                    className={styles.formBox}
                     name="name"
                     onChange={handleChange}
                     value={form.name}
@@ -214,7 +259,7 @@ const EditTermModal = ({ show, onHide, data }) => {
             </Row>
 
             <Row className="mb-2">
-              <Col className={`p-1 ${styles.formSection}`}>
+              <Col className={`p-1 ${styles.header}`}>
                 <span className="ms-1">POINTS REQUIREMENT</span>
               </Col>
             </Row>
@@ -222,11 +267,11 @@ const EditTermModal = ({ show, onHide, data }) => {
             {/* CHECKBOX */}
             <Row className="mb-3">
               <Col className="me-3" md="auto">
-                <Form.Label className={`${styles.formLabel}`}>
+                <Form.Label className={`${styles.message}`}>
                   Term Type
                 </Form.Label>
               </Col>
-              <Col>
+              <Col className={styles.comment}>
                 {types.type.map((item, index) => {
                   const isDisabled =
                     disable && !termCheckbox[termMapping[item]];
@@ -248,7 +293,7 @@ const EditTermModal = ({ show, onHide, data }) => {
               </Col>
             </Row>
 
-            <Row>
+            <Row className={styles.comment}>
               <Col md={3}>
                 <FloatingLabel
                   controlId="floatingInputPoints"
@@ -257,7 +302,6 @@ const EditTermModal = ({ show, onHide, data }) => {
                   <Form.Control
                     type="number"
                     min={0}
-                    className={styles.formBox}
                     name="required_points"
                     onChange={handleChange}
                     value={form.required_points}
@@ -273,7 +317,6 @@ const EditTermModal = ({ show, onHide, data }) => {
                   <Form.Control
                     type="number"
                     min={0}
-                    className={styles.formBox}
                     name="midyear_points"
                     onChange={handleChange}
                     value={form.midyear_points}
@@ -303,9 +346,7 @@ const EditTermModal = ({ show, onHide, data }) => {
         onHide={closeModal}
         onConfirm={handleSubmit}
         header={"Update Department"}
-        message={
-          "Do you wish to save these changes? This will affect SWTD point calculations for this term."
-        }
+        message={"Do you wish to save these changes?"}
       />
     </>
   );

@@ -102,7 +102,7 @@ const Drawer = () => {
               <div className="flex-grow-1">
                 <Nav>
                   {/* Dashboard */}
-                  {(user?.is_admin || user?.is_superuser) && (
+                  {(user?.is_head || user?.is_superuser) && (
                     <Nav.Link
                       className={`mx-3 my-1 p-3 ${
                         location.pathname === "/dashboard"
@@ -119,7 +119,7 @@ const Drawer = () => {
                     </Nav.Link>
                   )}
 
-                  {user?.access_level > 1 && (
+                  {(user?.is_staff || user?.is_superuser) && (
                     <Nav.Link
                       className={`mx-3 my-1 p-3 ${
                         location.pathname === "/hr"
@@ -153,7 +153,7 @@ const Drawer = () => {
                   </Nav.Link>
 
                   {/* Admin */}
-                  {user?.access_level > 1 && (
+                  {(user?.is_staff || user?.is_superuser) && (
                     <Nav.Link
                       className={`mx-3 my-1 p-3 ${
                         location.pathname === "/admin"

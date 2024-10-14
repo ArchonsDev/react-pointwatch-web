@@ -163,12 +163,37 @@ export const revokeEmployee = async (data, onSuccess, onFail) => {
   }
 };
 
-export const updateHead = async (data, onSuccess, onFail, onCleanup) => {
+export const addHead = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.put(
-      `${apiUrl}/users/${data.id}`,
+      `${apiUrl}/departments/${data.id}`,
       {
-        is_admin: data.is_admin,
+        head_id: data.head_id,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};
+
+export const removeHead = async (data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.put(
+      `${apiUrl}/departments/${data.id}`,
+      {
+        remove_head: true,
       },
       {
         headers: {
@@ -193,7 +218,7 @@ export const updateStaff = async (data, onSuccess, onFail, onCleanup) => {
     const response = await axios.put(
       `${apiUrl}/users/${data.id}`,
       {
-        is_staff: data.is_staff,
+        access_level: data.access_level,
       },
       {
         headers: {

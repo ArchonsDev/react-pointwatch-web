@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Row, Col, Form, InputGroup, Table, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
 import Cookies from "js-cookie";
 
-import { getAllUsers, updateHead } from "../../api/admin";
+import { getAllUsers, addHead, removeHead } from "../../api/admin";
 
 import styles from "./style.module.css";
 
@@ -21,7 +21,7 @@ const HeadPromotion = () => {
         token: token,
       },
       (response) => {
-        const filter = response.users.filter(
+        const filter = response.data.filter(
           (user) => user.id !== parseInt(userID, 10)
         );
         setEmployees(filter);
@@ -33,12 +33,28 @@ const HeadPromotion = () => {
     );
   };
 
-  const grantRevokeHead = async (id, val) => {
-    await updateHead(
+  const grantHead = async (id, val) => {
+    await addHead(
+      {
+        id: id,
+        head_id: val,
+        token: token,
+      },
+      (response) => {
+        fetchAllUsers();
+        setLoading(false);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  };
+
+  const revokeHead = async (id) => {
+    await removeHead(
       {
         id: id,
         token: token,
-        is_admin: val,
       },
       (response) => {
         fetchAllUsers();
@@ -116,113 +132,122 @@ const HeadPromotion = () => {
                 <span className={`${styles.table} `}>No employees found.</span>
               </Row>
             ) : (
-              <Table className={styles.table} striped bordered hover responsive>
-                <thead>
-                  <tr>
-                    <th className="col-2">ID No.</th>
-                    <th>Name</th>
-                    <th>Department</th>
-                    <th className="col-2 text-center">Department Head</th>
-                    <th className="col-2 text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentRecords
-                    .sort((a, b) => b.is_admin - a.is_admin)
-                    .map((item) => (
-                      <tr key={item.id}>
-                        <td>{item.employee_id}</td>
-                        <td>
-                          {item.lastname}, {item.firstname}
-                        </td>
-                        <td className={item.department ? "" : "text-danger"}>
-                          {item.department
-                            ? item.department.name
-                            : "No department set."}
-                        </td>
-                        <td className="text-center">
-                          {item.is_admin ? (
-                            <i
-                              className={`${styles.icon} fa-solid fa-user-check text-success`}></i>
-                          ) : (
-                            <i
-                              className={`${styles.icon} fa-solid fa-user-xmark text-danger`}></i>
-                          )}
-                        </td>
-                        <td className="text-center">
-                          {item.department ? (
-                            <>
-                              {item.is_admin ? (
-                                <div
-                                  className={styles.icon}
-                                  onClick={() =>
-                                    grantRevokeHead(item.id, false)
-                                  }>
-                                  <i
-                                    className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
-                                  DEMOTE
-                                </div>
-                              ) : (
-                                <div
-                                  className={styles.icon}
-                                  onClick={() =>
-                                    grantRevokeHead(item.id, true)
-                                  }>
-                                  <i
-                                    className={`fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
-                                  PROMOTE
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            <div className={styles.icon}>
+              <>
+                <Table
+                  className={styles.table}
+                  striped
+                  bordered
+                  hover
+                  responsive>
+                  <thead>
+                    <tr>
+                      <th className="col-1">ID No.</th>
+                      <th className="col-2">Name</th>
+                      <th className="col-2">Department</th>
+                      <th className="col-1 text-center">Department Head</th>
+                      <th className="col-1 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentRecords
+                      .sort((a, b) => b.is_head - a.is_head)
+                      .map((item) => (
+                        <tr key={item.id}>
+                          <td>{item.employee_id}</td>
+                          <td>
+                            {item.lastname}, {item.firstname}
+                          </td>
+                          <td className={item.department ? "" : "text-danger"}>
+                            {item.department
+                              ? item.department.name
+                              : "No department set."}
+                          </td>
+                          <td className="text-center">
+                            {item.is_head ? (
                               <i
-                                className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>{" "}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </Table>
+                                className={`${styles.icon} fa-solid fa-user-check text-success`}></i>
+                            ) : (
+                              <i
+                                className={`${styles.icon} fa-solid fa-user-xmark text-danger`}></i>
+                            )}
+                          </td>
+                          <td className="text-center">
+                            {item.department ? (
+                              <>
+                                {item.is_head ? (
+                                  <div
+                                    className={styles.icon}
+                                    onClick={() =>
+                                      revokeHead(item.department.id)
+                                    }>
+                                    <i
+                                      className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
+                                    DEMOTE
+                                  </div>
+                                ) : (
+                                  <div
+                                    className={styles.icon}
+                                    onClick={() =>
+                                      grantHead(item.department.id, item.id)
+                                    }>
+                                    <i
+                                      className={`fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
+                                    PROMOTE
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div className={styles.icon}>
+                                <i
+                                  className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>{" "}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </Table>
+                <Row className="w-100 mb-3">
+                  <Col className="d-flex justify-content-center">
+                    <Pagination>
+                      <Pagination.First
+                        className={styles.pageNum}
+                        onClick={() => handlePageChange(1)}
+                      />
+                      <Pagination.Prev
+                        className={styles.pageNum}
+                        onClick={() => {
+                          if (currentPage > 1)
+                            handlePageChange(currentPage - 1);
+                        }}
+                      />
+                      {Array.from({ length: totalPages }, (_, index) => (
+                        <Pagination.Item
+                          key={index + 1}
+                          active={index + 1 === currentPage}
+                          className={styles.pageNum}
+                          onClick={() => handlePageChange(index + 1)}>
+                          {index + 1}
+                        </Pagination.Item>
+                      ))}
+                      <Pagination.Next
+                        className={styles.pageNum}
+                        onClick={() => {
+                          if (currentPage < totalPages)
+                            handlePageChange(currentPage + 1);
+                        }}
+                      />
+                      <Pagination.Last
+                        className={styles.pageNum}
+                        onClick={() => handlePageChange(totalPages)}
+                      />
+                    </Pagination>
+                  </Col>
+                </Row>
+              </>
             )}
           </>
         )}
-      </Row>
-      <Row className="w-100 mb-3">
-        <Col className="d-flex justify-content-center">
-          <Pagination>
-            <Pagination.First
-              className={styles.pageNum}
-              onClick={() => handlePageChange(1)}
-            />
-            <Pagination.Prev
-              className={styles.pageNum}
-              onClick={() => {
-                if (currentPage > 1) handlePageChange(currentPage - 1);
-              }}
-            />
-            {Array.from({ length: totalPages }, (_, index) => (
-              <Pagination.Item
-                key={index + 1}
-                active={index + 1 === currentPage}
-                className={styles.pageNum}
-                onClick={() => handlePageChange(index + 1)}>
-                {index + 1}
-              </Pagination.Item>
-            ))}
-            <Pagination.Next
-              className={styles.pageNum}
-              onClick={() => {
-                if (currentPage < totalPages) handlePageChange(currentPage + 1);
-              }}
-            />
-            <Pagination.Last
-              className={styles.pageNum}
-              onClick={() => handlePageChange(totalPages)}
-            />
-          </Pagination>
-        </Col>
       </Row>
     </>
   );

@@ -76,7 +76,7 @@ const General = () => {
         ...form,
       },
       (response) => {
-        setUser(response.data.user);
+        setUser(response.data.data);
         cancelEditing();
         triggerShowSuccess(4500);
       },

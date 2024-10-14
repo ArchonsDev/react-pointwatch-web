@@ -4,9 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, ListGroup, DropdownButton, Dropdown, 
         Modal, Spinner, Card, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
 
-import departmentTypes from "../../data/departmentTypes.json";
 import categories from "../../data/categories.json";
-import { getClearanceStatus } from "../../api/user";
+import { getClearanceStatus, getUser } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
 import { exportSWTDList } from "../../api/export";
@@ -37,6 +36,11 @@ const SWTDDashboard = () => {
   const [termStatus, setTermStatus] = useState(null);
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userDepartment, setUserDepartment] = useState({
+    semester: false,
+    midyear: false,
+    academic: false,
+  });
 
   const handleResize = () => {
     setIsMobile(window.innerWidth <= 768);
@@ -49,8 +53,8 @@ const SWTDDashboard = () => {
         token: token,
       },
       (response) => {
-        setUserSWTDs(response.swtds);
-        const totalCounts = response.swtds.reduce(
+        setUserSWTDs(response.data);
+        const totalCounts = response.data?.reduce(
           (counts, swtd) => {
             counts[swtd.validation.status.toLowerCase()]++;
             return counts;
@@ -59,8 +63,8 @@ const SWTDDashboard = () => {
         );
 
         // Update the state with the counts
-        setPendingSWTDCount(totalCounts.pending);
-        setRejectedSWTDCount(totalCounts.rejected);
+        setPendingSWTDCount(totalCounts?.pending);
+        setRejectedSWTDCount(totalCounts?.rejected);
         setLoading(false);
       },
       (error) => {
@@ -77,15 +81,23 @@ const SWTDDashboard = () => {
   };
 
   const fetchTerms = () => {
-    const allowedTerm = departmentTypes[user?.department?.classification];
     getTerms(
       {
         token: token,
       },
       (response) => {
-        const filteredTerms = response.terms.filter((term) =>
-          allowedTerm.includes(term.type)
-        );
+        let filteredTerms = response.terms;
+        const validTypes = [
+          ...(userDepartment.semester ? ["SEMESTER"] : []),
+          ...(userDepartment.midyear ? ["MIDYEAR/SUMMER"] : []),
+          ...(userDepartment.academic ? ["ACADEMIC YEAR"] : []),
+        ];
+
+        if (validTypes.length > 0) {
+          filteredTerms = filteredTerms.filter((term) =>
+            validTypes.includes(term.type)
+          );
+        }
 
         const ongoingTerm = filteredTerms.find(
           (term) => term.is_ongoing === true
@@ -151,8 +163,8 @@ const SWTDDashboard = () => {
         { pending: 0, rejected: 0 }
       );
 
-      setPendingSWTDCount(termCounts.pending);
-      setRejectedSWTDCount(termCounts.rejected);
+      setPendingSWTDCount(termCounts?.pending);
+      setRejectedSWTDCount(termCounts?.rejected);
     }
   }, [selectedTerm, userSWTDs]);
 
@@ -162,6 +174,12 @@ const SWTDDashboard = () => {
       setLoading(false);
       openModal();
     } else {
+      setUserDepartment({
+        ...userDepartment,
+        semester: user?.department?.use_schoolyear === false ? true : false,
+        midyear: user?.department?.midyear_points > 0 ? true : false,
+        academic: user?.department?.use_schoolyear,
+      });
       fetchTerms();
       fetchAllSWTDs();
       window.addEventListener("resize", handleResize);
@@ -276,7 +294,7 @@ const SWTDDashboard = () => {
           <Row className="mb-lg-0 mb-3">
             <BtnSecondary
               onClick={handlePrint}
-              disabled={userSWTDs.length === 0}>
+              disabled={userSWTDs?.length === 0}>
               <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i>
               Export PDF
             </BtnSecondary>
@@ -377,7 +395,7 @@ const SWTDDashboard = () => {
 
       {/* GRAPHS */}
       <Row className="w-100 mb-4">
-        {userSWTDs.length > 0 ? (
+        {userSWTDs?.length > 0 ? (
           <>
             <Col
               className={`${styles.graphBackground} d-flex justify-content-center align-items-center me-2`}>
@@ -412,7 +430,7 @@ const SWTDDashboard = () => {
         )}
       </Row>
 
-      {userSWTDs.length !== 0 && (
+      {userSWTDs?.length !== 0 && (
         <>
           <Row className="w-100 mb-3">
             <hr />
@@ -452,7 +470,7 @@ const SWTDDashboard = () => {
             </ListGroup>
             <ListGroup>
               {userSWTDs
-                .slice(-5)
+                ?.slice(-5)
                 .reverse()
                 .map((item) => (
                   <ListGroup.Item

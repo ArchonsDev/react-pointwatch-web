@@ -77,7 +77,7 @@ const Admin = () => {
               className={`${styles.navHeader} ${
                 activeTab === "term" ? styles.activeTab : styles.inactiveTab
               }`}>
-              Term
+              Terms
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
@@ -88,7 +88,7 @@ const Admin = () => {
                   ? styles.activeTab
                   : styles.inactiveTab
               }`}>
-              Department
+              Departments
             </Nav.Link>
           </Nav.Item>
           {isMobile ? (
@@ -105,7 +105,7 @@ const Admin = () => {
                 {user?.is_superuser && (
                   <>
                     <Dropdown.Item onClick={() => setActiveTab("head")}>
-                      Department Heads
+                      Department Chairs/Heads
                     </Dropdown.Item>
                     <Dropdown.Item onClick={() => setActiveTab("staff")}>
                       HR Staff
@@ -137,7 +137,7 @@ const Admin = () => {
                           ? styles.activeTab
                           : styles.inactiveTab
                       }`}>
-                      Department Heads
+                      Department Chairs/Heads
                     </Nav.Link>
                   </Nav.Item>
                   <Nav.Item>

@@ -21,7 +21,7 @@ const StaffPromotion = () => {
         token: token,
       },
       (response) => {
-        const filter = response.users.filter(
+        const filter = response.data.filter(
           (user) => user.id !== parseInt(userID, 10)
         );
         setEmployees(filter);
@@ -38,7 +38,7 @@ const StaffPromotion = () => {
       {
         id: id,
         token: token,
-        is_staff: val,
+        access_level: val,
       },
       (response) => {
         fetchAllUsers();
@@ -118,11 +118,11 @@ const StaffPromotion = () => {
               <Table className={styles.table} striped bordered hover responsive>
                 <thead>
                   <tr>
-                    <th className="col-2">ID No.</th>
-                    <th>Name</th>
-                    <th>Department</th>
+                    <th className="col-1">ID No.</th>
+                    <th className="col-2">Name</th>
+                    <th className="col-2">Department</th>
                     <th className="col-1 text-center">HR Staff</th>
-                    <th className="col-2 text-center">Action</th>
+                    <th className="col-1 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -154,9 +154,10 @@ const StaffPromotion = () => {
                               {item.is_staff ? (
                                 <div
                                   className={styles.icon}
-                                  onClick={() =>
-                                    grantRevokeStaff(item.id, false)
-                                  }>
+                                  onClick={() => {
+                                    const val = item.is_head ? 1 : 0;
+                                    grantRevokeStaff(item.id, val);
+                                  }}>
                                   <i
                                     className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
                                   DEMOTE
@@ -164,9 +165,7 @@ const StaffPromotion = () => {
                               ) : (
                                 <div
                                   className={styles.icon}
-                                  onClick={() =>
-                                    grantRevokeStaff(item.id, true)
-                                  }>
+                                  onClick={() => grantRevokeStaff(item.id, 2)}>
                                   <i
                                     className={`${styles.icon} fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
                                   PROMOTE

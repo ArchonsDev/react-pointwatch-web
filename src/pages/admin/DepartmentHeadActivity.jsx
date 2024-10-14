@@ -22,7 +22,7 @@ const DepartmentHeadActivity = () => {
         token: token,
       },
       (response) => {
-        const filtered = response.users.filter((user) => user.is_admin);
+        const filtered = response.data.filter((user) => user.is_head);
         setHeads(filtered);
         setLoading(false);
       },
@@ -134,8 +134,9 @@ const DepartmentHeadActivity = () => {
               <Table className={styles.table} striped bordered hover responsive>
                 <thead>
                   <tr>
-                    <th className="col-2">ID No.</th>
-                    <th>Name</th>
+                    <th className="col-1">ID No.</th>
+                    <th className="col-3">Name</th>
+                    <th className="col-2">Department</th>
                     <th className="col-2 text-center">Validation Report</th>
                     <th className="col-2 text-center">Clearance Report</th>
                   </tr>
@@ -147,6 +148,7 @@ const DepartmentHeadActivity = () => {
                       <td>
                         {item.lastname}, {item.firstname}
                       </td>
+                      <td>{item.department.name}</td>
                       <td className="text-center">
                         <BtnPrimary onClick={() => handlePrintValidation(item)}>
                           <i className="fa-solid fa-file-arrow-down me-2"></i>

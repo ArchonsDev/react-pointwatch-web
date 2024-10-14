@@ -1,9 +1,8 @@
 import categories from "../../data/categories.json";
 
-export const calculateHourPoints = (name, startTime, endTime) => {
-  const totalHours = calculateHours(startTime, endTime);
+export const calculateHourPoints = (name, hours) => {
   const id = getCategoryID(name);
-  const points = calculatePoints(id, totalHours);
+  const points = calculatePoints(id, hours);
   return points;
 };
 

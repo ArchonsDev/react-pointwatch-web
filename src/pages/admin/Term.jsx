@@ -93,12 +93,6 @@ const Term = () => {
       form.end_date = `${month}-${day}-${year}`;
     }
 
-    if (!isEmpty(form.type) && form.type.includes("MIDYEAR/SUMMER"))
-      form.type = "MIDYEAR";
-
-    if (!isEmpty(form.type) && form.type.includes("ACADEMIC YEAR"))
-      form.type = "SCHOOLYEAR";
-
     await addTerm(
       {
         ...form,
@@ -143,6 +137,7 @@ const Term = () => {
     if (user?.access_level === 1) navigate("/dashboard");
     else if (user?.access_level < 1) navigate("/swtd");
     fetchTerms();
+    console.log(user);
   }, []);
 
   return (
@@ -339,13 +334,7 @@ const Term = () => {
                   <tr key={term.id}>
                     <td>{term.id}</td>
                     <td>{term.name}</td>
-                    <td>
-                      {term.type === "MIDYEAR"
-                        ? "MIDYEAR/SUMMER"
-                        : term.type === "SCHOOLYEAR"
-                        ? "ACADEMIC YEAR"
-                        : term.type}
-                    </td>
+                    <td>{term.type}</td>
                     <td>{monthYearDate(term.start_date)}</td>
                     <td>{monthYearDate(term.end_date)}</td>
                     <td className="text-center">

@@ -153,7 +153,7 @@ export const getClearanceStatus = async (data, onSuccess, onFail) => {
 
 export const getAllDepartments = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.get(`${apiUrl}/departments?basic_view=true`, {
+    const response = await axios.get(`${apiUrl}/departments/?basic_view=true`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
