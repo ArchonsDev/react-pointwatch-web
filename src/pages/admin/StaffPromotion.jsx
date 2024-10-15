@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, InputGroup, Table, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Form, InputGroup, Table, Spinner, Pagination, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
 import Cookies from "js-cookie";
 
 import { getAllUsers, updateStaff } from "../../api/admin";
@@ -85,7 +85,8 @@ const StaffPromotion = () => {
     <>
       <Row className={`${styles.table} w-100`}>
         <span className="text-muted mb-3">
-          HR Staff can access the dashboard for employee points.
+          HR Staff can access the dashboard for employee points.{" "}
+          <strong>Employee must be in a department.</strong>
         </span>
       </Row>
       <Row>
@@ -174,8 +175,18 @@ const StaffPromotion = () => {
                             </>
                           ) : (
                             <div className={styles.icon}>
-                              <i
-                                className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>{" "}
+                              <OverlayTrigger
+                                placement="right"
+                                overlay={
+                                  <Tooltip
+                                    id="button-tooltip-1"
+                                    className={styles.table}>
+                                    Department is required.
+                                  </Tooltip>
+                                }>
+                                <i
+                                  className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>
+                              </OverlayTrigger>
                             </div>
                           )}
                         </td>

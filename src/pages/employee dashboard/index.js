@@ -65,7 +65,6 @@ const SWTDDashboard = () => {
         // Update the state with the counts
         setPendingSWTDCount(totalCounts?.pending);
         setRejectedSWTDCount(totalCounts?.rejected);
-        setLoading(false);
       },
       (error) => {
         console.log(error);
@@ -165,6 +164,7 @@ const SWTDDashboard = () => {
 
       setPendingSWTDCount(termCounts?.pending);
       setRejectedSWTDCount(termCounts?.rejected);
+      setLoading(false);
     }
   }, [selectedTerm, userSWTDs]);
 
@@ -180,12 +180,16 @@ const SWTDDashboard = () => {
         midyear: user?.department?.midyear_points > 0 ? true : false,
         academic: user?.department?.use_schoolyear,
       });
-      fetchTerms();
+
       fetchAllSWTDs();
       window.addEventListener("resize", handleResize);
       return () => window.removeEventListener("resize", handleResize);
     }
   }, [user]);
+
+  useEffect(() => {
+    fetchTerms();
+  }, [departmentTypes]);
 
   if (loading)
     return (

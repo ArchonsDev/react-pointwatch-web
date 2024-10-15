@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, InputGroup, Table, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Form, InputGroup, Table, Spinner, Pagination, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
 import Cookies from "js-cookie";
 
 import { getAllUsers, addHead, removeHead } from "../../api/admin";
@@ -101,8 +101,9 @@ const HeadPromotion = () => {
     <>
       <Row className={`${styles.table} w-100`}>
         <span className="text-muted mb-3">
-          Department Heads can access the dashboard to validate SWTD submissions
-          and grant clearance to employees in their department.
+          Department Heads/Chairs can access the dashboard to validate SWTD
+          submissions and grant clearance to employees in their department.{" "}
+          <strong>Employee must be in a department.</strong>
         </span>
       </Row>
       <Row>
@@ -198,8 +199,18 @@ const HeadPromotion = () => {
                               </>
                             ) : (
                               <div className={styles.icon}>
-                                <i
-                                  className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>{" "}
+                                <OverlayTrigger
+                                  placement="right"
+                                  overlay={
+                                    <Tooltip
+                                      id="button-tooltip-1"
+                                      className={styles.table}>
+                                      Department is required.
+                                    </Tooltip>
+                                  }>
+                                  <i
+                                    className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>
+                                </OverlayTrigger>
                               </div>
                             )}
                           </td>

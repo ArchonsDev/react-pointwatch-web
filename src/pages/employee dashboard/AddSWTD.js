@@ -232,13 +232,6 @@ const AddSWTD = () => {
   };
 
   const fetchTerms = () => {
-    setDepartmentTypes({
-      ...departmentTypes,
-      semester: user?.department?.use_schoolyear === false ? true : false,
-      midyear: user?.department?.midyear_points > 0 ? true : false,
-      academic: user?.department?.use_schoolyear,
-    });
-
     getTerms(
       {
         token: accessToken,
@@ -262,7 +255,12 @@ const AddSWTD = () => {
         );
 
         setTerms(filteredTerms);
-        setSelectedTerm(ongoingTerm || filteredTerms[0]);
+
+        //Set form to the on-going term
+        setForm((prevForm) => ({
+          ...prevForm,
+          term_id: ongoingTerm.id || filteredTerms[0],
+        }));
       },
       (error) => {
         console.log(error.message);
@@ -295,12 +293,22 @@ const AddSWTD = () => {
 
   useEffect(() => {
     if (!user?.department) navigate("/swtd");
-    fetchTerms();
+    setDepartmentTypes({
+      ...departmentTypes,
+      semester: user?.department?.use_schoolyear === false ? true : false,
+      midyear: user?.department?.midyear_points > 0 ? true : false,
+      academic: user?.department?.use_schoolyear,
+    });
+
     setForm((prevForm) => ({
       ...prevForm,
       author_id: user?.id,
     }));
   }, [user]);
+
+  useEffect(() => {
+    fetchTerms();
+  }, [departmentTypes]);
 
   return (
     <Container

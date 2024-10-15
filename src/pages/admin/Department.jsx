@@ -289,6 +289,10 @@ const Department = () => {
                   value={customClass}
                 />
               </FloatingLabel>
+              <Form.Text>
+                Ex. Elementary, Junior High School, College of Arts, Sciences,
+                and Education, etc...
+              </Form.Text>
             </Col>
           )}
         </Row>
@@ -457,7 +461,7 @@ const Department = () => {
                   <td>
                     {department.use_schoolyear ? "ACADEMIC YEAR" : "SEMESTER"}
                     <br />
-                    {department.midyear_points === 0 ? "" : "MIDYEAR"}
+                    {department.midyear_points === 0 ? "" : "MIDYEAR/SUMMER"}
                   </td>
                   <td className="text-center">{department.required_points}</td>
                   <td className="text-center">{department.midyear_points}</td>

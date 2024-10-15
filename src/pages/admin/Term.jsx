@@ -137,8 +137,7 @@ const Term = () => {
     if (user?.access_level === 1) navigate("/dashboard");
     else if (user?.access_level < 1) navigate("/swtd");
     fetchTerms();
-    console.log(user);
-  }, []);
+  }, [user]);
 
   return (
     <>
