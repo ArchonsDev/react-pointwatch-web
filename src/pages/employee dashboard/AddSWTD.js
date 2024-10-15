@@ -33,7 +33,7 @@ const AddSWTD = () => {
 
   const [loading, setLoading] = useState(false);
   const [isProofInvalid, setIsProofInvalid] = useState(false);
-  const [userDepartment, setUserDepartment] = useState({
+  const [departmentTypes, setDepartmentTypes] = useState({
     semester: false,
     midyear: false,
     academic: false,
@@ -232,6 +232,13 @@ const AddSWTD = () => {
   };
 
   const fetchTerms = () => {
+    setDepartmentTypes({
+      ...departmentTypes,
+      semester: user?.department?.use_schoolyear === false ? true : false,
+      midyear: user?.department?.midyear_points > 0 ? true : false,
+      academic: user?.department?.use_schoolyear,
+    });
+
     getTerms(
       {
         token: accessToken,
@@ -239,9 +246,9 @@ const AddSWTD = () => {
       (response) => {
         let filteredTerms = response.terms;
         const validTypes = [
-          ...(userDepartment.semester ? ["SEMESTER"] : []),
-          ...(userDepartment.midyear ? ["MIDYEAR/SUMMER"] : []),
-          ...(userDepartment.academic ? ["ACADEMIC YEAR"] : []),
+          ...(departmentTypes.semester ? ["SEMESTER"] : []),
+          ...(departmentTypes.midyear ? ["MIDYEAR/SUMMER"] : []),
+          ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
         ];
 
         if (validTypes.length > 0) {
@@ -250,7 +257,12 @@ const AddSWTD = () => {
           );
         }
 
+        const ongoingTerm = filteredTerms.find(
+          (term) => term.is_ongoing === true
+        );
+
         setTerms(filteredTerms);
+        setSelectedTerm(ongoingTerm || filteredTerms[0]);
       },
       (error) => {
         console.log(error.message);
@@ -283,22 +295,12 @@ const AddSWTD = () => {
 
   useEffect(() => {
     if (!user?.department) navigate("/swtd");
-    setUserDepartment({
-      ...userDepartment,
-      semester: user?.department?.use_schoolyear === false ? true : false,
-      midyear: user?.department?.midyear_points > 0 ? true : false,
-      academic: user?.department?.use_schoolyear,
-    });
-
+    fetchTerms();
     setForm((prevForm) => ({
       ...prevForm,
       author_id: user?.id,
     }));
   }, [user]);
-
-  useEffect(() => {
-    fetchTerms();
-  }, [userDepartment]);
 
   return (
     <Container

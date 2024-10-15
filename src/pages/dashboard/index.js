@@ -5,7 +5,6 @@ import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, 
         Dropdown, DropdownButton, Modal } from "react-bootstrap"; /* prettier-ignore */
 
 import status from "../../data/status.json";
-import departmentTypes from "../../data/departmentTypes.json";
 import { getAllUsers, getTerms } from "../../api/admin";
 import { getClearanceStatus } from "../../api/user";
 import { getAllSWTDs } from "../../api/swtd";
@@ -22,6 +21,11 @@ const Dashboard = () => {
   const [noUsers, setNoUsers] = useState(true);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
+  const [departmentTypes, setDepartmentTypes] = useState({
+    semester: false,
+    midyear: false,
+    academic: false,
+  });
   const [selectedStatus, setSelectedStatus] = useState("");
   const [userClearanceStatus, setUserClearanceStatus] = useState([]);
   const [requiredPoints, setRequiredPoints] = useState(0);
@@ -70,23 +74,12 @@ const Dashboard = () => {
   };
 
   const fetchTerms = () => {
-    const allowedTerm = departmentTypes[user?.department?.classification];
     getTerms(
       {
         token: token,
       },
       (response) => {
-        const filteredTerms = response.terms.filter((term) =>
-          allowedTerm.includes(term.type)
-        );
-
-        const ongoingTerm = filteredTerms.find(
-          (term) => term.is_ongoing === true
-        );
-
-        setTerms(filteredTerms);
-        setSelectedTerm(ongoingTerm || filteredTerms[0]);
-
+        let filteredTerms = response.terms;
         if (filteredTerms.length === 0)
           setLoadingMessage(
             <span className="text-center mt-2">
@@ -95,6 +88,25 @@ const Dashboard = () => {
               the Human Resources Department.
             </span>
           );
+
+        const validTypes = [
+          ...(departmentTypes.semester ? ["SEMESTER"] : []),
+          ...(departmentTypes.midyear ? ["MIDYEAR/SUMMER"] : []),
+          ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
+        ];
+
+        if (validTypes.length > 0) {
+          filteredTerms = filteredTerms.filter((term) =>
+            validTypes.includes(term.type)
+          );
+        }
+
+        const ongoingTerm = filteredTerms.find(
+          (term) => term.is_ongoing === true
+        );
+
+        setTerms(filteredTerms);
+        setSelectedTerm(ongoingTerm || filteredTerms[0]);
       },
       (error) => {
         console.log(error.message);
@@ -221,13 +233,21 @@ const Dashboard = () => {
     if (!user) setLoading(true);
     else {
       if (user?.is_staff) navigate("/hr");
-      else if (!user?.is_admin && !user?.is_superuser) navigate("/swtd");
+      else if (!user?.is_head && !user?.is_superuser) navigate("/swtd");
       else {
         setLoading(true);
+        setDepartmentTypes({
+          ...departmentTypes,
+          semester: user?.department?.use_schoolyear === false ? true : false,
+          midyear: user?.department?.midyear_points > 0 ? true : false,
+          academic: user?.department?.use_schoolyear,
+        });
+
         const fetchData = async () => {
           fetchTerms();
           await fetchAllUsers();
         };
+
         fetchData();
       }
     }

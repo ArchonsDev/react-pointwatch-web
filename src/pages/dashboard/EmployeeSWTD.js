@@ -3,7 +3,6 @@ import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
 
-import departmentTypes from "../../data/departmentTypes.json";
 import status from "../../data/status.json";
 import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
@@ -30,6 +29,11 @@ const EmployeeSWTD = () => {
   const [termStatus, setTermStatus] = useState(null);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
+  const [departmentTypes, setDepartmentTypes] = useState({
+    semester: false,
+    midyear: false,
+    academic: false,
+  });
   const [selectedStatus, setSelectedStatus] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,7 +51,7 @@ const EmployeeSWTD = () => {
       },
       (response) => {
         setEmployee(response.data);
-        fetchTerms(response.data.department.classification);
+        fetchTerms();
         fetchAllSWTDs(response.data.id);
       },
       (error) => {
@@ -74,16 +78,24 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const fetchTerms = (dept) => {
-    const allowedTerm = departmentTypes[dept];
+  const fetchTerms = () => {
     getTerms(
       {
         token: token,
       },
       (response) => {
-        const filteredTerms = response.terms.filter((term) =>
-          allowedTerm.includes(term?.type)
-        );
+        let filteredTerms = response.terms;
+        const validTypes = [
+          ...(departmentTypes.semester ? ["SEMESTER"] : []),
+          ...(departmentTypes.midyear ? ["MIDYEAR/SUMMER"] : []),
+          ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
+        ];
+
+        if (validTypes.length > 0) {
+          filteredTerms = filteredTerms.filter((term) =>
+            validTypes.includes(term.type)
+          );
+        }
 
         const ongoingTerm = filteredTerms.find(
           (term) => term.is_ongoing === true
@@ -217,6 +229,12 @@ const EmployeeSWTD = () => {
       if (!user?.is_admin && !user?.is_staff && !user?.is_superuser)
         navigate("/swtd");
       else {
+        setDepartmentTypes({
+          ...departmentTypes,
+          semester: user?.department?.use_schoolyear === false ? true : false,
+          midyear: user?.department?.midyear_points > 0 ? true : false,
+          academic: user?.department?.use_schoolyear,
+        });
         fetchUser();
       }
     }

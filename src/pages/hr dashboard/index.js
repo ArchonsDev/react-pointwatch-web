@@ -3,7 +3,6 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
 
-import departmentTypes from "../../data/departmentTypes.json";
 import { getAllUsers, getTerms, getAllDepartments, getDepartment } from "../../api/admin"; /* prettier-ignore */
 import { getClearanceStatus } from "../../api/user";
 import SessionUserContext from "../../contexts/SessionUserContext";
@@ -21,6 +20,11 @@ const HRDashboard = () => {
   const [terms, setTerms] = useState([]);
   const [departmentUsers, setDepartmentUsers] = useState([]);
   const [departmentTerms, setDepartmentTerms] = useState([]);
+  const [departmentTypes, setDepartmentTypes] = useState({
+    semester: false,
+    midyear: false,
+    academic: false,
+  });
   const [selectedTerm, setSelectedTerm] = useState(0);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [userClearanceStatus, setUserClearanceStatus] = useState([]);
@@ -187,10 +191,26 @@ const HRDashboard = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    const allowedTerm = departmentTypes[selectedDepartment?.classification];
-    const filteredTerms = terms?.filter((term) =>
-      allowedTerm?.includes(term.type)
-    );
+    let filteredTerms = terms;
+
+    setDepartmentTypes({
+      ...departmentTypes,
+      semester: selectedDepartment?.use_schoolyear === false ? true : false,
+      midyear: selectedDepartment?.midyear_points > 0 ? true : false,
+      academic: selectedDepartment?.use_schoolyear,
+    });
+
+    const validTypes = [
+      ...(departmentTypes.semester ? ["SEMESTER"] : []),
+      ...(departmentTypes.midyear ? ["MIDYEAR/SUMMER"] : []),
+      ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
+    ];
+
+    if (validTypes.length > 0) {
+      filteredTerms = filteredTerms.filter((term) =>
+        validTypes.includes(term.type)
+      );
+    }
 
     const ongoingTerm = filteredTerms.find((term) => term.is_ongoing === true);
     setSelectedTerm(ongoingTerm?.id);

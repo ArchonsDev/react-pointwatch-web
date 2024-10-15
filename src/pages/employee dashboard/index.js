@@ -5,7 +5,7 @@ import { Row, Col, Container, ListGroup, DropdownButton, Dropdown,
         Modal, Spinner, Card, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
 
 import categories from "../../data/categories.json";
-import { getClearanceStatus, getUser } from "../../api/user";
+import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
 import { exportSWTDList } from "../../api/export";
@@ -36,7 +36,7 @@ const SWTDDashboard = () => {
   const [termStatus, setTermStatus] = useState(null);
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [userDepartment, setUserDepartment] = useState({
+  const [departmentTypes, setDepartmentTypes] = useState({
     semester: false,
     midyear: false,
     academic: false,
@@ -88,9 +88,9 @@ const SWTDDashboard = () => {
       (response) => {
         let filteredTerms = response.terms;
         const validTypes = [
-          ...(userDepartment.semester ? ["SEMESTER"] : []),
-          ...(userDepartment.midyear ? ["MIDYEAR/SUMMER"] : []),
-          ...(userDepartment.academic ? ["ACADEMIC YEAR"] : []),
+          ...(departmentTypes.semester ? ["SEMESTER"] : []),
+          ...(departmentTypes.midyear ? ["MIDYEAR/SUMMER"] : []),
+          ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
         ];
 
         if (validTypes.length > 0) {
@@ -174,8 +174,8 @@ const SWTDDashboard = () => {
       setLoading(false);
       openModal();
     } else {
-      setUserDepartment({
-        ...userDepartment,
+      setDepartmentTypes({
+        ...departmentTypes,
         semester: user?.department?.use_schoolyear === false ? true : false,
         midyear: user?.department?.midyear_points > 0 ? true : false,
         academic: user?.department?.use_schoolyear,

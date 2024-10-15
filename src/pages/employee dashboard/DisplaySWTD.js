@@ -3,7 +3,6 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, Form, InputGroup, ListGroup, Spinner, Pagination, Dropdown, DropdownButton, Modal } from "react-bootstrap"; /* prettier-ignore */
 
-import departmentTypes from "../../data/departmentTypes.json";
 import status from "../../data/status.json";
 import { getAllSWTDs } from "../../api/swtd";
 import { getTerms } from "../../api/admin";
@@ -23,9 +22,13 @@ const SWTDDashboard = () => {
   const navigate = useNavigate();
 
   const [showModal, openModal, closeModal] = useSwitch();
-
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [terms, setTerms] = useState([]);
+  const [departmentTypes, setDepartmentTypes] = useState({
+    semester: false,
+    midyear: false,
+    academic: false,
+  });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTerm, setSelectedTerm] = useState(null);
@@ -56,15 +59,23 @@ const SWTDDashboard = () => {
   };
 
   const fetchTerms = () => {
-    const allowedTerm = departmentTypes[user?.department?.classification];
     getTerms(
       {
         token: token,
       },
       (response) => {
-        const filteredTerms = response.terms.filter((term) =>
-          allowedTerm.includes(term.type)
-        );
+        let filteredTerms = response.terms;
+        const validTypes = [
+          ...(departmentTypes.semester ? ["SEMESTER"] : []),
+          ...(departmentTypes.midyear ? ["MIDYEAR/SUMMER"] : []),
+          ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
+        ];
+
+        if (validTypes.length > 0) {
+          filteredTerms = filteredTerms.filter((term) =>
+            validTypes.includes(term.type)
+          );
+        }
 
         const ongoingTerm = filteredTerms.find(
           (term) => term.is_ongoing === true
@@ -145,7 +156,12 @@ const SWTDDashboard = () => {
 
   useEffect(() => {
     if (user) {
-      fetchTerms();
+      setDepartmentTypes({
+        ...departmentTypes,
+        semester: user?.department?.use_schoolyear === false ? true : false,
+        midyear: user?.department?.midyear_points > 0 ? true : false,
+        academic: user?.department?.use_schoolyear,
+      });
       fetchAllSWTDs();
       window.addEventListener("resize", handleResize);
       return () => window.removeEventListener("resize", handleResize);
@@ -153,6 +169,10 @@ const SWTDDashboard = () => {
       setLoading(true);
     }
   }, [user]);
+
+  useEffect(() => {
+    fetchTerms();
+  }, [departmentTypes]);
 
   if (loading)
     return (
