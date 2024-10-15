@@ -108,7 +108,7 @@ const Comments = () => {
   return (
     <Card className="mb-3 w-100">
       <Card.Header className={styles.cardHeader}>Comments</Card.Header>
-      {comments.length !== 0 ? (
+      {comments?.length !== 0 ? (
         <Card.Body
           className={`${styles.cardBody} d-flex justify-content-center align-items center p-1`}>
           <Row className="w-100">

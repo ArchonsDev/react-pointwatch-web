@@ -56,7 +56,7 @@ const SWTDDashboard = () => {
         setUserSWTDs(response.data);
         const totalCounts = response.data?.reduce(
           (counts, swtd) => {
-            counts[swtd.validation.status.toLowerCase()]++;
+            counts[swtd.validation_status.toLowerCase()]++;
             return counts;
           },
           { pending: 0, rejected: 0 }
@@ -155,7 +155,7 @@ const SWTDDashboard = () => {
       const termCounts = userSWTDs?.reduce(
         (counts, swtd) => {
           if (swtd.term.id === selectedTerm.id) {
-            counts[swtd.validation.status.toLowerCase()]++;
+            counts[swtd.validation_status.toLowerCase()]++;
           }
           return counts;
         },
@@ -491,9 +491,9 @@ const SWTDDashboard = () => {
                         </Col>
                       )}
                       <Col lg={2} md={2} xs={isMobile ? 4 : 2}>
-                        {item.validation.status === "REJECTED"
+                        {item.validation_status === "REJECTED"
                           ? "FOR REVISION"
-                          : item.validation.status}
+                          : item.validation_status}
                       </Col>
                       <Col lg={1} md={1} xs={2}>
                         {item.points}

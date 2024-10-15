@@ -7,7 +7,7 @@ import { isEmpty } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { validateSWTD } from "../../api/admin";
-import { getSWTD, getSWTDProof, getSWTDValidation } from "../../api/swtd"; /* prettier-ignore */
+import { getSWTD, getProof, getSWTDValidation } from "../../api/swtd"; /* prettier-ignore */
 import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
 import { wordDate } from "../../common/format/date";
 import { formatTime } from "../../common/format/time";
@@ -81,7 +81,7 @@ const ViewSWTD = () => {
   };
 
   const fetchSWTDProof = () => {
-    getSWTDProof(
+    getProof(
       {
         form_id: swtd_id,
         token: token,

@@ -58,12 +58,10 @@ const AddSWTD = () => {
     end_date: "",
     total_hours: 0,
     points: 0,
-    proof: "",
+    files: "",
     benefits: "",
     has_deliverables: checkbox.deliverable,
   });
-
-  let swtdPoints = 0;
 
   const clearForm = () => {
     if (inputFile.current) {
@@ -77,12 +75,11 @@ const AddSWTD = () => {
       title: "",
       venue: "",
       category: "",
-      term_id: 0,
       start_date: "",
       end_date: "",
-      total_hours: "",
+      total_hours: 0,
       points: 0,
-      proof: "",
+      files: "",
       benefits: "",
       has_deliverables: checkbox.deliverable,
     });
@@ -160,17 +157,19 @@ const AddSWTD = () => {
   };
 
   const handleProof = (e) => {
-    const file = e.target.files[0];
+    const files = Array.from(e.target.files);
     const allowedTypes = [
       "application/pdf",
       "image/png",
       "image/jpeg",
       "image/jpg",
     ];
-    if (file && allowedTypes.includes(file.type)) {
+
+    const validFiles = files.filter((file) => allowedTypes.includes(file.type));
+    if (validFiles.length > 0) {
       setForm({
         ...form,
-        proof: file,
+        files: validFiles,
       });
       setIsProofInvalid(false);
     } else {
@@ -184,7 +183,7 @@ const AddSWTD = () => {
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       form.term_id === 0 ||
-      !form.proof ||
+      !form.files ||
       form.points <= 0 ||
       invalidTerm
     );
@@ -215,6 +214,7 @@ const AddSWTD = () => {
         });
       },
       (error) => {
+        console.log(error);
         if (error.response && error.response.data) {
           setErrorMessage(<>{error.message}</>);
           triggerShowError(4500);
@@ -250,16 +250,24 @@ const AddSWTD = () => {
           );
         }
 
-        const ongoingTerm = filteredTerms.find(
-          (term) => term.is_ongoing === true
-        );
+        const ongoingTerm = filteredTerms.find((term) => term.is_ongoing);
+
+        const termToFormat = ongoingTerm || filteredTerms[0];
+
+        const formattedStartDate = formatDate(termToFormat.start_date);
+        const formattedEndDate = formatDate(termToFormat.end_date);
+
+        setSelectedTerm({
+          start: formattedStartDate,
+          end: formattedEndDate,
+          ongoing: termToFormat.is_ongoing,
+        });
 
         setTerms(filteredTerms);
-
         //Set form to the on-going term
         setForm((prevForm) => ({
           ...prevForm,
-          term_id: ongoingTerm.id || filteredTerms[0],
+          term_id: ongoingTerm.id || filteredTerms[0].id,
         }));
       },
       (error) => {
@@ -289,7 +297,7 @@ const AddSWTD = () => {
         ...prevForm,
       }));
     }
-  }, [form.category, checkbox.deliverable]);
+  }, [form.category, form.total_hours, checkbox.deliverable]);
 
   useEffect(() => {
     if (!user?.department) navigate("/swtd");
@@ -516,6 +524,7 @@ const AddSWTD = () => {
                   className="mb-3">
                   <Form.Control
                     type="date"
+                    name="start_date"
                     min={selectedTerm?.start_date}
                     max={
                       selectedTerm?.ongoing
@@ -541,6 +550,7 @@ const AddSWTD = () => {
                   className="mb-3">
                   <Form.Control
                     type="date"
+                    name="end_date"
                     className={styles.formBox}
                     onChange={handleChange}
                     value={form.end_date}
@@ -565,6 +575,7 @@ const AddSWTD = () => {
                     className="mb-3">
                     <Form.Control
                       type="number"
+                      name="total_hours"
                       className={styles.formBox}
                       min={0}
                       onChange={handleChange}
@@ -591,7 +602,7 @@ const AddSWTD = () => {
                   <Form.Control
                     type="file"
                     className={styles.formBox}
-                    name="proof"
+                    name="files"
                     onChange={handleProof}
                     ref={inputFile}
                     isInvalid={isProofInvalid}

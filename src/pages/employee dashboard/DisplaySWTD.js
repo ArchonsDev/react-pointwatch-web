@@ -47,7 +47,7 @@ const SWTDDashboard = () => {
         token: token,
       },
       (response) => {
-        setUserSWTDs(response.swtds);
+        setUserSWTDs(response.data);
         setLoading(false);
       },
       (error) => {
@@ -123,7 +123,7 @@ const SWTDDashboard = () => {
       const matchesQuery = swtd.title
         .toLowerCase()
         .includes(query.toLowerCase());
-      const matchesStat = stat ? swtd.validation.status === stat : true;
+      const matchesStat = stat ? swtd.validation_status === stat : true;
       return matchesQuery && matchesStat;
     });
   };
@@ -354,9 +354,9 @@ const SWTDDashboard = () => {
                       </Col>
                     )}
                     <Col lg={2} md={2} xs={isMobile ? 4 : 2}>
-                      {item.validation.status === "REJECTED"
+                      {item.validation_status === "REJECTED"
                         ? "FOR REVISION"
-                        : item.validation.status}
+                        : item.validation_status}
                     </Col>
                     <Col lg={1} md={1} xs={2}>
                       {item.points}

@@ -6,16 +6,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import Comments from "./Comments";
 import EditSWTD from "./EditSWTD";
 import { getClearanceStatus } from "../../api/user";
-import { getSWTD, getSWTDProof, deleteSWTD } from "../../api/swtd";
+import { getSWTD, deleteSWTD, getProof, addProof, deleteProof } from "../../api/swtd"; /* prettier-ignore */
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { wordDate } from "../../common/format/date";
-import { formatTime } from "../../common/format/time";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
-import EditProofModal from "../../common/modals/EditProofModal";
 import ConfirmationModal from "../../common/modals/ConfirmationModal";
+import EditProofModal from "../../common/modals/EditProofModal";
 import styles from "./style.module.css";
 
 const SWTDDetails = () => {
@@ -37,6 +36,7 @@ const SWTDDetails = () => {
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
   const [termStatus, setTermStatus] = useState(true);
+  const [currentProofIndex, setCurrentProofIndex] = useState(0);
 
   const fetchSWTD = () => {
     getSWTD(
@@ -45,8 +45,8 @@ const SWTDDetails = () => {
         token: token,
       },
       (response) => {
-        setSWTD(response.data);
-        fetchClearance(response.data.term.id);
+        setSWTD(response.data.data);
+        fetchClearance(response.data.data.term?.id);
         setLoading(false);
       },
       (error) => {
@@ -56,20 +56,21 @@ const SWTDDetails = () => {
     );
   };
 
-  const fetchSWTDProof = () => {
-    getSWTDProof(
+  const fetchSWTDProof = (id) => {
+    getProof(
       {
         form_id: swtd_id,
+        proof_id: id,
         token: token,
       },
       (response) => {
         const contentType = response.headers["content-type"];
-
         const uint8Array = new Uint8Array(response.data);
         const blob = new Blob([uint8Array], { type: contentType });
         const blobURL = URL.createObjectURL(blob);
 
         setSWTDProof({
+          id: id,
           src: blobURL,
           type: contentType,
         });
@@ -96,24 +97,6 @@ const SWTDDetails = () => {
     );
   };
 
-  const truncateTitle = (title) => {
-    if (title?.length > 100) {
-      return title.substring(0, 100) + "...";
-    }
-    return title;
-  };
-
-  const proofSuccess = async () => {
-    triggerShowSuccess(3000);
-    fetchSWTDProof();
-    fetchSWTD();
-  };
-
-  const proofError = (message) => {
-    setErrorMessage(message);
-    triggerShowError(3000);
-  };
-
   const handleDeleteRecord = async () => {
     await deleteSWTD(
       {
@@ -125,8 +108,58 @@ const SWTDDetails = () => {
       },
       (error) => {
         console.log(error.message);
+        setErrorMessage(error.message);
+        triggerShowError(3000);
       }
     );
+  };
+
+  const handleProofNavigation = (direction) => {
+    const newIndex = currentProofIndex + direction;
+
+    if (newIndex >= 0 && newIndex < swtd.proof.length) {
+      setCurrentProofIndex(newIndex);
+      fetchSWTDProof(swtd.proof[newIndex].id);
+    }
+  };
+
+  const handleDeleteProof = async () => {
+    await deleteProof(
+      {
+        form_id: swtd_id,
+        proof_id: swtdProof?.id,
+        token: token,
+      },
+      (response) => {
+        triggerShowSuccess(3000);
+        closeProofModal();
+        fetchSWTD();
+      },
+      (error) => {
+        fetchSWTD();
+        closeProofModal();
+        console.log(error.message);
+        setErrorMessage(error.message);
+        triggerShowError(3000);
+      }
+    );
+  };
+
+  const truncateTitle = (title) => {
+    if (title?.length > 100) {
+      return title.substring(0, 100) + "...";
+    }
+    return title;
+  };
+
+  const updateProofSuccess = async () => {
+    triggerShowSuccess(3000);
+    fetchSWTD();
+  };
+
+  const updateProofError = (message) => {
+    setErrorMessage(message);
+    triggerShowError(3000);
   };
 
   useEffect(() => {
@@ -184,14 +217,14 @@ const SWTDDetails = () => {
             <>
               {!termStatus && (
                 <>
-                  <BtnSecondary
+                  <BtnPrimary
                     onClick={() => {
                       fetchSWTD();
                       enableEditing();
                     }}>
                     Edit
-                  </BtnSecondary>{" "}
-                  <BtnPrimary onClick={openDeleteModal}>Delete</BtnPrimary>
+                  </BtnPrimary>{" "}
+                  <BtnSecondary onClick={openDeleteModal}>Delete</BtnSecondary>
                 </>
               )}
             </>
@@ -214,17 +247,17 @@ const SWTDDetails = () => {
               Status:{" "}
               <span
                 className={
-                  swtd?.validation.status === "PENDING"
+                  swtd?.validation_status === "PENDING"
                     ? "text-muted"
-                    : swtd?.validation.status === "APPROVED"
+                    : swtd?.validation_status === "APPROVED"
                     ? "text-success"
-                    : swtd?.validation.status === "REJECTED"
+                    : swtd?.validation_status === "REJECTED"
                     ? "text-danger"
                     : ""
                 }>
-                {swtd?.validation.status === "REJECTED"
+                {swtd?.validation_status === "REJECTED"
                   ? "FOR REVISION"
-                  : swtd?.validation.status}
+                  : swtd?.validation_status}
               </span>
             </Col>
 
@@ -255,6 +288,7 @@ const SWTDDetails = () => {
                   {errorMessage}
                 </div>
               )}
+
               {showSuccess && (
                 <div className="alert alert-success mb-3" role="alert">
                   SWTD Details updated.
@@ -328,101 +362,125 @@ const SWTDDetails = () => {
                   lg={2}
                   md={2}
                   xs={4}>
-                  Date & Time
+                  Duration
                 </Col>
                 <Col md="4">
-                  {swtd?.dates?.map((entry, index) => (
-                    <div key={index}>
-                      {wordDate(entry.date)}
-                      {!swtd?.category?.startsWith("Degree") && (
-                        <>
-                          {" "}
-                          ({formatTime(entry.time_started)} to{" "}
-                          {formatTime(entry.time_ended)})
-                        </>
-                      )}
-                    </div>
-                  ))}
+                  {wordDate(swtd?.start_date)} to {wordDate(swtd?.end_date)}
+                  {!swtd?.category.startsWith("Degree") && (
+                    <> ({swtd?.total_hours} hours)</>
+                  )}
                 </Col>
                 <Col className={styles.formLabel} md="2">
                   Proof
                 </Col>
                 <Col md="4">
-                  <BtnPrimary
-                    onClick={() => {
-                      fetchSWTDProof();
-                      openProofModal();
-                    }}>
-                    View
-                  </BtnPrimary>{" "}
-                  {!termStatus && (
-                    <BtnSecondary onClick={() => openEditProof()}>
-                      Change
-                    </BtnSecondary>
+                  {swtd?.proof && swtd?.proof.length > 0 ? (
+                    <BtnPrimary
+                      onClick={() => {
+                        fetchSWTDProof(swtd.proof[0].id);
+                        openProofModal();
+                      }}>
+                      View
+                    </BtnPrimary>
+                  ) : (
+                    <span className="text-danger">No file(s) attached.</span>
                   )}
                 </Col>
-                <EditProofModal
-                  show={showEditProof}
-                  onHide={closeEditProof}
-                  editSuccess={proofSuccess}
-                  editError={proofError}
-                />
               </Row>
 
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label className={styles.formLabel}>
-                    Takeaways
-                  </Form.Label>
-                  <Col>
-                    <Form.Control
-                      as="textarea"
-                      ref={textareaRef}
-                      className={styles.formBox}
-                      value={swtd?.benefits}
-                      style={{ overflow: "hidden" }}
-                      readOnly
-                    />
-                  </Col>
-                </Form.Group>
-              </Form>
+              <Form.Group className="mb-3">
+                <Form.Label className={styles.formLabel}>Takeaways</Form.Label>
+                <Col>
+                  <Form.Control
+                    as="textarea"
+                    ref={textareaRef}
+                    className={styles.formBox}
+                    value={swtd?.benefits}
+                    style={{ overflow: "hidden" }}
+                    readOnly
+                  />
+                </Col>
+              </Form.Group>
             </>
           )}
         </Card.Body>
       </Card>
-      <Modal show={showProofModal} onHide={closeProofModal} size="lg" centered>
+      <Modal show={showProofModal} onHide={closeProofModal} size="xl" centered>
         <Modal.Body className="d-flex justify-content-center align-items-center">
-          <Row className="w-100">
-            {!swtdProof ? (
+          {!swtdProof ? (
+            <Row className="w-100">
               <div
                 className={`${styles.msg} d-flex justify-content-center align-items-center`}>
                 <Spinner className={`me-2`} animation="border" />
                 Loading proof...
               </div>
-            ) : (
-              <>
-                {swtdProof?.type.startsWith("image") && (
-                  <img
-                    src={swtdProof?.src}
-                    title="SWTD Proof"
-                    className={styles.imgProof}
-                    alt="SWTD Proof"
-                  />
-                )}
-                {swtdProof?.type === "application/pdf" && (
-                  <iframe
-                    src={swtdProof?.src}
-                    type="application/pdf"
-                    width="100%"
-                    height="650px"
-                    title="SWTD Proof PDF"
-                    aria-label="SWTD Proof PDF"></iframe>
-                )}
-              </>
-            )}
-          </Row>
+            </Row>
+          ) : (
+            <Container>
+              <Row className="d-flex justify-content-center flex-row w-100 mb-3">
+                <Col>
+                  <BtnPrimary
+                    onClick={() => {
+                      openEditProof();
+                      closeProofModal();
+                    }}>
+                    <i className="fa-solid fa-circle-plus me-2"></i>Add
+                  </BtnPrimary>
+                </Col>
+                <Col lg="auto" md="auto">
+                  <i
+                    className={`${styles.points} ${styles.triangle} fa-solid fa-square-caret-left fa-2xl`}
+                    onClick={() => handleProofNavigation(-1)}></i>
+                </Col>
+                <Col className={styles.formLabel} lg="auto" md="auto">
+                  {currentProofIndex + 1} / {swtd.proof?.length}
+                </Col>
+                <Col lg="auto" md="auto">
+                  <i
+                    className={`${styles.points} ${styles.triangle} fa-solid fa-square-caret-right fa-2xl`}
+                    onClick={() => handleProofNavigation(1)}></i>
+                </Col>
+                <Col className="text-end">
+                  <BtnSecondary
+                    onClick={() => {
+                      handleDeleteProof();
+                    }}>
+                    <i className="fa-solid fa-trash-can me-2"></i>Delete
+                  </BtnSecondary>
+                </Col>
+              </Row>
+
+              <Row className="d-flex justify-content-center align-items-center w-100 mb-3">
+                <Col className="text-center">
+                  {swtdProof?.type.startsWith("image") && (
+                    <img
+                      src={swtdProof?.src}
+                      title="SWTD Proof"
+                      className={styles.imgProof}
+                      alt="SWTD Proof"
+                    />
+                  )}
+                  {swtdProof?.type === "application/pdf" && (
+                    <iframe
+                      src={swtdProof?.src}
+                      type="application/pdf"
+                      width="100%"
+                      height="600px"
+                      title="SWTD Proof PDF"
+                      aria-label="SWTD Proof PDF"></iframe>
+                  )}
+                </Col>
+              </Row>
+            </Container>
+          )}
         </Modal.Body>
       </Modal>
+      <EditProofModal
+        show={showEditProof}
+        onHide={closeEditProof}
+        editSuccess={updateProofSuccess}
+        editError={updateProofError}
+      />
       {!isEditing && <Comments />}
     </Container>
   );
