@@ -2,10 +2,10 @@ import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, Card, ProgressBar,
-        Dropdown, DropdownButton, Modal } from "react-bootstrap"; /* prettier-ignore */
+        Dropdown, DropdownButton } from "react-bootstrap"; /* prettier-ignore */
 import status from "../../data/status.json";
 import { getAllMembers } from "../../api/department";
-import { getAllUsers, getTerms } from "../../api/admin";
+import { getTerms } from "../../api/admin";
 import { getClearanceStatus } from "../../api/user";
 import { getAllSWTDs } from "../../api/swtd";
 import SessionUserContext from "../../contexts/SessionUserContext";
@@ -17,7 +17,6 @@ const Dashboard = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
-  const [departmentDetails, setDepartmentDetails] = useState(null);
   const [departmentUsers, setDepartmentUsers] = useState([]);
   const [noUsers, setNoUsers] = useState(true);
   const [terms, setTerms] = useState([]);
@@ -56,10 +55,12 @@ const Dashboard = () => {
         token: token,
       },
       (response) => {
-        setDepartmentDetails(response.data);
+        setRequiredPoints(response.data.required_points);
         if (response.data.members?.length !== 0) {
           setNoUsers(false);
-          setDepartmentUsers(response.data.members);
+          setDepartmentUsers(
+            response.data.members.filter((member) => member.id !== user.id)
+          );
           setLoading(true);
         } else {
           setLoading(false);
@@ -157,28 +158,14 @@ const Dashboard = () => {
   };
 
   const fetchClearanceStatusForAllUsers = (term) => {
-    departmentUsers.forEach((us) => {
+    departmentUsers?.forEach((us) => {
       fetchClearanceStatus(us, term);
     });
-  };
-
-  const getTopEmployeePoints = () => {
-    return Object.entries(userClearanceStatus)
-      .map(([userId, status]) => ({
-        userId,
-        ...status,
-        valid_points: status.points?.valid_points || 0,
-      }))
-      .sort((a, b) => b.valid_points - a.valid_points)
-      .slice(0, 5);
   };
 
   const handleEmployeeSWTDClick = (id) => {
     navigate(`/dashboard/${id}`);
   };
-
-  //Get Point Standings
-  const topUsers = getTopEmployeePoints();
 
   //Pagination
   const handleFilter = (employeeList, query, status) => {
@@ -193,10 +180,10 @@ const Dashboard = () => {
       })
       .sort((a, b) => {
         const countStatusA = a.swtds.filter(
-          (item) => item.validation.status === status
+          (item) => item.validation_status === status
         ).length;
         const countStatusB = b.swtds.filter(
-          (item) => item.validation.status === status
+          (item) => item.validation_status === status
         ).length;
         return countStatusB - countStatusA;
       });
@@ -231,7 +218,7 @@ const Dashboard = () => {
     else {
       if (user?.is_staff) navigate("/hr");
       else if (!user?.is_head && !user?.is_superuser) navigate("/swtd");
-      else {
+      else if (user?.department) {
         setLoading(true);
         setDepartmentTypes({
           ...departmentTypes,
@@ -251,10 +238,10 @@ const Dashboard = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    if (selectedTerm) {
+    if (departmentUsers && departmentUsers.length > 0) {
       fetchClearanceStatusForAllUsers(selectedTerm);
     }
-  }, [selectedTerm]);
+  }, [departmentUsers, selectedTerm]);
 
   useEffect(() => {
     if (
@@ -263,6 +250,7 @@ const Dashboard = () => {
     )
       setLoading(false);
   }, [userClearanceStatus, departmentUsers]);
+
   if (loading)
     return (
       <Row
@@ -347,7 +335,9 @@ const Dashboard = () => {
                       <hr className="m-0 mb-2" style={{ opacity: "1" }} />
                       <Row className={`${styles.depStat} w-100 mb-2`}>
                         <Col md={7}>Total Employees</Col>
-                        <Col className="text-end">{departmentUsers.length}</Col>
+                        <Col className="text-end">
+                          {departmentUsers?.length}
+                        </Col>
                       </Row>
                       <Row className={`${styles.depStat} w-100 mb-2`}>
                         <Col md={7}>Cleared Employees</Col>
@@ -366,23 +356,21 @@ const Dashboard = () => {
             {noUsers === false && terms.length !== 0 && (
               <Col className="flex-row">
                 <Row className={styles.swtdStat}>
-                  <span>{user?.department?.classification}</span>
+                  <span>{user?.department?.level}</span>
                 </Row>
                 <Row className={`${styles.swtdContent} mb-1`}>
                   <span>{user?.department?.name}</span>
                 </Row>
-                {/* <span className={styles.swtdStat}>
-                  SWTDs Statistics for {selectedTerm?.name}
-                </span> */}
+
                 <hr className="m-0 mb-2" style={{ opacity: "1" }} />
                 <Row className={styles.filterText}>
                   <Col>Total Pending SWTDs</Col>
                   <Col className="text-end">
-                    {topUsers.reduce(
+                    {Object.values(userClearanceStatus).reduce(
                       (totalPending, user) =>
                         totalPending +
-                        user.swtds.filter(
-                          (swtd) => swtd.validation.status === "PENDING"
+                        user.swtds?.filter(
+                          (swtd) => swtd.validation_status === "PENDING"
                         ).length,
                       0
                     )}
@@ -394,11 +382,11 @@ const Dashboard = () => {
                     Total SWTDs For Revision
                   </Col>
                   <Col className="text-end">
-                    {topUsers.reduce(
-                      (totalRevision, user) =>
-                        totalRevision +
-                        user.swtds.filter(
-                          (swtd) => swtd.validation.status === "REJECTED"
+                    {Object.values(userClearanceStatus).reduce(
+                      (totalPending, user) =>
+                        totalPending +
+                        user.swtds?.filter(
+                          (swtd) => swtd.validation_status === "REJECTED"
                         ).length,
                       0
                     )}
@@ -458,7 +446,7 @@ const Dashboard = () => {
                 <ListGroup className="w-100" variant="flush">
                   <ListGroup.Item className={styles.swtdHeader}>
                     <Row>
-                      <Col md={2}>ID No.</Col>
+                      <Col md={1}>ID No.</Col>
                       <Col>Name</Col>
                       <Col className="text-center" md={2}>
                         Pending SWTDs
@@ -466,8 +454,11 @@ const Dashboard = () => {
                       <Col className="text-center" md={2}>
                         SWTDs For Revision
                       </Col>
-                      <Col className="text-center" md={2}>
+                      <Col className="text-center" md={1}>
                         Points
+                      </Col>
+                      <Col className="text-center" md={2}>
+                        Status
                       </Col>
                     </Row>
                   </ListGroup.Item>
@@ -479,14 +470,14 @@ const Dashboard = () => {
                       className={styles.tableBody}
                       onClick={() => handleEmployeeSWTDClick(item.id)}>
                       <Row>
-                        <Col md={2}>{item.employee_id}</Col>
+                        <Col md={1}>{item.employee_id}</Col>
                         <Col>
                           {item.firstname} {item.lastname}
                         </Col>
                         <Col className="text-center" md={2}>
                           {
                             item.swtds.filter(
-                              (swtd) => swtd.validation.status === "PENDING"
+                              (swtd) => swtd.validation_status === "PENDING"
                             ).length
                           }
                         </Col>
@@ -494,13 +485,21 @@ const Dashboard = () => {
                         <Col className="text-center" md={2}>
                           {
                             item.swtds.filter(
-                              (swtd) => swtd.validation.status === "REJECTED"
+                              (swtd) => swtd.validation_status === "REJECTED"
                             ).length
                           }
                         </Col>
 
-                        <Col className="text-center" md={2}>
+                        <Col className="text-center" md={1}>
                           {item.points.valid_points}
+                        </Col>
+
+                        <Col
+                          className={`text-center text-${
+                            item.is_cleared ? "success" : "danger"
+                          } ${styles.filterText}`}
+                          md={2}>
+                          {item.is_cleared ? "CLEARED" : "NOT CLEARED"}
                         </Col>
                       </Row>
                     </ListGroup.Item>

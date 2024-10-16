@@ -8,6 +8,10 @@
   color: #180018;
 }
 
+.userStat {
+  font-family: "Poppins-Bold";
+}
+
 .searchBar {
   font-family: "Poppins-Regular";
   border-radius: 7px;

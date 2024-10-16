@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
 
 import status from "../../data/status.json";
+import { getAllMembers } from "../../api/department";
 import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
 import { getUser, getClearanceStatus } from "../../api/user";
@@ -43,6 +44,28 @@ const EmployeeSWTD = () => {
   const [showPointsModal, openPointsModal, closePointsModal] = useSwitch();
   const recordsPerPage = 15;
 
+  const fetchDepartmentMembers = async () => {
+    await getAllMembers(
+      {
+        id: user?.department.id,
+        token: token,
+      },
+      (response) => {
+        if (response.data.members?.length !== 0) {
+          const emp = response.data.members.find(
+            (member) => member.id === parseInt(id, 10)
+          );
+          setEmployee(emp);
+          fetchTerms();
+          fetchAllSWTDs();
+        }
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  };
+
   const fetchUser = async () => {
     await getUser(
       {
@@ -60,14 +83,14 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const fetchAllSWTDs = (empID) => {
+  const fetchAllSWTDs = () => {
     getAllSWTDs(
       {
-        author_id: empID,
+        author_id: id,
         token: token,
       },
       (response) => {
-        setUserSWTDs(response.swtds);
+        setUserSWTDs(response.data);
         setLoading(false);
       },
       (error) => {
@@ -136,7 +159,7 @@ const EmployeeSWTD = () => {
       },
       (response) => {
         fetchClearanceStatus(term);
-        fetchUser();
+        fetchDepartmentMembers();
       }
     );
   };
@@ -150,14 +173,14 @@ const EmployeeSWTD = () => {
       },
       (response) => {
         fetchClearanceStatus(term);
-        fetchUser();
+        fetchDepartmentMembers();
       }
     );
   };
 
   const truncateTitle = (title) => {
-    if (title.length > 50) {
-      return title.substring(0, 50) + "...";
+    if (title.length > 40) {
+      return title.substring(0, 40) + "...";
     }
     return title;
   };
@@ -184,11 +207,11 @@ const EmployeeSWTD = () => {
     : "SWTDs";
 
   const handleFilter = (swtdList, query, stat) => {
-    return swtdList.filter((swtd) => {
+    return swtdList?.filter((swtd) => {
       const matchesQuery = swtd.title
         .toLowerCase()
         .includes(query.toLowerCase());
-      const matchesStat = stat ? swtd.validation.status === stat : true;
+      const matchesStat = stat ? swtd.validation_status === stat : true;
       return matchesQuery && matchesStat;
     });
   };
@@ -226,7 +249,7 @@ const EmployeeSWTD = () => {
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      if (!user?.is_admin && !user?.is_staff && !user?.is_superuser)
+      if (!user?.is_head && !user?.is_staff && !user?.is_superuser)
         navigate("/swtd");
       else {
         setDepartmentTypes({
@@ -235,7 +258,7 @@ const EmployeeSWTD = () => {
           midyear: user?.department?.midyear_points > 0 ? true : false,
           academic: user?.department?.use_schoolyear,
         });
-        fetchUser();
+        fetchDepartmentMembers();
       }
     }
   }, [user, navigate]);
@@ -258,19 +281,51 @@ const EmployeeSWTD = () => {
 
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
-      <Row className="mb-2">
-        <h3 className={styles.label}>
-          <i
-            className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
-            onClick={() => {
-              if (user?.is_staff || user?.is_superuser) navigate("/hr");
-              else navigate("/dashboard");
-            }}></i>{" "}
-          {pageTitle}
-          <i
-            className={`${styles.commentEdit} fa-solid fa-circle-info fa-xs ms-2`}
-            onClick={openPointsModal}></i>
-        </h3>
+      <Row className="w-100 mb-2">
+        <Col>
+          <h3 className={styles.label}>
+            <i
+              className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
+              onClick={() => {
+                if (user?.is_staff || user?.is_superuser) navigate("/hr");
+                else navigate("/dashboard");
+              }}></i>{" "}
+            {pageTitle}
+            <i
+              className={`${styles.commentEdit} fa-solid fa-circle-info fa-xs ms-2`}
+              onClick={openPointsModal}></i>
+          </h3>
+        </Col>
+
+        <Col
+          className={`d-flex align-items-center ${styles.employeeDetails}`}
+          md="auto">
+          <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
+          {terms.length === 0 ? (
+            <>No terms were added yet.</>
+          ) : (
+            <DropdownButton
+              className={`ms-2`}
+              variant={
+                selectedTerm?.is_ongoing === true ? "success" : "secondary"
+              }
+              size="sm"
+              title={selectedTerm?.name}>
+              {terms &&
+                terms.map((term) => (
+                  <Dropdown.Item
+                    key={term.id}
+                    onClick={() => {
+                      fetchClearanceStatus(term);
+                      setSelectedTerm(term);
+                    }}>
+                    {term.name}
+                  </Dropdown.Item>
+                ))}
+            </DropdownButton>
+          )}
+        </Col>
+
         <Modal
           show={showPointsModal}
           onHide={closePointsModal}
@@ -287,76 +342,98 @@ const EmployeeSWTD = () => {
         </Modal>
       </Row>
 
-      <Row className={`${styles.employeeDetails} w-100 mb-3`}>
-        <Col className="d-flex align-items-center">
-          <Row>
-            <Col className="d-flex align-items-center" xs="auto">
-              <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
-              {terms.length === 0 ? (
-                <>No terms were added yet.</>
-              ) : (
-                <DropdownButton
-                  className={`ms-2`}
-                  variant={
-                    selectedTerm?.is_ongoing === true ? "success" : "secondary"
-                  }
-                  size="sm"
-                  title={selectedTerm?.name}>
-                  {terms &&
-                    terms.map((term) => (
-                      <Dropdown.Item
-                        key={term.id}
-                        onClick={() => {
-                          fetchClearanceStatus(term);
-                          setSelectedTerm(term);
-                        }}>
-                        {term.name}
-                      </Dropdown.Item>
-                    ))}
-                </DropdownButton>
-              )}
-            </Col>
-
-            <Col className="d-flex align-items-center" xs="auto">
-              <i className="fa-solid fa-circle-plus me-2"></i>Excess Points:{" "}
-              {employee?.point_balance}
-            </Col>
-
-            {selectedTerm !== null && (
-              <Col className="d-flex align-items-center" xs="auto">
-                <i className="fa-solid fa-user-check me-2"></i>Status:{" "}
-                <span
-                  className={`ms-2 text-${
-                    termStatus?.is_cleared ? "success" : "danger"
-                  }`}>
-                  {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
-                </span>
-              </Col>
-            )}
-          </Row>
+      <Row className={`w-100 mb-4`}>
+        <Col className={styles.employeeDetails} lg={4}>
+          <div className={`${styles.userStat} mb-1`}>User Points</div>
+          <div>
+            <i className="fa-solid fa-circle-check fa-lg me-2"></i>Current
+            Points:{" "}
+            <span className={styles.userStat}>
+              {termStatus?.points.valid_points} pts
+            </span>
+          </div>
+          <div>
+            <i className="fa-solid fa-circle-plus fa-lg me-2"></i>Excess Points:{" "}
+            <span className={styles.userStat}>
+              {employee?.point_balance} pts
+            </span>
+          </div>
+        </Col>
+        <Col className={styles.employeeDetails} lg={4}>
+          <div className={`${styles.userStat} mb-1`}>SWTD Statistics</div>
+          <div>
+            <i className="fa-solid fa-spinner fa-lg me-2"></i>Total Pending
+            SWTDs:{" "}
+            <span className={styles.userStat}>
+              {
+                termSWTDs.filter((swtd) => swtd.validation_status === "PENDING")
+                  .length
+              }{" "}
+              SWTDs
+            </span>
+          </div>
+          <div>
+            <i className="fa-solid fa-circle-xmark fa-lg me-2"></i>Total SWTDs
+            For Revision:{" "}
+            <span className={styles.userStat}>
+              {
+                termSWTDs.filter(
+                  (swtd) => swtd.validation_status === "REJECTED"
+                ).length
+              }{" "}
+              SWTDs
+            </span>
+          </div>
         </Col>
 
-        {selectedTerm !== null && (
-          <Col className={`${styles.termPoints} text-end`} md={2}>
-            <div>
-              <span
-                className={`${styles.validPoints} ${
-                  termStatus?.points?.valid_points <
-                  termStatus?.points?.required_points
-                    ? "text-danger"
-                    : "text-success"
-                }`}>
-                {termStatus?.points?.valid_points}
-              </span>
-              <span className={styles.requiredPoints}>
-                {" "}
-                / {termStatus?.points?.required_points}
-              </span>
-            </div>
-            <span className={styles.pointsLabel}>points</span>
-          </Col>
-        )}
+        <Col className="text-end">
+          <div className={`${styles.employeeDetails} mb-1`}>
+            <i className="fa-solid fa-user-check fa-lg me-2"></i>Status:{" "}
+            <span
+              className={`ms-2 text-${
+                termStatus?.is_cleared ? "success" : "danger"
+              } ${styles.userStat}`}>
+              {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
+            </span>
+          </div>
+          <div className="mb-1">
+            {(user?.is_head || user?.is_staff || user?.is_superuser) &&
+              selectedTerm !== null &&
+              (termStatus?.is_cleared ? (
+                <>
+                  <BtnSecondary onClick={openRevokeModal}>
+                    <i className="fa-solid fa-xmark me-2"></i>Revoke
+                  </BtnSecondary>{" "}
+                </>
+              ) : (
+                <>
+                  <BtnPrimary
+                    onClick={openModal}
+                    disabled={
+                      termStatus?.points?.valid_points +
+                        employee?.point_balance <
+                      termStatus?.points?.required_points
+                    }>
+                    <i className="fa-solid fa-check me-2"></i>
+                    Clear
+                  </BtnPrimary>{" "}
+                </>
+              ))}
+            <BtnSecondary
+              onClick={handlePrint}
+              disabled={loading || userSWTDs.length === 0}>
+              <i className="fa-solid fa-file-arrow-down me-2"></i>
+              Export
+            </BtnSecondary>
+          </div>
+        </Col>
       </Row>
+
+      {/* <Row className="w-100">
+        <Col className="p-0">
+          <hr className="mt-0" style={{ opacity: 1 }} />
+        </Col>
+      </Row> */}
 
       <Row className="w-100">
         {/* SEARCH BAR */}
@@ -395,38 +472,6 @@ const EmployeeSWTD = () => {
           </InputGroup>
         </Col>
 
-        {/* CLEARANCE BUTTONS */}
-        <Col className="text-end">
-          {(user?.is_admin || user?.is_staff || user?.is_superuser) &&
-            selectedTerm !== null &&
-            (termStatus?.is_cleared ? (
-              <>
-                <BtnSecondary onClick={openRevokeModal}>
-                  Revoke Clearance
-                </BtnSecondary>{" "}
-              </>
-            ) : (
-              <>
-                <BtnPrimary
-                  onClick={openModal}
-                  disabled={
-                    termStatus?.points?.valid_points + employee?.point_balance <
-                    termStatus?.points?.required_points
-                  }>
-                  Grant Clearance
-                </BtnPrimary>{" "}
-              </>
-            ))}
-          {selectedTerm === null && (
-            <BtnSecondary
-              onClick={handlePrint}
-              disabled={loading || userSWTDs.length === 0}>
-              <i className="fa-solid fa-file-arrow-down me-2"></i>
-              Export PDF
-            </BtnSecondary>
-          )}
-        </Col>
-
         <ConfirmationModal
           show={showModal}
           onHide={closeModal}
@@ -452,7 +497,8 @@ const EmployeeSWTD = () => {
             <ListGroup className="w-100" variant="flush">
               <ListGroup.Item className={styles.swtdHeader}>
                 <Row>
-                  <Col md={9}>Title of SWTD</Col>
+                  <Col md={5}>Title</Col>
+                  <Col md={4}>Category</Col>
                   <Col md={2}>Status</Col>
                   <Col md={1}>Points</Col>
                 </Row>
@@ -465,11 +511,12 @@ const EmployeeSWTD = () => {
                   className={styles.tableBody}
                   onClick={() => handleViewSWTD(item.id)}>
                   <Row>
-                    <Col md={9}>{truncateTitle(item.title)}</Col>
+                    <Col md={5}>{truncateTitle(item.title)}</Col>
+                    <Col md={4}>{truncateTitle(item.category)}</Col>
                     <Col md={2}>
-                      {item.validation.status === "REJECTED"
+                      {item.validation_status === "REJECTED"
                         ? "FOR REVISION"
-                        : item.validation.status}
+                        : item.validation_status}
                     </Col>
                     <Col md={1}>{item.points}</Col>
                   </Row>

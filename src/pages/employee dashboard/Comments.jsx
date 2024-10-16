@@ -33,7 +33,7 @@ const Comments = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const hasPermissions = () => {
-    return user?.is_admin || user?.is_staff || user?.is_superuser;
+    return user?.is_head || user?.is_staff || user?.is_superuser;
   };
 
   const fetchComments = () => {

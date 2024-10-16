@@ -21,9 +21,10 @@ export const getAllUsers = async (data, onSuccess, onFail) => {
 export const validateSWTD = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.put(
-      `${apiUrl}/swtds/${data.id}/validation`,
+      `${apiUrl}/swtds/${data.id}`,
       {
-        status: data.response,
+        validator_id: data.validator_id,
+        validation_status: data.validation_status,
       },
       {
         headers: {
