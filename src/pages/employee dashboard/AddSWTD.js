@@ -344,7 +344,7 @@ const AddSWTD = () => {
         </Col>
       </Row>
 
-      <Card className="mb-3" style={{ width: "80rem" }}>
+      <Card className="w-100 mb-3">
         <Card.Header className={styles.cardHeader}>
           <Row>
             <Col>SWTD Details</Col>
@@ -466,33 +466,6 @@ const AddSWTD = () => {
                 </FloatingLabel>
               </Col>
 
-              <Col md="2">
-                <FloatingLabel
-                  controlId="floatingInputPoints"
-                  label="Points"
-                  className="mb-3">
-                  <Form.Control
-                    type="number"
-                    min={0}
-                    placeholder="Points"
-                    className={styles.pointsBox}
-                    name="points"
-                    onChange={handleChange}
-                    value={form.points}
-                    disabled={loading}
-                    readOnly={
-                      !form?.category.startsWith("Degree") &&
-                      !checkbox.deliverable
-                    }
-                  />
-                  <Form.Text>
-                    {checkbox.deliverable || form?.category.startsWith("Degree")
-                      ? "Enter points for this SWTD."
-                      : "Calculated automatically."}
-                  </Form.Text>
-                </FloatingLabel>
-              </Col>
-
               <Col className="d-flex p-3">
                 <Form.Check
                   inline
@@ -507,14 +480,14 @@ const AddSWTD = () => {
               </Col>
             </Row>
 
-            {/* DATE & TIME */}
+            {/* DURATION & POINTS LABEL */}
             <Row className="mb-2">
               <Col className={`p-1 ${styles.categoryLabel}`} md="4">
-                <span className="ms-1">DATE & TIME</span>
+                <span className="ms-1">DURATION & POINTS</span>
               </Col>
             </Row>
 
-            {/* DATE + TIME ROW */}
+            {/* DURATION & POINTS */}
             <Row className="mb-4">
               {/* DATE */}
               <Col md="3">
@@ -529,7 +502,7 @@ const AddSWTD = () => {
                     max={
                       selectedTerm?.ongoing
                         ? new Date().toISOString().slice(0, 10)
-                        : selectedTerm.end
+                        : selectedTerm.end_date
                     }
                     className={styles.formBox}
                     onChange={handleChange}
@@ -551,6 +524,12 @@ const AddSWTD = () => {
                   <Form.Control
                     type="date"
                     name="end_date"
+                    min={form?.start_date}
+                    max={
+                      selectedTerm?.ongoing
+                        ? new Date().toISOString().slice(0, 10)
+                        : selectedTerm.end_date
+                    }
                     className={styles.formBox}
                     onChange={handleChange}
                     value={form.end_date}
@@ -585,6 +564,33 @@ const AddSWTD = () => {
                   </FloatingLabel>
                 </Col>
               )}
+
+              <Col md="2">
+                <FloatingLabel
+                  controlId="floatingInputPoints"
+                  label="Points"
+                  className="mb-3">
+                  <Form.Control
+                    type="number"
+                    min={0}
+                    placeholder="Points"
+                    className={styles.pointsBox}
+                    name="points"
+                    onChange={handleChange}
+                    value={form.points}
+                    disabled={loading}
+                    readOnly={
+                      !form?.category.startsWith("Degree") &&
+                      !checkbox.deliverable
+                    }
+                  />
+                  <Form.Text>
+                    {checkbox.deliverable || form?.category.startsWith("Degree")
+                      ? "Enter points for this SWTD."
+                      : "Calculated automatically."}
+                  </Form.Text>
+                </FloatingLabel>
+              </Col>
             </Row>
 
             {/* DOCUMENTATION */}

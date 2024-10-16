@@ -59,12 +59,9 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     end_date: "",
     total_hours: 0,
     points: 0,
-    proof: "",
     benefits: "",
     has_deliverables: checkbox.deliverable,
   });
-
-  let swtdPoints = 0;
 
   const handleBoxChange = (e) => {
     const { id, checked } = e.target;
@@ -75,19 +72,13 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
 
     setForm((prevForm) => ({
       ...prevForm,
+      points: 0,
       has_deliverables:
         id === "deliverable" ? checked : prevForm.has_deliverables,
     }));
   };
 
   const fetchTerms = () => {
-    setDepartmentTypes({
-      ...departmentTypes,
-      semester: user?.department?.use_schoolyear === false ? true : false,
-      midyear: user?.department?.midyear_points > 0 ? true : false,
-      academic: user?.department?.use_schoolyear,
-    });
-
     getTerms(
       {
         token: token,
@@ -135,9 +126,8 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
         form_id: swtd_id,
       },
       (response) => {
-        const data = response.data;
-
-        if (id !== data.author_id) {
+        const data = response.data.data;
+        if (id !== data.author.id) {
           navigate("/swtd");
           return;
         }
@@ -207,7 +197,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
   };
 
   const invalidFields = () => {
-    const requiredFields = ["title", "venue", "category", "role", "benefits"];
+    const requiredFields = ["title", "venue", "category", "benefits"];
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       form.term_id === 0 ||
@@ -218,8 +208,14 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
 
   //TODO
   const handleSubmit = async () => {
+    //Change date format from YYYY-MM-DD to MM-DD-YYYY
+    const formattedStartDate = apiDate(form.start_date);
+    const formattedEndDate = apiDate(form.end_date);
+
     const updatedForm = {
       ...form,
+      start_date: formattedStartDate,
+      end_date: formattedEndDate,
     };
 
     await editSWTD(
@@ -246,9 +242,19 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
   };
 
   useEffect(() => {
+    if (user)
+      setDepartmentTypes({
+        ...departmentTypes,
+        semester: user?.department?.use_schoolyear === false ? true : false,
+        midyear: user?.department?.midyear_points > 0 ? true : false,
+        academic: user?.department?.use_schoolyear,
+      });
+  }, [user]);
+
+  useEffect(() => {
     const allEntriesFilled =
-      !isEmpty(form.start_date) &&
-      !isEmpty(form.end_date) &&
+      !isEmpty(form?.start_date) &&
+      !isEmpty(form?.end_date) &&
       form.total_hours > 0;
     if (allEntriesFilled && !checkbox.deliverable) {
       const totalPoints = calculateHourPoints(
@@ -360,8 +366,8 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   <option value={0} disabled>
                     Select a term
                   </option>
-                  {terms.map((term, index) => (
-                    <option key={index} value={term.id}>
+                  {terms.map((term) => (
+                    <option key={term.id} value={term.id}>
                       {term.name} ({monthYearDate(term.start_date)} to{" "}
                       {monthYearDate(term.end_date)})
                     </option>
@@ -399,33 +405,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
               </FloatingLabel>
             </Col>
 
-            <Col md="2">
-              <FloatingLabel
-                controlId="floatingInputPoints"
-                label="Points"
-                className="mb-3">
-                <Form.Control
-                  type="number"
-                  min={0}
-                  placeholder="Points"
-                  className={styles.pointsBox}
-                  name="points"
-                  onChange={handleChange}
-                  value={form.points}
-                  disabled={loading}
-                  readOnly={
-                    !form?.category.startsWith("Degree") &&
-                    !checkbox.deliverable
-                  }
-                />
-                <Form.Text>
-                  {checkbox.deliverable || form?.category.startsWith("Degree")
-                    ? "Enter points for this SWTD."
-                    : "Points calculated automatically."}
-                </Form.Text>
-              </FloatingLabel>
-            </Col>
-
             <Col className="d-flex p-3">
               <Form.Check
                 inline
@@ -440,14 +419,14 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
             </Col>
           </Row>
 
-          {/* DATE & TIME */}
+          {/* DURATION & POINTS LABEL */}
           <Row className="mb-2">
             <Col className={`p-1 ${styles.categoryLabel}`} md="4">
-              <span className="ms-1">DATE & TIME</span>
+              <span className="ms-1">DURATION & POINTS</span>
             </Col>
           </Row>
 
-          {/* DATE + TIME ROW */}
+          {/* DURATION & POINTS */}
           <Row className="mb-4">
             {/* DATE */}
             <Col md="3">
@@ -457,11 +436,12 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                 className="mb-3">
                 <Form.Control
                   type="date"
+                  name="start_date"
                   min={selectedTerm?.start_date}
                   max={
                     selectedTerm?.ongoing
                       ? new Date().toISOString().slice(0, 10)
-                      : selectedTerm.end
+                      : selectedTerm.end_date
                   }
                   className={styles.formBox}
                   onChange={handleChange}
@@ -482,6 +462,13 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                 className="mb-3">
                 <Form.Control
                   type="date"
+                  name="end_date"
+                  min={form?.start_date}
+                  max={
+                    selectedTerm?.ongoing
+                      ? new Date().toISOString().slice(0, 10)
+                      : selectedTerm.end_date
+                  }
                   className={styles.formBox}
                   onChange={handleChange}
                   value={form.end_date}
@@ -506,6 +493,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   className="mb-3">
                   <Form.Control
                     type="number"
+                    name="total_hours"
                     className={styles.formBox}
                     min={0}
                     onChange={handleChange}
@@ -515,6 +503,33 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                 </FloatingLabel>
               </Col>
             )}
+
+            <Col md="2">
+              <FloatingLabel
+                controlId="floatingInputPoints"
+                label="Points"
+                className="mb-3">
+                <Form.Control
+                  type="number"
+                  min={0}
+                  placeholder="Points"
+                  className={styles.pointsBox}
+                  name="points"
+                  onChange={handleChange}
+                  value={form.points}
+                  disabled={loading}
+                  readOnly={
+                    !form?.category.startsWith("Degree") &&
+                    !checkbox.deliverable
+                  }
+                />
+                <Form.Text>
+                  {checkbox.deliverable || form?.category.startsWith("Degree")
+                    ? "Enter points for this SWTD."
+                    : "Calculated automatically."}
+                </Form.Text>
+              </FloatingLabel>
+            </Col>
           </Row>
 
           {/* DOCUMENTATION */}

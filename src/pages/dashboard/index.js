@@ -3,8 +3,8 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, Card, ProgressBar,
         Dropdown, DropdownButton, Modal } from "react-bootstrap"; /* prettier-ignore */
-
 import status from "../../data/status.json";
+import { getAllMembers } from "../../api/department";
 import { getAllUsers, getTerms } from "../../api/admin";
 import { getClearanceStatus } from "../../api/user";
 import { getAllSWTDs } from "../../api/swtd";
@@ -17,6 +17,7 @@ const Dashboard = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
+  const [departmentDetails, setDepartmentDetails] = useState(null);
   const [departmentUsers, setDepartmentUsers] = useState([]);
   const [noUsers, setNoUsers] = useState(true);
   const [terms, setTerms] = useState([]);
@@ -48,20 +49,17 @@ const Dashboard = () => {
   const [loadingMessage, setLoadingMessage] = useState("Loading data...");
   const recordsPerPage = 20;
 
-  const fetchAllUsers = async () => {
-    await getAllUsers(
+  const fetchDepartmentMembers = async () => {
+    await getAllMembers(
       {
+        id: user?.department.id,
         token: token,
       },
       (response) => {
-        const filteredUsers = response.users.filter(
-          (us) =>
-            us.department?.id === user?.department?.id && us.id !== user.id
-        );
-
-        if (filteredUsers.length !== 0) {
+        setDepartmentDetails(response.data);
+        if (response.data.members?.length !== 0) {
           setNoUsers(false);
-          setDepartmentUsers(filteredUsers);
+          setDepartmentUsers(response.data.members);
           setLoading(true);
         } else {
           setLoading(false);
@@ -80,7 +78,7 @@ const Dashboard = () => {
       },
       (response) => {
         let filteredTerms = response.terms;
-        if (filteredTerms.length === 0)
+        if (filteredTerms?.length === 0)
           setLoadingMessage(
             <span className="text-center mt-2">
               <i className="fa-solid fa-face-grin-beam-sweat"></i> No terms have
@@ -96,12 +94,12 @@ const Dashboard = () => {
         ];
 
         if (validTypes.length > 0) {
-          filteredTerms = filteredTerms.filter((term) =>
+          filteredTerms = filteredTerms?.filter((term) =>
             validTypes.includes(term.type)
           );
         }
 
-        const ongoingTerm = filteredTerms.find(
+        const ongoingTerm = filteredTerms?.find(
           (term) => term.is_ongoing === true
         );
 
@@ -120,8 +118,8 @@ const Dashboard = () => {
         author_id: employee.id,
         token: token,
       },
-      (swtdsResponse) => {
-        const filteredSWTDs = swtdsResponse.swtds.filter(
+      (response) => {
+        const filteredSWTDs = response.data?.filter(
           (swtd) => swtd.term.id === term.id
         );
 
@@ -143,7 +141,6 @@ const Dashboard = () => {
                 swtds: filteredSWTDs,
               },
             }));
-            setRequiredPoints(clearanceResponse.points.required_points);
           },
           (error) => {
             console.log(
@@ -245,7 +242,7 @@ const Dashboard = () => {
 
         const fetchData = async () => {
           fetchTerms();
-          await fetchAllUsers();
+          await fetchDepartmentMembers();
         };
 
         fetchData();

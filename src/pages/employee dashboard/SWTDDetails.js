@@ -418,6 +418,7 @@ const SWTDDetails = () => {
         onHide={handleCloseProofModal}
         size="xl"
         centered>
+        <Modal.Header closeButton></Modal.Header>
         <Modal.Body className="d-flex justify-content-center align-items-center">
           {!swtdProof ? (
             <Row className="w-100">
