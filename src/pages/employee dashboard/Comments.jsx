@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { Card, Row, Col, Badge, ListGroup, Form, Button } from "react-bootstrap"; /* prettier-ignore */
 
 import { isEmpty } from "../../common/validation/utils";
+import { formatDateTime } from "../../common/format/time";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
@@ -42,7 +43,7 @@ const Comments = () => {
         token: token,
       },
       (response) => {
-        setComments(response.data.comments);
+        setComments(response.data.data);
       },
       (error) => {
         console.log("Error: ", error.message);
@@ -128,25 +129,37 @@ const Comments = () => {
                 comments.map((item) => (
                   <ListGroup.Item key={item.id} className={styles.commentBox}>
                     <Row>
-                      <Col xs={2}>
+                      <Col className={styles.formLabel} lg={2}>
                         {item.author.firstname} {item.author.lastname}
                       </Col>
-                      <Col xs={6}>{item.message}</Col>
-                      <Col xs={2}>{item.date_modified}</Col>
-                      <Col className="text-end" xs={1}>
+                      <Col className="text-wrap" lg={5}>
+                        {item.message}
+                      </Col>
+                      <Col className="text-end" lg={3}>
+                        {formatDateTime(item.date_modified)}
+                      </Col>
+                      {item.is_edited ? (
+                        <Col lg={1}>
+                          <Badge bg="secondary" pill>
+                            Edited
+                          </Badge>
+                        </Col>
+                      ) : (
+                        <Col lg={1}></Col>
+                      )}
+                      <Col className="text-end" lg={1}>
                         {item.author.id === userID && (
                           <i
-                            className={`${styles.commentEdit} fa-solid fa-pen-to-square`}
+                            className={`${styles.commentEdit} fa-solid fa-pen-to-square fa-lg me-3`}
                             onClick={() => {
                               openCommentModal();
                               setSelectedComment(item);
                             }}></i>
                         )}
-                      </Col>
-                      <Col className="text-end" xs={1}>
+
                         {(item.author.id === userID || hasPermissions()) && (
                           <i
-                            className={`${styles.commentDelete} fa-solid fa-trash-can`}
+                            className={`${styles.commentDelete} fa-solid fa-trash-can fa-lg`}
                             onClick={() => {
                               openModal();
                               setSelectedComment(item);
@@ -154,11 +167,6 @@ const Comments = () => {
                         )}
                       </Col>
                     </Row>
-                    {item.is_edited && (
-                      <Badge bg="secondary" pill>
-                        Edited
-                      </Badge>
-                    )}
                   </ListGroup.Item>
                 ))}
               <EditCommentModal
@@ -192,7 +200,7 @@ const Comments = () => {
               <Form.Group>
                 <Form.Control
                   type="text"
-                  className={styles.formBox}
+                  className={`${styles.formBox} ${styles.cardBody}`}
                   name="comment"
                   onChange={handleCommentChange}
                   value={comment}

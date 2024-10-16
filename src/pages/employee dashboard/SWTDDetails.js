@@ -33,6 +33,7 @@ const SWTDDetails = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const [loading, setLoading] = useState(true);
+  const [loadingProof, setLoadingProof] = useState(true);
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
   const [termStatus, setTermStatus] = useState(true);
@@ -74,6 +75,8 @@ const SWTDDetails = () => {
           src: blobURL,
           type: contentType,
         });
+
+        setLoadingProof(false);
       },
       (error) => {
         console.log("Error fetching SWTD data: ", error);
@@ -104,7 +107,7 @@ const SWTDDetails = () => {
         token: token,
       },
       (response) => {
-        navigate("/swtd");
+        navigate("/swtd/all");
       },
       (error) => {
         console.log(error.message);
@@ -118,9 +121,15 @@ const SWTDDetails = () => {
     const newIndex = currentProofIndex + direction;
 
     if (newIndex >= 0 && newIndex < swtd.proof.length) {
+      setLoadingProof(true);
       setCurrentProofIndex(newIndex);
       fetchSWTDProof(swtd.proof[newIndex].id);
     }
+  };
+
+  const handleCloseProofModal = () => {
+    setCurrentProofIndex(0);
+    closeProofModal();
   };
 
   const handleDeleteProof = async () => {
@@ -132,13 +141,12 @@ const SWTDDetails = () => {
       },
       (response) => {
         triggerShowSuccess(3000);
-        closeProofModal();
+        handleCloseProofModal();
         fetchSWTD();
       },
       (error) => {
         fetchSWTD();
         closeProofModal();
-        console.log(error.message);
         setErrorMessage(error.message);
         triggerShowError(3000);
       }
@@ -405,7 +413,11 @@ const SWTDDetails = () => {
           )}
         </Card.Body>
       </Card>
-      <Modal show={showProofModal} onHide={closeProofModal} size="xl" centered>
+      <Modal
+        show={showProofModal}
+        onHide={handleCloseProofModal}
+        size="xl"
+        centered>
         <Modal.Body className="d-flex justify-content-center align-items-center">
           {!swtdProof ? (
             <Row className="w-100">
@@ -430,7 +442,9 @@ const SWTDDetails = () => {
                 <Col lg="auto" md="auto">
                   <i
                     className={`${styles.points} ${styles.triangle} fa-solid fa-square-caret-left fa-2xl`}
-                    onClick={() => handleProofNavigation(-1)}></i>
+                    onClick={() => {
+                      handleProofNavigation(-1);
+                    }}></i>
                 </Col>
                 <Col className={styles.formLabel} lg="auto" md="auto">
                   {currentProofIndex + 1} / {swtd.proof?.length}
@@ -438,7 +452,9 @@ const SWTDDetails = () => {
                 <Col lg="auto" md="auto">
                   <i
                     className={`${styles.points} ${styles.triangle} fa-solid fa-square-caret-right fa-2xl`}
-                    onClick={() => handleProofNavigation(1)}></i>
+                    onClick={() => {
+                      handleProofNavigation(1);
+                    }}></i>
                 </Col>
                 <Col className="text-end">
                   <BtnSecondary
@@ -452,22 +468,36 @@ const SWTDDetails = () => {
 
               <Row className="d-flex justify-content-center align-items-center w-100 mb-3">
                 <Col className="text-center">
-                  {swtdProof?.type.startsWith("image") && (
-                    <img
-                      src={swtdProof?.src}
-                      title="SWTD Proof"
-                      className={styles.imgProof}
-                      alt="SWTD Proof"
-                    />
-                  )}
-                  {swtdProof?.type === "application/pdf" && (
-                    <iframe
-                      src={swtdProof?.src}
-                      type="application/pdf"
-                      width="100%"
-                      height="600px"
-                      title="SWTD Proof PDF"
-                      aria-label="SWTD Proof PDF"></iframe>
+                  {loadingProof ? (
+                    <>
+                      <Row className="w-100">
+                        <div
+                          className={`${styles.msg} d-flex justify-content-center align-items-center`}>
+                          <Spinner className={`me-2`} animation="border" />
+                          Loading proof...
+                        </div>
+                      </Row>
+                    </>
+                  ) : (
+                    <>
+                      {swtdProof?.type.startsWith("image") && (
+                        <img
+                          src={swtdProof?.src}
+                          title="SWTD Proof"
+                          className={styles.imgProof}
+                          alt="SWTD Proof"
+                        />
+                      )}
+                      {swtdProof?.type === "application/pdf" && (
+                        <iframe
+                          src={swtdProof?.src}
+                          type="application/pdf"
+                          width="100%"
+                          height="600px"
+                          title="SWTD Proof PDF"
+                          aria-label="SWTD Proof PDF"></iframe>
+                      )}
+                    </>
                   )}
                 </Col>
               </Row>
