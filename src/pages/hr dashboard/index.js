@@ -5,6 +5,7 @@ import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination }
 
 import { getAllUsers, getTerms, getAllDepartments, getDepartment } from "../../api/admin"; /* prettier-ignore */
 import { getClearanceStatus } from "../../api/user";
+import { exportDepartmentData } from "../../api/export";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -97,6 +98,14 @@ const HRDashboard = () => {
   };
 
   const fetchClearanceStatus = (employee, term) => {
+    const termStatus = employee?.clearances.find(
+      (clearance) => clearance.term.id === term
+    );
+
+    let isCleared = false;
+    if (termStatus) isCleared = termStatus?.is_deleted ? false : true;
+    else isCleared = false;
+
     getClearanceStatus(
       {
         id: employee.id,
@@ -112,6 +121,7 @@ const HRDashboard = () => {
             employee_id: employee.employee_id,
             firstname: employee.firstname,
             lastname: employee.lastname,
+            is_cleared: isCleared,
             department: employee.department,
           },
         }));
@@ -133,6 +143,24 @@ const HRDashboard = () => {
 
   const handleEmployeeSWTDClick = (id) => {
     navigate(`/dashboard/${id}`);
+  };
+
+  const handlePrint = () => {
+    exportDepartmentData(
+      {
+        id: selectedDepartment.id,
+        term_id: selectedTerm,
+        token: token,
+      },
+      (response) => {
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const blobURL = URL.createObjectURL(blob);
+        window.open(blobURL, "_blank");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   };
 
   //Pagination
@@ -199,7 +227,7 @@ const HRDashboard = () => {
         academic: selectedDepartment?.use_schoolyear,
       });
     }
-  }, [selectedDepartment]);
+  }, [selectedDepartment, departmentTypes]);
 
   useEffect(() => {
     if (selectedDepartment) {
@@ -270,7 +298,9 @@ const HRDashboard = () => {
             }}>
             <i className="fa-solid fa-trash-can me-2"></i>Reset
           </BtnPrimary>{" "}
-          <BtnSecondary disabled={!selectedDepartment || selectedTerm !== 0}>
+          <BtnSecondary
+            onClick={handlePrint}
+            disabled={!selectedDepartment || selectedTerm === 0}>
             <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i> Export
           </BtnSecondary>
         </Col>
@@ -385,8 +415,8 @@ const HRDashboard = () => {
                     <Row>
                       <Col md={2}>ID No.</Col>
                       <Col md={7}>Name</Col>
-                      <Col>Clearance Status</Col>
                       <Col md={1}>Points</Col>
+                      <Col>Status</Col>
                     </Row>
                   </ListGroup.Item>
                 </ListGroup>
@@ -401,13 +431,13 @@ const HRDashboard = () => {
                         <Col md={7}>
                           {item.firstname} {item.lastname}
                         </Col>
+                        <Col md={1}>{item.valid_points}</Col>
                         <Col
                           className={`text-${
                             item.is_cleared ? "success" : "danger"
                           } ${styles.userStatus}`}>
                           {item.is_cleared ? "CLEARED" : "NOT CLEARED"}
                         </Col>
-                        <Col md={1}>{item.points.valid_points}</Col>
                       </Row>
                     </ListGroup.Item>
                   ))}

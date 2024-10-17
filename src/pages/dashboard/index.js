@@ -8,8 +8,10 @@ import { getAllMembers } from "../../api/department";
 import { getTerms } from "../../api/admin";
 import { getClearanceStatus } from "../../api/user";
 import { getAllSWTDs } from "../../api/swtd";
+import { exportDepartmentData } from "../../api/export";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
 
 const Dashboard = () => {
@@ -174,6 +176,24 @@ const Dashboard = () => {
 
   const handleEmployeeSWTDClick = (id) => {
     navigate(`/dashboard/${id}`);
+  };
+
+  const handlePrint = () => {
+    exportDepartmentData(
+      {
+        id: user?.department?.id,
+        term_id: selectedTerm.id,
+        token: token,
+      },
+      (response) => {
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const blobURL = URL.createObjectURL(blob);
+        window.open(blobURL, "_blank");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   };
 
   //Pagination
@@ -438,6 +458,15 @@ const Dashboard = () => {
                 </Form.Select>
               </InputGroup>
             </Col>
+
+            <Col className="text-end">
+              <BtnSecondary
+                onClick={handlePrint}
+                disabled={departmentUsers.length === 0}>
+                <i className="fa-solid fa-file-arrow-down me-2"></i>
+                Export
+              </BtnSecondary>
+            </Col>
           </Row>
 
           <Row className="w-100">
@@ -462,9 +491,7 @@ const Dashboard = () => {
                       <Col className="text-center" md={1}>
                         Points
                       </Col>
-                      <Col className="text-center" md={2}>
-                        Status
-                      </Col>
+                      <Col md={2}>Status</Col>
                     </Row>
                   </ListGroup.Item>
                 </ListGroup>
@@ -500,7 +527,7 @@ const Dashboard = () => {
                         </Col>
 
                         <Col
-                          className={`text-center text-${
+                          className={`text-${
                             item.is_cleared ? "success" : "danger"
                           } ${styles.filterText}`}
                           md={2}>

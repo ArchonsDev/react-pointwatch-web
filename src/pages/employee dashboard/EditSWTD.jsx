@@ -208,7 +208,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       form.term_id === 0 ||
-      !form.files ||
       form.points <= 0 ||
       !isValidSWTDDate(form.start_date, selectedTerm) ||
       !isValidSWTDDate(form.end_date, selectedTerm) ||
