@@ -5,6 +5,8 @@ import Cookies from "js-cookie";
 import { getAllUsers, updateStaff } from "../../api/admin";
 
 import styles from "./style.module.css";
+import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 const StaffPromotion = () => {
   const userID = Cookies.get("userID");
@@ -131,7 +133,12 @@ const StaffPromotion = () => {
                     .sort((a, b) => b.is_staff - a.is_staff)
                     .map((item) => (
                       <tr key={item.id}>
-                        <td>{item.employee_id}</td>
+                        <td
+                          className={`${
+                            item.employee_id ? "" : "text-danger"
+                          }`}>
+                          {item.employee_id ? item.employee_id : "No ID"}
+                        </td>
                         <td>
                           {item.lastname}, {item.firstname}
                         </td>
@@ -153,24 +160,22 @@ const StaffPromotion = () => {
                           {item.department ? (
                             <>
                               {item.is_staff ? (
-                                <div
-                                  className={styles.icon}
+                                <BtnSecondary
                                   onClick={() => {
                                     const val = item.is_head ? 1 : 0;
                                     grantRevokeStaff(item.id, val);
                                   }}>
                                   <i
-                                    className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
+                                    className={`fa-solid fa-circle-arrow-down fa-lg me-2`}></i>
                                   DEMOTE
-                                </div>
+                                </BtnSecondary>
                               ) : (
-                                <div
-                                  className={styles.icon}
+                                <BtnPrimary
                                   onClick={() => grantRevokeStaff(item.id, 2)}>
                                   <i
-                                    className={`${styles.icon} fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
+                                    className={`${styles.icon} fa-solid fa-circle-arrow-up fa-lg me-2`}></i>
                                   PROMOTE
-                                </div>
+                                </BtnPrimary>
                               )}
                             </>
                           ) : (

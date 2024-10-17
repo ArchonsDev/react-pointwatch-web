@@ -118,6 +118,10 @@ const SWTDDashboard = () => {
     );
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   const handleFilter = (swtdList, query, stat) => {
     return swtdList.filter((swtd) => {
       const matchesQuery = swtd.title
@@ -139,6 +143,10 @@ const SWTDDashboard = () => {
   //Filtered SWTDs with search bar
   const filteredSWTDs = handleFilter(swtds, searchQuery, selectedStatus);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedStatus]);
+
   // Calculate pagination
   const totalRecords = filteredSWTDs.length;
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
@@ -149,10 +157,6 @@ const SWTDDashboard = () => {
     indexOfFirstRecord,
     indexOfLastRecord
   );
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
 
   useEffect(() => {
     if (user) {

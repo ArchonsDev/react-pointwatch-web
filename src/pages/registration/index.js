@@ -14,6 +14,7 @@ const Registration = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -63,10 +64,12 @@ const Registration = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsClicked(true);
+    setIsProcessing(true);
 
     if (invalidFields()) {
       setErrorMessage("Please check the details again.");
       setIsClicked(false);
+      setIsProcessing(false);
       return;
     }
 
@@ -76,6 +79,7 @@ const Registration = () => {
         setTimeout(() => {
           setIsRegistrationComplete(true);
           setIsClicked(false);
+          setIsProcessing(false);
         });
       },
       (error) => {
@@ -83,6 +87,7 @@ const Registration = () => {
           setErrorMessage(<b>{error.response.data.error}</b>);
           setShowToast(true);
         }
+        setIsProcessing(false);
       }
     );
   };
@@ -338,11 +343,18 @@ const Registration = () => {
                   <Col className="text-center">
                     <BtnPrimary
                       onClick={handleSubmit}
-                      disabled={invalidFields()}
+                      disabled={invalidFields() || isProcessing} // Disable when processing or fields are invalid
                       title={
                         invalidFields() ? "Please check the details again." : ""
                       }>
-                      Register
+                      {isProcessing ? ( // Show spinner when processing
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"></span>
+                      ) : (
+                        "Register"
+                      )}
                     </BtnPrimary>
                   </Col>
                 </Row>

@@ -23,8 +23,9 @@ const General = () => {
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
-
+  const [levels, setLevels] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [selectedLevel, setSelectedLevel] = useState(null);
   const [form, setForm] = useState({
     employee_id: "",
     firstname: "",
@@ -39,6 +40,10 @@ const General = () => {
       },
       (response) => {
         setDepartments(response.departments);
+        const uniqueLevels = [
+          ...new Set(response.departments.map((dept) => dept.level)),
+        ];
+        setLevels(uniqueLevels);
       },
       (error) => {
         console.log(error.message);
@@ -57,6 +62,16 @@ const General = () => {
       [name]: name === "department_id" ? parseInt(value, 10) || 0 : value,
     }));
   };
+
+  const handleLevelChange = (e) => {
+    const level = e.target.value;
+    setSelectedLevel(level);
+    setForm({ ...form, department_id: 0 });
+  };
+
+  const filteredDepartments = selectedLevel
+    ? departments.filter((dept) => dept.level === selectedLevel)
+    : departments;
 
   const invalidFields = () => {
     const emptyFields = ["firstname", "lastname"];
@@ -89,17 +104,22 @@ const General = () => {
   };
 
   const handleCancel = () => {
+    setSelectedLevel("");
+    if (user?.department?.id !== 0) setSelectedLevel(user?.department?.level);
+
     setForm({
       ...form,
       firstname: user?.firstname,
       lastname: user?.lastname,
-      department_id: user?.department?.id,
+      department_id: user?.department ? user?.department?.id : 0,
     });
     cancelEditing();
   };
 
   useEffect(() => {
     if (user) {
+      if (user?.department?.id !== 0) setSelectedLevel(user?.department?.level);
+
       setForm({
         employee_id: user.employee_id,
         firstname: user.firstname,
@@ -215,26 +235,49 @@ const General = () => {
               Department
             </Form.Label>
             {isEditing ? (
-              <Col md="10">
-                <Form.Select
-                  name="department_id"
-                  className={styles.formBox}
-                  onChange={handleChange}
-                  value={form.department_id}
-                  isInvalid={form.department_id === 0}>
-                  <option value="0" disabled>
-                    Select Department
-                  </option>
-                  {departments.map((department) => (
-                    <option key={department.id} value={department.id}>
-                      {department.name}
+              <>
+                <Col md="5">
+                  <Form.Select
+                    name="selected_level"
+                    className={styles.formBox}
+                    onChange={handleLevelChange}
+                    value={selectedLevel || ""}>
+                    <option value="" disabled>
+                      Levels
                     </option>
-                  ))}
-                </Form.Select>
-                <Form.Control.Feedback type="invalid">
-                  Department is required.
-                </Form.Control.Feedback>
-              </Col>
+                    {levels.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Col>
+
+                {/* Department Selection */}
+                <Col md="5">
+                  <Form.Select
+                    name="department_id"
+                    className={styles.formBox}
+                    onChange={handleChange}
+                    value={form.department_id}
+                    disabled={!selectedLevel}
+                    isInvalid={form.department_id === 0}>
+                    <option value="0" disabled>
+                      Departments
+                    </option>
+                    {filteredDepartments
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map((department) => (
+                        <option key={department.id} value={department.id}>
+                          {department.name}
+                        </option>
+                      ))}
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    Department is required.
+                  </Form.Control.Feedback>
+                </Col>
+              </>
             ) : (
               <Col
                 className="d-flex justify-content-start align-items-center"

@@ -99,25 +99,22 @@ const Admin = () => {
                 More
               </Dropdown.Toggle>
               <Dropdown.Menu className={styles.formLabel}>
-                <Dropdown.Item onClick={() => setActiveTab("activity")}>
+                {/* <Dropdown.Item onClick={() => setActiveTab("activity")}>
                   Validation & Clearance Reports
+                </Dropdown.Item> */}
+
+                <Dropdown.Item onClick={() => setActiveTab("head")}>
+                  Department Chairs/Heads
                 </Dropdown.Item>
-                {user?.is_superuser && (
-                  <>
-                    <Dropdown.Item onClick={() => setActiveTab("head")}>
-                      Department Chairs/Heads
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => setActiveTab("staff")}>
-                      HR Staff
-                    </Dropdown.Item>
-                  </>
-                )}
+                <Dropdown.Item onClick={() => setActiveTab("staff")}>
+                  HR Staff
+                </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           ) : (
             <>
               <Nav.Item>
-                <Nav.Link
+                {/* <Nav.Link
                   eventKey="activity"
                   className={`${styles.navHeader} ${
                     activeTab === "activity"
@@ -125,34 +122,29 @@ const Admin = () => {
                       : styles.inactiveTab
                   }`}>
                   Validation & Clearance Reports
+                </Nav.Link> */}
+              </Nav.Item>
+
+              <Nav.Item>
+                <Nav.Link
+                  eventKey="head"
+                  className={`${styles.navHeader} ${
+                    activeTab === "head" ? styles.activeTab : styles.inactiveTab
+                  }`}>
+                  Department Chairs/Heads
                 </Nav.Link>
               </Nav.Item>
-              {user?.is_superuser && (
-                <>
-                  <Nav.Item>
-                    <Nav.Link
-                      eventKey="head"
-                      className={`${styles.navHeader} ${
-                        activeTab === "head"
-                          ? styles.activeTab
-                          : styles.inactiveTab
-                      }`}>
-                      Department Chairs/Heads
-                    </Nav.Link>
-                  </Nav.Item>
-                  <Nav.Item>
-                    <Nav.Link
-                      eventKey="staff"
-                      className={`${styles.navHeader} ${
-                        activeTab === "staff"
-                          ? styles.activeTab
-                          : styles.inactiveTab
-                      }`}>
-                      HR Staff
-                    </Nav.Link>
-                  </Nav.Item>
-                </>
-              )}
+              <Nav.Item>
+                <Nav.Link
+                  eventKey="staff"
+                  className={`${styles.navHeader} ${
+                    activeTab === "staff"
+                      ? styles.activeTab
+                      : styles.inactiveTab
+                  }`}>
+                  HR Staff
+                </Nav.Link>
+              </Nav.Item>
             </>
           )}
         </Nav>

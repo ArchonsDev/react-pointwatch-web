@@ -61,7 +61,7 @@ const Dashboard = () => {
         if (response.data.members?.length !== 0) {
           setNoUsers(false);
           setDepartmentUsers(
-            response.data.members.filter((member) => member.id !== user.id)
+            response.data.members?.filter((member) => member.id !== user.id)
           );
           setLoading(true);
         } else {
@@ -118,7 +118,7 @@ const Dashboard = () => {
   const fetchClearanceStatus = (employee, term) => {
     getAllSWTDs(
       {
-        author_id: employee.id,
+        author_id: employee?.id,
         token: token,
       },
       (response) => {
@@ -136,16 +136,16 @@ const Dashboard = () => {
 
         getClearanceStatus(
           {
-            id: employee.id,
+            id: employee?.id,
             term_id: term.id,
             token: token,
           },
           (clearanceResponse) => {
             setUserClearanceStatus((prevStatus) => ({
               ...prevStatus,
-              [employee.id]: {
+              [employee?.id]: {
                 ...clearanceResponse,
-                id: employee.id,
+                id: employee?.id,
                 employee_id: employee.employee_id,
                 firstname: employee.firstname,
                 lastname: employee.lastname,
@@ -156,14 +156,14 @@ const Dashboard = () => {
           },
           (error) => {
             console.log(
-              `Clearance status error for user ${employee.id}:`,
+              `Clearance status error for user ${employee?.id}:`,
               error.message
             );
           }
         );
       },
       (error) => {
-        console.log(`SWTDs error for user ${employee.id}:`, error.message);
+        console.log(`SWTDs error for user ${employee?.id}:`, error.message);
       }
     );
   };

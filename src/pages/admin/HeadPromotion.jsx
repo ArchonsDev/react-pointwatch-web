@@ -5,6 +5,8 @@ import Cookies from "js-cookie";
 import { getAllUsers, addHead, removeHead } from "../../api/admin";
 
 import styles from "./style.module.css";
+import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 const HeadPromotion = () => {
   const userID = Cookies.get("userID");
@@ -154,7 +156,12 @@ const HeadPromotion = () => {
                       .sort((a, b) => b.is_head - a.is_head)
                       .map((item) => (
                         <tr key={item.id}>
-                          <td>{item.employee_id}</td>
+                          <td
+                            className={`${
+                              item.employee_id ? "" : "text-danger"
+                            }`}>
+                            {item.employee_id ? item.employee_id : "No ID"}
+                          </td>
                           <td>
                             {item.lastname}, {item.firstname}
                           </td>
@@ -176,25 +183,23 @@ const HeadPromotion = () => {
                             {item.department ? (
                               <>
                                 {item.is_head ? (
-                                  <div
-                                    className={styles.icon}
+                                  <BtnSecondary
                                     onClick={() =>
                                       revokeHead(item.department.id)
                                     }>
                                     <i
-                                      className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
+                                      className={`fa-solid fa-circle-arrow-down fa-lg me-2`}></i>
                                     DEMOTE
-                                  </div>
+                                  </BtnSecondary>
                                 ) : (
-                                  <div
-                                    className={styles.icon}
+                                  <BtnPrimary
                                     onClick={() =>
                                       grantHead(item.department.id, item.id)
                                     }>
                                     <i
-                                      className={`fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
+                                      className={`fa-solid fa-circle-arrow-up fa-lg me-2`}></i>
                                     PROMOTE
-                                  </div>
+                                  </BtnPrimary>
                                 )}
                               </>
                             ) : (

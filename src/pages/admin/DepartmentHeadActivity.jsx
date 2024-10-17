@@ -66,6 +66,10 @@ const DepartmentHeadActivity = () => {
     );
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   const handleSearchFilter = (headList, query) => {
     return headList.filter((head) => {
       const match =
@@ -79,6 +83,11 @@ const DepartmentHeadActivity = () => {
   const filteredHeads = searchQuery
     ? handleSearchFilter(heads, searchQuery)
     : heads;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   const totalRecords = filteredHeads.length;
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
 
@@ -88,10 +97,6 @@ const DepartmentHeadActivity = () => {
     indexOfFirstRecord,
     indexOfLastRecord
   );
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
 
   useEffect(() => {
     fetchAllUsers();
@@ -144,7 +149,10 @@ const DepartmentHeadActivity = () => {
                 <tbody>
                   {currentRecords.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.employee_id}</td>
+                      <td
+                        className={`${item.employee_id ? "" : "text-danger"}`}>
+                        {item.employee_id ? item.employee_id : "No ID"}
+                      </td>
                       <td>
                         {item.lastname}, {item.firstname}
                       </td>
