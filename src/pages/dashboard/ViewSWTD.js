@@ -27,6 +27,8 @@ const ViewSWTD = () => {
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
   const [validation, setValidation] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const [showValidateModal, openValidateModal, closeValidateModal] =
     useSwitch();
   const [showProofModal, openProofModal, closeProofModal] = useSwitch();
@@ -91,6 +93,7 @@ const ViewSWTD = () => {
   };
 
   const handleValidate = async () => {
+    setIsProcessing(true);
     await validateSWTD(
       {
         id: swtd_id,
@@ -99,14 +102,17 @@ const ViewSWTD = () => {
         token: token,
       },
       (response) => {
+        setIsProcessing(false);
         triggerShowSuccess(3000);
         fetchSWTD();
       },
       (error) => {
+        setIsProcessing(false);
         setErrorMessage(error.response);
         triggerShowError(3000);
       }
     );
+    setIsProcessing(false);
   };
 
   const handleCloseProofModal = () => {
@@ -390,27 +396,52 @@ const ViewSWTD = () => {
             <Row className="w-100">
               <Col className="p-0 text-end">
                 <Button
-                  className="me-3"
+                  className={`me-3 ${
+                    isProcessing ? "disabled-approve-btn" : ""
+                  }`}
                   variant="success"
                   onClick={() => {
                     setValidation("APPROVED");
                     openValidateModal();
-                  }}>
-                  <i className="fa-solid fa-check"></i> APPROVE
+                  }}
+                  disabled={isProcessing}>
+                  {isProcessing ? (
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"></span>
+                  ) : (
+                    <i className="fa-solid fa-check me-2"></i>
+                  )}
+                  APPROVE
                 </Button>
                 <Button
+                  className={isProcessing ? "disabled-revision-btn" : ""}
                   variant="danger"
                   onClick={() => {
                     setValidation("REJECTED");
                     openValidateModal();
-                  }}>
-                  <i className="fa-solid fa-xmark"></i> NEEDS REVISION
+                  }}
+                  disabled={isProcessing}>
+                  {isProcessing ? (
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"></span>
+                  ) : (
+                    <i className="fa-solid fa-xmark me-2"></i>
+                  )}
+                  NEEDS REVISION
                 </Button>
               </Col>
               <ConfirmationModal
                 show={showValidateModal}
-                onHide={closeValidateModal}
-                onConfirm={handleValidate}
+                onHide={() => {
+                  closeValidateModal();
+                }}
+                onConfirm={() => {
+                  handleValidate();
+                }}
                 header={"Validate SWTD"}
                 message={
                   validation === "APPROVED"
