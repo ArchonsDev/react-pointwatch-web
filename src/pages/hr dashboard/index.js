@@ -18,6 +18,7 @@ const HRDashboard = () => {
   const navigate = useNavigate();
 
   const [departments, setDepartments] = useState([]);
+  const [levels, setLevels] = useState([]);
   const [terms, setTerms] = useState([]);
   const [departmentUsers, setDepartmentUsers] = useState([]);
   const [departmentTerms, setDepartmentTerms] = useState([]);
@@ -27,9 +28,9 @@ const HRDashboard = () => {
     academic: false,
   });
   const [selectedTerm, setSelectedTerm] = useState(0);
+  const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [userClearanceStatus, setUserClearanceStatus] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,6 +76,10 @@ const HRDashboard = () => {
       },
       (response) => {
         setDepartments(response.departments);
+        const uniqueLevels = [
+          ...new Set(response.departments.map((dept) => dept.level)),
+        ];
+        setLevels(uniqueLevels);
         setLoading(false);
       },
       (error) => {
@@ -145,6 +150,13 @@ const HRDashboard = () => {
     navigate(`/dashboard/${id}`);
   };
 
+  const handleLevelChange = (e) => {
+    const lev = e.target.value;
+    setSelectedLevel(lev);
+    setSelectedDepartment(null);
+    setSelectedTerm(0);
+  };
+
   const handlePrint = () => {
     exportPointsOverview(
       {
@@ -162,6 +174,10 @@ const HRDashboard = () => {
       }
     );
   };
+
+  const filteredDepartments = selectedLevel
+    ? departments.filter((dept) => dept.level === selectedLevel)
+    : departments;
 
   //Pagination
   const handleFilter = (employeeList, query, dept) => {
@@ -293,6 +309,8 @@ const HRDashboard = () => {
         <Col className="text-end">
           <BtnPrimary
             onClick={() => {
+              setSearchQuery("");
+              setSelectedLevel("");
               setSelectedDepartment(null);
               setSelectedTerm(0);
             }}>
@@ -300,26 +318,39 @@ const HRDashboard = () => {
           </BtnPrimary>{" "}
           <BtnSecondary
             onClick={handlePrint}
-            disabled={!selectedDepartment || selectedTerm === 0}>
+            disabled={
+              !selectedDepartment ||
+              !selectedDepartment?.members ||
+              !selectedDepartment?.head ||
+              selectedTerm === 0
+            }>
             <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i> Export
           </BtnSecondary>
         </Col>
       </Row>
 
       <Row className="w-100">
-        {/* SEARCH BAR */}
-        <Col className="text-start" md="5">
-          <InputGroup className={`${styles.searchBar} mb-3`}>
+        <Col>
+          <InputGroup>
             <InputGroup.Text>
-              <i className="fa-solid fa-magnifying-glass"></i>
+              <i className="fa-solid fa-landmark fa-lg"></i>
             </InputGroup.Text>
-            <Form.Control
-              type="search"
-              name="searchQuery"
-              placeholder="Search by ID number, firstname, or lastname."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            <Form.Select
+              name="selected_level"
+              className={styles.deptDropdown}
+              onChange={handleLevelChange}
+              value={selectedLevel || ""}>
+              <option value="" disabled>
+                Select Level
+              </option>
+              {levels
+                .sort((a, b) => a.localeCompare(b))
+                .map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+            </Form.Select>
           </InputGroup>
         </Col>
 
@@ -327,20 +358,23 @@ const HRDashboard = () => {
         <Col>
           <InputGroup className={`${styles.searchBar} mb-3`}>
             <InputGroup.Text>
-              <i className="fa-solid fa-landmark fa-lg"></i>
+              <i className="fa-solid fa-book fa-lg"></i>
             </InputGroup.Text>
             <Form.Select
               value={selectedDepartment?.id || ""}
               className={styles.deptDropdown}
+              disabled={!selectedLevel}
               onChange={(e) => fetchDepartment(e.target.value)}>
               <option value="" disabled>
-                Select department
+                Select Department
               </option>
-              {departments.map((department) => (
-                <option key={department.id} value={department.id}>
-                  {department.name}
-                </option>
-              ))}
+              {filteredDepartments
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((department) => (
+                  <option key={department.id} value={department.id}>
+                    {department.name}
+                  </option>
+                ))}
             </Form.Select>
           </InputGroup>
         </Col>
@@ -359,7 +393,7 @@ const HRDashboard = () => {
               }}
               disabled={!selectedDepartment}>
               <option value="0" disabled>
-                Select term
+                Select Term
               </option>
               {departmentTerms.map((term) => (
                 <option key={term.id} value={term.id}>
@@ -377,6 +411,55 @@ const HRDashboard = () => {
 
       {selectedDepartment && selectedTerm !== 0 && (
         <>
+          <Row className="w-100 mb-3">
+            <Col className="text-start" lg={6}>
+              <InputGroup className={`${styles.searchBar}`}>
+                <InputGroup.Text>
+                  <i className="fa-solid fa-magnifying-glass"></i>
+                </InputGroup.Text>
+                <Form.Control
+                  type="search"
+                  name="searchQuery"
+                  placeholder="Search by ID number, firstname, or lastname."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </InputGroup>
+            </Col>
+            {/* Temporarily removed for demo */}
+            {/* <Col
+              className={`${styles.semibold} d-flex align-items-center`}
+              lg="auto">
+              <i className="fa-solid fa-users fa-lg me-2"></i>Total Employees:{" "}
+              {console.log(userClearanceStatus)}
+              {Object.keys(userClearanceStatus)?.length}
+            </Col>
+            <Col
+              className={`${styles.semibold} d-flex align-items-center`}
+              lg="auto">
+              <i className="fa-solid fa-user-check fa-lg text-success me-2"></i>
+              Cleared Employees:{" "}
+              {
+                Object.keys(userClearanceStatus)?.filter(
+                  (item) => item.is_cleared === true
+                ).length
+              }
+            </Col>
+            <Col
+              className={`${styles.semibold} d-flex align-items-center`}
+              lg="auto">
+              <i className="fa-solid fa-user-xmark fa-lg text-danger me-2"></i>
+              Non-cleared Employees:{" "}
+              {
+                Object.keys(userClearanceStatus)?.filter(
+                  (item) => item.is_cleared === false
+                ).length
+              }
+            </Col> */}
+          </Row>
+          {/* <Row className="w-100">
+            <hr style={{ opacity: 1 }} />
+          </Row> */}
           <Row className="w-100">
             {currentRecords.length === 0 ? (
               <span
@@ -385,31 +468,6 @@ const HRDashboard = () => {
               </span>
             ) : (
               <div className="mb-3">
-                <Row className={`${styles.semibold} mb-3`}>
-                  <Col>
-                    {" "}
-                    <i className="fa-solid fa-users fa-lg me-2"></i>Total
-                    Employees: {currentRecords.length}
-                  </Col>
-                  <Col>
-                    <i className="fa-solid fa-user-check fa-lg text-success me-2"></i>
-                    Cleared Employees:{" "}
-                    {
-                      currentRecords.filter((item) => item.is_cleared === true)
-                        .length
-                    }
-                  </Col>
-                  <Col>
-                    <i className="fa-solid fa-user-xmark fa-lg text-danger me-2"></i>
-                    Non-cleared Employees:{" "}
-                    {
-                      currentRecords.filter((item) => item.is_cleared === false)
-                        .length
-                    }
-                  </Col>
-                  <Col></Col>
-                </Row>
-
                 <ListGroup className="w-100" variant="flush">
                   <ListGroup.Item className={styles.tableHeader}>
                     <Row>

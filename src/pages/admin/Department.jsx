@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Form, Row, Col, FloatingLabel, Table, Spinner } from "react-bootstrap";
+import { Form, Row, Col, FloatingLabel, Table, Spinner, InputGroup, Pagination } from "react-bootstrap"; /* prettier-ignore */
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import types from "../../data/types.json";
@@ -36,6 +36,11 @@ const Department = () => {
   const [customClass, setCustomClass] = useState("");
   const [disable, setDisable] = useState(false);
   const [levels, setLevels] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterLevels, setFilterLevels] = useState([]);
+  const [selectedFilterLevel, setSelectedFilterLevel] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
   const [checkbox, setCheckbox] = useState({
     deptName: false,
   });
@@ -71,6 +76,7 @@ const Department = () => {
           ...new Set(response.departments.map((dept) => dept.level)),
         ];
         setLevels(uniqueLevels);
+        setFilterLevels(uniqueLevels);
         setLoading(false);
       },
       (error) => {
@@ -190,6 +196,45 @@ const Department = () => {
     await fetchDepartments();
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleFilter = (deptList, query, level) => {
+    return deptList.filter((dept) => {
+      const matchesQuery = query
+        ? dept.name.toLowerCase().includes(query.toLowerCase())
+        : true;
+      const matchesLevel = level ? dept.level === level : true;
+      return matchesQuery && matchesLevel;
+    });
+  };
+
+  //Filtered SWTDs with search bar & dropdown
+  const filteredDepartments = handleFilter(
+    departments,
+    searchQuery,
+    selectedFilterLevel
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedFilterLevel]);
+
+  // Sets the departments to render
+  const depts =
+    filteredDepartments && filteredDepartments.length > 0
+      ? filteredDepartments
+      : departments;
+
+  // Calculate pagination
+  const totalRecords = depts.length;
+  const totalPages = Math.ceil(totalRecords / recordsPerPage);
+
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = depts.slice(indexOfFirstRecord, indexOfLastRecord);
+
   useEffect(() => {
     if (selectedLevel !== "Other") {
       setForm({
@@ -230,7 +275,6 @@ const Department = () => {
     if (!user?.is_staff && !user?.is_superuser) {
       navigate("/swtd");
     }
-
     fetchDepartments();
   }, [user]);
 
@@ -432,6 +476,40 @@ const Department = () => {
             Department details updated.
           </div>
         )}
+        <Row className="w-100">
+          {/* SEARCH BAR */}
+          <Col lg={8}>
+            <InputGroup className={`${styles.searchBar} mb-3`}>
+              <InputGroup.Text>
+                <i className="fa-solid fa-magnifying-glass"></i>
+              </InputGroup.Text>
+              <Form.Control
+                type="search"
+                placeholder="Search by department/office name"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </InputGroup>
+          </Col>
+
+          {/* FILTER LEVEL */}
+          <Col lg={4}>
+            <Form.Select
+              className={styles.formBox}
+              name="filter_level"
+              onChange={(e) => {
+                setSelectedFilterLevel(e.target.value);
+              }}
+              value={selectedFilterLevel}>
+              <option value="">All levels</option>
+              {filterLevels.map((lev, index) => (
+                <option key={index} value={lev}>
+                  {lev}
+                </option>
+              ))}
+            </Form.Select>
+          </Col>
+        </Row>
 
         {loading ? (
           <Row
@@ -439,64 +517,115 @@ const Department = () => {
             <Spinner className={`me-2`} animation="border" />
             Loading departments...
           </Row>
-        ) : departments.length === 0 ? (
-          <Col className="text-center">No departments added yet.</Col>
         ) : (
-          <Table striped bordered hover responsive>
-            <thead>
-              <tr>
-                <th>Level</th>
-                <th>Department/Office Name</th>
-                <th className="col-2">Term Type</th>
-                <th className="text-center col-1">Required Points</th>
-                <th className="text-center col-1">Midyear Points</th>
-                <th className="text-center col-1">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {departments.map((department) => (
-                <tr key={department.id}>
-                  <td>{department.level}</td>
-                  <td>{department.name}</td>
-                  <td>
-                    {department.use_schoolyear ? "ACADEMIC YEAR" : "SEMESTER"}
-                    <br />
-                    {department.midyear_points === 0 ? "" : "MIDYEAR/SUMMER"}
-                  </td>
-                  <td className="text-center">{department.required_points}</td>
-                  <td className="text-center">{department.midyear_points}</td>
-                  <td className="text-center">
-                    <i
-                      className={`${styles.icon} fa-solid fa-pen-to-square fa-lg text-dark me-3`}
-                      onClick={() => {
-                        setSelectedDepartment(department);
-                        openEditModal();
-                      }}></i>
-                    <i
-                      className={`${styles.icon} fa-solid fa-trash-can fa-lg text-danger`}
-                      onClick={() => {
-                        setSelectedDepartment(department);
-                        openDeleteModal();
-                      }}></i>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <EditDepartmentModal
-              show={showEditModal}
-              onHide={closeEditModal}
-              data={selectedDepartment}
-              editSuccess={editSuccess}
-            />
-            <ConfirmationModal
-              show={showDeleteModal}
-              onHide={closeDeleteModal}
-              onConfirm={handleDelete}
-              header={"Delete Department"}
-              message={"Are you sure about deleting this department?"}
-            />
-          </Table>
+          <>
+            {currentRecords.length === 0 ? (
+              <Row className="d-flex justify-content-center align-items-center mt-3 mb-3 w-100">
+                <span className={`${styles.table}`}>No departments found.</span>
+              </Row>
+            ) : (
+              <Table striped bordered hover responsive>
+                <thead>
+                  <tr>
+                    <th className="col-3">Level</th>
+                    <th>Department/Office Name</th>
+                    <th className="col-2">Term Type</th>
+                    <th className="text-center col-1">Required Points</th>
+                    <th className="text-center col-1">Midyear Points</th>
+                    <th className="text-center col-1">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentRecords
+                    .sort((a, b) => a.level - b.level)
+                    .map((department) => (
+                      <tr key={department.id}>
+                        <td>{department.level}</td>
+                        <td>{department.name}</td>
+                        <td>
+                          {department.use_schoolyear
+                            ? "ACADEMIC YEAR"
+                            : "SEMESTER"}
+                          <br />
+                          {department.midyear_points === 0
+                            ? ""
+                            : "MIDYEAR/SUMMER"}
+                        </td>
+                        <td className="text-center">
+                          {department.required_points}
+                        </td>
+                        <td className="text-center">
+                          {department.midyear_points}
+                        </td>
+                        <td className="text-center">
+                          <i
+                            className={`${styles.icon} fa-solid fa-pen-to-square fa-lg text-dark me-3`}
+                            onClick={() => {
+                              setSelectedDepartment(department);
+                              openEditModal();
+                            }}></i>
+                          <i
+                            className={`${styles.icon} fa-solid fa-trash-can fa-lg text-danger`}
+                            onClick={() => {
+                              setSelectedDepartment(department);
+                              openDeleteModal();
+                            }}></i>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+                <EditDepartmentModal
+                  show={showEditModal}
+                  onHide={closeEditModal}
+                  data={selectedDepartment}
+                  editSuccess={editSuccess}
+                />
+                <ConfirmationModal
+                  show={showDeleteModal}
+                  onHide={closeDeleteModal}
+                  onConfirm={handleDelete}
+                  header={"Delete Department"}
+                  message={"Are you sure about deleting this department?"}
+                />
+              </Table>
+            )}
+          </>
         )}
+      </Row>
+      <Row className="w-100 mb-3">
+        <Col className="d-flex justify-content-center">
+          <Pagination>
+            <Pagination.First
+              className={styles.pageNum}
+              onClick={() => handlePageChange(1)}
+            />
+            <Pagination.Prev
+              className={styles.pageNum}
+              onClick={() => {
+                if (currentPage > 1) handlePageChange(currentPage - 1);
+              }}
+            />
+            {Array.from({ length: totalPages }, (_, index) => (
+              <Pagination.Item
+                key={index + 1}
+                active={index + 1 === currentPage}
+                className={styles.pageNum}
+                onClick={() => handlePageChange(index + 1)}>
+                {index + 1}
+              </Pagination.Item>
+            ))}
+            <Pagination.Next
+              className={styles.pageNum}
+              onClick={() => {
+                if (currentPage < totalPages) handlePageChange(currentPage + 1);
+              }}
+            />
+            <Pagination.Last
+              className={styles.pageNum}
+              onClick={() => handlePageChange(totalPages)}
+            />
+          </Pagination>
+        </Col>
       </Row>
     </>
   );

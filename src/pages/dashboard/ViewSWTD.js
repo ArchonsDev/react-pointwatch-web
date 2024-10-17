@@ -366,13 +366,17 @@ const ViewSWTD = () => {
               Proof
             </Col>
             <Col md="4">
-              <BtnPrimary
-                onClick={() => {
-                  fetchSWTDProof(swtd.proof[0].id);
-                  openProofModal();
-                }}>
-                View
-              </BtnPrimary>{" "}
+              {swtd?.proof && swtd?.proof.length > 0 ? (
+                <BtnPrimary
+                  onClick={() => {
+                    fetchSWTDProof(swtd.proof[0].id);
+                    openProofModal();
+                  }}>
+                  View
+                </BtnPrimary>
+              ) : (
+                <span className="text-danger me-3">No file(s) attached.</span>
+              )}
             </Col>
           </Row>
 

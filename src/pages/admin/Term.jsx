@@ -316,60 +316,61 @@ const Term = () => {
         ) : terms.length === 0 ? (
           <Col className="text-center">No terms added yet.</Col>
         ) : (
-          <Table striped bordered hover responsive>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th className="col-1">Type</th>
-                <th className="col-2">Start Date</th>
-                <th className="col-2">End Date</th>
-                <th className="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {terms &&
-                terms.map((term) => (
-                  <tr key={term.id}>
-                    <td>{term.id}</td>
-                    <td>{term.name}</td>
-                    <td>{term.type}</td>
-                    <td>{monthYearDate(term.start_date)}</td>
-                    <td>{monthYearDate(term.end_date)}</td>
-                    <td className="text-center">
-                      <i
-                        className={`${styles.icon} fa-solid fa-pen-to-square fa-lg text-dark me-3`}
-                        onClick={() => {
-                          openEditModal();
-                          setSelectedTerm(term);
-                        }}></i>
-
-                      <i
-                        className={`${styles.icon} fa-solid fa-trash-can fa-lg text-danger`}
-                        onClick={() => {
-                          openDeleteModal();
-                          setSelectedTerm(term);
-                        }}></i>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-            <EditTermModal
-              show={showEditModal}
-              onHide={closeEditModal}
-              data={selectedTerm}
-              editSuccess={editSuccess}
-            />
-            <ConfirmationModal
-              show={showDeleteModal}
-              onHide={closeDeleteModal}
-              onConfirm={handleDelete}
-              header={"Delete Term"}
-              message={
-                "Are you sure about deleting this term? It must not have any SWTD submissions linked to it."
-              }
-            />
-          </Table>
+          <>
+            <Table striped bordered hover responsive>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th className="col-1">Type</th>
+                  <th className="col-2">Start Date</th>
+                  <th className="col-2">End Date</th>
+                  <th className="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {terms &&
+                  [...terms].reverse().map((term) => (
+                    <tr key={term.id}>
+                      <td>{term.id}</td>
+                      <td>{term.name}</td>
+                      <td>{term.type}</td>
+                      <td>{monthYearDate(term.start_date)}</td>
+                      <td>{monthYearDate(term.end_date)}</td>
+                      <td className="text-center">
+                        <i
+                          className={`${styles.icon} fa-solid fa-pen-to-square fa-lg text-dark me-3`}
+                          onClick={() => {
+                            openEditModal();
+                            setSelectedTerm(term);
+                          }}></i>
+                        <i
+                          className={`${styles.icon} fa-solid fa-trash-can fa-lg text-danger`}
+                          onClick={() => {
+                            openDeleteModal();
+                            setSelectedTerm(term);
+                          }}></i>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+              <EditTermModal
+                show={showEditModal}
+                onHide={closeEditModal}
+                data={selectedTerm}
+                editSuccess={editSuccess}
+              />
+              <ConfirmationModal
+                show={showDeleteModal}
+                onHide={closeDeleteModal}
+                onConfirm={handleDelete}
+                header={"Delete Term"}
+                message={
+                  "Are you sure about deleting this term? It must not have any SWTD submissions linked to it."
+                }
+              />
+            </Table>
+          </>
         )}
       </Row>
     </>
