@@ -38,6 +38,7 @@ const EmployeeSWTD = () => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [showModal, openModal, closeModal] = useSwitch();
   const [showRevokeModal, openRevokeModal, closeRevokeModal] = useSwitch();
@@ -128,6 +129,7 @@ const EmployeeSWTD = () => {
   };
 
   const handleClear = async (term) => {
+    setIsProcessing(true);
     await clearEmployee(
       {
         id: id,
@@ -135,13 +137,16 @@ const EmployeeSWTD = () => {
         token: token,
       },
       async (response) => {
+        setIsProcessing(false);
         await fetchUser();
         await fetchTermPoints(term);
       }
     );
+    setIsProcessing(false);
   };
 
   const handleRevoke = async (term) => {
+    setIsProcessing(true);
     await revokeEmployee(
       {
         id: id,
@@ -149,10 +154,12 @@ const EmployeeSWTD = () => {
         token: token,
       },
       async (response) => {
+        setIsProcessing(false);
         await fetchUser();
         await fetchTermPoints(term);
       }
     );
+    setIsProcessing(false);
   };
 
   const truncateTitle = (title) => {
@@ -407,7 +414,10 @@ const EmployeeSWTD = () => {
               selectedTerm !== null &&
               (termClearance ? (
                 <>
-                  <BtnSecondary onClick={openRevokeModal}>
+                  <BtnSecondary
+                    onClick={openRevokeModal}
+                    disabled={isProcessing} // Disable when processing
+                  >
                     <i className="fa-solid fa-xmark me-2"></i>Revoke
                   </BtnSecondary>{" "}
                 </>
@@ -416,8 +426,9 @@ const EmployeeSWTD = () => {
                   <BtnPrimary
                     onClick={openModal}
                     disabled={
+                      isProcessing || // Disable when processing
                       termPoints?.valid_points + employee?.point_balance <
-                      termPoints?.required_points
+                        termPoints?.required_points
                     }>
                     <i className="fa-solid fa-check me-2"></i>
                     Clear
@@ -426,7 +437,8 @@ const EmployeeSWTD = () => {
               ))}
             <BtnSecondary
               onClick={handlePrint}
-              disabled={loading || userSWTDs.length === 0}>
+              disabled={isProcessing || loading || userSWTDs.length === 0} // Disable when processing
+            >
               <i className="fa-solid fa-file-arrow-down me-2"></i>
               Export
             </BtnSecondary>
