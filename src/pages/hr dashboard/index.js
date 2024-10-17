@@ -5,7 +5,7 @@ import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination }
 
 import { getAllUsers, getTerms, getAllDepartments, getDepartment } from "../../api/admin"; /* prettier-ignore */
 import { getClearanceStatus } from "../../api/user";
-import { exportDepartmentData } from "../../api/export";
+import { exportPointsOverview } from "../../api/export";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -146,7 +146,7 @@ const HRDashboard = () => {
   };
 
   const handlePrint = () => {
-    exportDepartmentData(
+    exportPointsOverview(
       {
         id: selectedDepartment.id,
         term_id: selectedTerm,
@@ -227,7 +227,7 @@ const HRDashboard = () => {
         academic: selectedDepartment?.use_schoolyear,
       });
     }
-  }, [selectedDepartment, departmentTypes]);
+  }, [selectedDepartment]);
 
   useEffect(() => {
     if (selectedDepartment) {

@@ -49,6 +49,28 @@ export const exportDepartmentData = async (
   }
 };
 
+/* prettier-ignore */
+export const exportPointsOverview = async ( data, onSuccess, onFail, onCleanup) => {
+  try {
+    const response = await axios.get(
+      `${apiUrl}/departments/${data.id}/staff/export?term_id=${data.term_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  } finally {
+    onCleanup && onCleanup();
+  }
+};
+
 export const exportStaffReport = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(

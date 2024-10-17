@@ -32,7 +32,7 @@ const SWTDDashboard = () => {
   const [pendingSWTDCount, setPendingSWTDCount] = useState(0);
   const [rejectedSWTDCount, setRejectedSWTDCount] = useState(0);
   const [termPoints, setTermPoints] = useState(null);
-  const [termClearance, setTermClearance] = useState(null);
+  const [termClearance, setTermClearance] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [departmentTypes, setDepartmentTypes] = useState({
@@ -151,11 +151,11 @@ const SWTDDashboard = () => {
   useEffect(() => {
     if (selectedTerm) {
       fetchTermPoints(selectedTerm);
-      setTermClearance(
-        user?.clearances.find(
-          (clearance) => clearance.term.id === selectedTerm.id
-        )
+      const termData = user?.clearances.find(
+        (clearance) => clearance.term.id === selectedTerm.id
       );
+      if (termData) setTermClearance(termData.is_deleted ? false : true);
+      else setTermClearance(false);
       const termCounts = userSWTDs?.reduce(
         (counts, swtd) => {
           if (swtd.term.id === selectedTerm.id) {
@@ -277,10 +277,10 @@ const SWTDDashboard = () => {
           <Col className="d-flex align-items-center mb-3" md="auto">
             <i className="fa-solid fa-user-check fa-lg me-2"></i>Status:
             <span
-              className={`ms-2 text-${
-                !termClearance?.is_deleted ? "success" : "danger"
-              } ${styles.userStat}`}>
-              {!termClearance?.is_deleted ? "CLEARED" : "PENDING CLEARANCE"}
+              className={`ms-2 text-${termClearance ? "success" : "danger"} ${
+                styles.userStat
+              }`}>
+              {termClearance ? "CLEARED" : "PENDING CLEARANCE"}
             </span>
           </Col>
         )}
