@@ -77,25 +77,24 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     setIsClicked(true);
-
     await login(
       form,
       (response) => {
-        setUser(response.data.user);
+        setUser(response.data.data);
         const roles = {
-          is_admin: "/dashboard",
-          is_staff: "/hr",
-          is_superuser: "/admin",
+          1: "/dashboard",
+          2: "/hr",
+          3: "/admin",
         };
-        const userRole = Object.keys(roles).find(
-          (role) => response.data.user[role]
-        );
-        navigate(userRole ? roles[userRole] : "/swtd");
+        const userAccessLevel = response.data.data.access_level;
+        navigate(roles[userAccessLevel] || "/swtd");
         setIsLoading(false);
         clearForm();
       },
       (error) => {
+        console.log(error);
         if (error.response) {
+          console.log(error.response);
           let errorMessage = <b>{error.response.data.error}</b>;
           let statusCode = error.response.status;
 
@@ -312,7 +311,7 @@ const Login = () => {
   return (
     <div className={`${styles.Login} d-flex`}>
       <div
-        className={`${styles.box} d-flex col-4 p-5 bg-white justify-content-center align-items-center`}>
+        className={`d-flex col-lg-5 col-xl-4 p-lg-5 p-3 bg-white justify-content-center align-items-center`}>
         <Container>
           {/* Error Toast */}
           <ToastContainer className="p-3" position="top-start">
@@ -427,12 +426,12 @@ const Login = () => {
             </Col>
           </Row>
 
-          <Row className={styles.line1}>
+          <Row className={`${styles.line1} mb-4`}>
             <span className={styles.line1}>Hello,</span>
             <span className={styles.line2}>welcome!</span>
           </Row>
 
-          <Row className="mt-4 mb-3">
+          <Row>
             <Form>
               <Form.Group className="mb-3" controlId="inputEmail">
                 <InputGroup hasValidation>
@@ -500,13 +499,12 @@ const Login = () => {
                     </Col>
                   </Row>
 
-                  <Row className="mb-2">
-                    <Col md={6}>
-                      <Row>
+                  <Row>
+                    <Col className="mb-2" md={6} xs={12}>
+                      <Row className="ps-lg-0 pe-lg-0 ps-md-3 pe-md-3 ps-3 pe-3">
                         <BtnPrimary
                           type="submit"
                           onClick={handleSubmit}
-                          className={`${styles.button} ${styles.buttonLogin}`}
                           disabled={
                             isEmpty(form.email) || isEmpty(form.password)
                           }>
@@ -514,28 +512,31 @@ const Login = () => {
                         </BtnPrimary>
                       </Row>
                     </Col>
-                    <Col md={6}>
-                      <Row>
-                        <BtnSecondary
-                          onClick={() => navigate("/register")}
-                          className={`${styles.button} ${styles.buttonRegister}`}>
+
+                    <Col className="mb-2" md={6} xs={12}>
+                      <Row className="ps-lg-0 pe-lg-0 ps-md-3 pe-md-3 ps-3 pe-3">
+                        <BtnSecondary onClick={() => navigate("/register")}>
                           Register
                         </BtnSecondary>
                       </Row>
                     </Col>
                   </Row>
-                  <Row className="mt-3 mb-3 text-center">
+
+                  <Row className="mt-1 mb-3 text-center">
                     <Col>
                       <span className={styles.orText}>or</span>
                     </Col>
                   </Row>
                   <Row>
                     <Col>
-                      <Button
-                        className={`${styles.msButton} w-100`}
-                        onClick={handleMSLogin}>
-                        Sign in with <i className="fa-brands fa-microsoft"></i>
-                      </Button>
+                      <Row className="ps-lg-0 pe-lg-0 ps-md-3 pe-md-3 ps-3 pe-3">
+                        <Button
+                          className={`${styles.msButton} w-100`}
+                          onClick={handleMSLogin}>
+                          Sign in with{" "}
+                          <i className="fa-brands fa-microsoft"></i>
+                        </Button>
+                      </Row>
                     </Col>
                   </Row>
                 </>

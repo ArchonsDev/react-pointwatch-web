@@ -9,8 +9,19 @@
 }
 
 .statCard {
-  background-color: #180018 !important;
+  border: 1px solid #180018 !important;
+}
+
+.pendingStat {
+  padding: 0% !important;
+  font-family: "Poppins-SemiBold";
+  border-bottom: 1px solid #180018 !important;
   color: white !important;
+  background-color: #180018 !important;
+}
+
+.userStatus {
+  font-family: "Poppins-Medium";
 }
 
 .cardTitle {
@@ -36,6 +47,10 @@
 .msg {
   font-family: "Poppins-SemiBold";
   color: #9d084a;
+}
+
+.semibold {
+  font-family: "Poppins-SemiBold";
 }
 
 .tableHeader {

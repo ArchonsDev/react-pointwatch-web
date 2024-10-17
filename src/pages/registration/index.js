@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Container, Card, Row, Col, Form, InputGroup, Toast,ToastContainer} from "react-bootstrap"; /* prettier-ignore */
+import { Container, Card, Row, Col, Form, FloatingLabel, InputGroup, Toast,ToastContainer} from "react-bootstrap"; /* prettier-ignore */
 
-import departments from "../../data/departments.json";
 import { register } from "../../api/auth";
 import { isEmpty, isValidLength, isValidEmail, isValidPassword } from "../../common/validation/utils"; /* prettier-ignore */
 
@@ -26,7 +25,6 @@ const Registration = () => {
     employee_id: "",
     firstname: "",
     lastname: "",
-    department: "",
     password: "",
     confirmPassword: "",
   });
@@ -48,7 +46,6 @@ const Registration = () => {
       "employee_id",
       "firstname",
       "lastname",
-      "department",
       "password",
       "confirmPassword",
     ];
@@ -59,8 +56,7 @@ const Registration = () => {
       !isValidLength(form.firstname, 1) ||
       !isValidLength(form.lastname, 1) ||
       !isValidPassword(form.password) ||
-      !passwordsMatch() ||
-      form.department === ""
+      !passwordsMatch()
     );
   };
 
@@ -93,9 +89,7 @@ const Registration = () => {
 
   return (
     <div className={styles.background}>
-      {/* Fake Navbar */}
-      <header className={styles.header}>
-        {" "}
+      <header className={`${styles.header} mb-3`}>
         <h3 className="text-white">
           <Link to="/login">
             <i
@@ -130,7 +124,7 @@ const Registration = () => {
 
       {/* Registration Form */}
       <Container className="d-flex justify-content-center align-items-center">
-        <Card className="w-75 p-4">
+        <Card className="w-75 p-lg-4 p-2">
           {!isRegistrationComplete ? (
             <Card.Body>
               <Row className="mb-4">
@@ -147,7 +141,7 @@ const Registration = () => {
               <Form className={styles.form} noValidate>
                 {/* Row 1: Email & ID Number */}
                 <Row>
-                  <Col>
+                  <Col lg={6} md={12} xs={12}>
                     <Form.Group className="mb-3" controlId="inputEmail">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -172,7 +166,7 @@ const Registration = () => {
                       </InputGroup>
                     </Form.Group>
                   </Col>
-                  <Col>
+                  <Col lg={6} md={12} xs={12}>
                     <Form.Group className="mb-3" controlId="inputEmployeeID">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -203,7 +197,7 @@ const Registration = () => {
 
                 {/* Row 2: First name & last name  */}
                 <Row>
-                  <Col>
+                  <Col md={6} xs={12}>
                     <Form.Group className="mb-3" controlId="inputFirstname">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -230,7 +224,7 @@ const Registration = () => {
                       </InputGroup>
                     </Form.Group>
                   </Col>
-                  <Col>
+                  <Col md={6} xs={12}>
                     <Form.Group className="mb-3" controlId="inputLastname">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -254,40 +248,6 @@ const Registration = () => {
                               Last name is too short.
                             </Form.Control.Feedback>
                           )}
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                {/* Row 3: Department */}
-                <Row>
-                  <Col>
-                    <Form.Group className="mb-3" controlId="inputDepartment">
-                      <InputGroup hasValidation>
-                        <InputGroup.Text className={styles.iconBox}>
-                          <i
-                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
-                        </InputGroup.Text>
-                        <Form.Select
-                          aria-label="Example"
-                          value={form.department}
-                          name="department"
-                          onChange={handleChange}
-                          isInvalid={isClicked && form.department === ""}>
-                          <option value="" disabled>
-                            Departments
-                          </option>
-                          {departments.departments.map((department, index) => (
-                            <option key={index} value={department}>
-                              {department}
-                            </option>
-                          ))}
-                        </Form.Select>
-                        {isClicked && (
-                          <Form.Control.Feedback type="invalid">
-                            Please select a department.
-                          </Form.Control.Feedback>
-                        )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -334,6 +294,7 @@ const Registration = () => {
                     </Form.Group>
                   </Col>
                 </Row>
+
                 <Row>
                   <Col>
                     <Form.Group

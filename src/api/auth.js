@@ -13,7 +13,6 @@ export const register = async (data, onSuccess, onFail, onCleanup) => {
         firstname: data.firstname,
         lastname: data.lastname,
         password: data.password,
-        department: data.department,
       },
       {
         headers: {
@@ -49,7 +48,7 @@ export const login = async (data, onSuccess, onFail, onCleanup) => {
 
     if (response.status === 200) {
       Cookies.set("userToken", response?.data?.access_token);
-      Cookies.set("userID", JSON.stringify(response?.data?.user.id));
+      Cookies.set("userID", JSON.stringify(response?.data?.data?.id));
       onSuccess && onSuccess(response);
     }
   } catch (error) {

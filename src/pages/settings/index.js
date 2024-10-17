@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, Nav, Row, Container } from "react-bootstrap";
+import { Card, Nav, Row, Col, Container } from "react-bootstrap";
 
 import General from "./General";
 import Password from "./Password";
@@ -24,12 +24,13 @@ const Settings = () => {
   };
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
-      <Row className="mb-2">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
+      <Row className="w-100 mb-2">
         <h3 className={styles.label}>Settings</h3>
       </Row>
-      <Row>
+      <Row className="w-100">
         <Nav
+          className="align-items-start w-100"
           variant="tabs"
           defaultActiveKey="general"
           onSelect={handleSelectTab}>

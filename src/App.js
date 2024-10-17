@@ -60,7 +60,7 @@ const App = () => {
         id: data.id,
       },
       (response) => {
-        setUser(response?.data);
+        setUser(response?.data.data);
       }
     );
   };
@@ -79,7 +79,7 @@ const App = () => {
     "/swtd/form": "Add a New Record",
     "/swtd/all": "SWTD Submissions",
     "/admin": "System Management",
-    "/hr": "Departmental Points Overview",
+    "/hr": "Points Overview",
   };
 
   document.title = tabNames[location.pathname] || "PointWatch";

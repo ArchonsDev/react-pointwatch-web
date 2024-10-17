@@ -70,7 +70,7 @@
 
 .points {
   font-family: "Poppins-SemiBold";
-  color: #d80085 !important;
+  color: #9d084a !important;
 }
 
 .pointsDisplay {
@@ -121,8 +121,14 @@
 }
 
 .termPoints {
+  display: flex;
+  flex-direction: column;
   font-family: "Degradasi";
   line-height: 1.3em;
+}
+
+.userStat {
+  font-family: "Poppins-Bold";
 }
 
 .validPoints {
@@ -130,7 +136,7 @@
 }
 
 .requiredPoints {
-  font-size: 1em;
+  font-size: 1.2em;
 }
 
 .loading {
@@ -142,12 +148,36 @@
   border: 1px solid #180018 !important;
 }
 
-.statHeader {
+.pendingStat {
   padding: 0% !important;
   font-family: "Poppins-SemiBold";
-  border-bottom: 1px solid #e8b4bc !important;
+  border-bottom: 1px solid #180018 !important;
+  color: white !important;
+  background-color: #180018 !important;
+}
+
+.rejectedStat {
+  padding: 0% !important;
+  font-family: "Poppins-SemiBold";
+  border-bottom: 1px solid #180018 !important;
+  color: white !important;
+  background-color: #9d084a !important;
+}
+
+.approvedStat {
+  padding: 0% !important;
+  font-family: "Poppins-SemiBold";
+  border-bottom: 1px solid #180018 !important;
   color: #180018 !important;
   background-color: #e8b4bc !important;
+}
+
+.totalStat {
+  padding: 0% !important;
+  font-family: "Poppins-SemiBold";
+  border-bottom: 1px solid #180018 !important;
+  color: #180018 !important;
+  background-color: white !important;
 }
 
 .statBody {
@@ -160,6 +190,12 @@
   background-color: white;
   border-radius: 3px;
   font-family: "Poppins-Medium";
+}
+
+.iconNumber {
+  background-color: #9d084a;
+  color: white;
+  border-radius: 5px;
 }
 
 .pageNum {

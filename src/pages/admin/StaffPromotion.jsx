@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, InputGroup, Table, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Form, InputGroup, Table, Spinner, Pagination, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
 import Cookies from "js-cookie";
 
 import { getAllUsers, updateStaff } from "../../api/admin";
@@ -21,7 +21,7 @@ const StaffPromotion = () => {
         token: token,
       },
       (response) => {
-        const filter = response.users.filter(
+        const filter = response.data.filter(
           (user) => user.id !== parseInt(userID, 10)
         );
         setEmployees(filter);
@@ -38,7 +38,7 @@ const StaffPromotion = () => {
       {
         id: id,
         token: token,
-        is_staff: val,
+        access_level: val,
       },
       (response) => {
         fetchAllUsers();
@@ -85,7 +85,8 @@ const StaffPromotion = () => {
     <>
       <Row className={`${styles.table} w-100`}>
         <span className="text-muted mb-3">
-          HR Staff can access the dashboard for employee points.
+          HR Staff can access the dashboard for employee points.{" "}
+          <strong>Employee must be in a department.</strong>
         </span>
       </Row>
       <Row>
@@ -118,24 +119,27 @@ const StaffPromotion = () => {
               <Table className={styles.table} striped bordered hover responsive>
                 <thead>
                   <tr>
-                    <th className="col-2">ID No.</th>
-                    <th>Name</th>
+                    <th className="col-1">ID No.</th>
+                    <th className="col-2">Name</th>
                     <th className="col-2">Department</th>
                     <th className="col-1 text-center">HR Staff</th>
-                    <th className="col-2 text-center">Action</th>
+                    <th className="col-1 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentRecords
-                    .sort((a, b) =>
-                      b.is_staff - a.is_staff)
+                    .sort((a, b) => b.is_staff - a.is_staff)
                     .map((item) => (
                       <tr key={item.id}>
                         <td>{item.employee_id}</td>
                         <td>
                           {item.lastname}, {item.firstname}
                         </td>
-                        <td>{item.department}</td>
+                        <td className={item.department ? "" : "text-danger"}>
+                          {item.department
+                            ? item.department.name
+                            : "No department set."}
+                        </td>
                         <td className="text-center">
                           {item.is_staff ? (
                             <i
@@ -146,21 +150,43 @@ const StaffPromotion = () => {
                           )}
                         </td>
                         <td className="text-center">
-                          {item.is_staff ? (
-                            <div
-                              className={styles.icon}
-                              onClick={() => grantRevokeStaff(item.id, false)}>
-                              <i
-                                className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
-                              DEMOTE
-                            </div>
+                          {item.department ? (
+                            <>
+                              {item.is_staff ? (
+                                <div
+                                  className={styles.icon}
+                                  onClick={() => {
+                                    const val = item.is_head ? 1 : 0;
+                                    grantRevokeStaff(item.id, val);
+                                  }}>
+                                  <i
+                                    className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
+                                  DEMOTE
+                                </div>
+                              ) : (
+                                <div
+                                  className={styles.icon}
+                                  onClick={() => grantRevokeStaff(item.id, 2)}>
+                                  <i
+                                    className={`${styles.icon} fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
+                                  PROMOTE
+                                </div>
+                              )}
+                            </>
                           ) : (
-                            <div
-                              className={styles.icon}
-                              onClick={() => grantRevokeStaff(item.id, true)}>
-                              <i
-                                className={`${styles.icon} fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
-                              PROMOTE
+                            <div className={styles.icon}>
+                              <OverlayTrigger
+                                placement="right"
+                                overlay={
+                                  <Tooltip
+                                    id="button-tooltip-1"
+                                    className={styles.table}>
+                                    Department is required.
+                                  </Tooltip>
+                                }>
+                                <i
+                                  className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>
+                              </OverlayTrigger>
                             </div>
                           )}
                         </td>

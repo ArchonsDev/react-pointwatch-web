@@ -36,7 +36,7 @@
 }
 
 .table {
-  font-family: "Poppins-Regular";
+  font-family: "Poppins-Regular" !important;
 }
 
 .searchBar {
@@ -52,6 +52,10 @@
 .loading {
   font-family: "Poppins-SemiBold";
   color: #9d084a;
+}
+
+.formSection {
+  font-family: "Poppins-SemiBold";
 }
 
 .pageNum {

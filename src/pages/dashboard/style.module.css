@@ -8,10 +8,19 @@
   color: #180018;
 }
 
+.userStat {
+  font-family: "Poppins-Bold";
+}
+
 .searchBar {
   font-family: "Poppins-Regular";
   border-radius: 7px;
   border: none;
+}
+
+.imgProof {
+  height: 70%;
+  width: 70%;
 }
 
 .swtdHeader {
@@ -53,6 +62,16 @@
 
 .cardBody {
   font-family: "Poppins-Regular";
+}
+
+.swtdStat {
+  font-family: "Poppins-SemiBold";
+  font-size: 1.15em;
+}
+
+.swtdContent {
+  font-family: "Poppins-Regular";
+  font-size: 1.05em;
 }
 
 .formLabel {
