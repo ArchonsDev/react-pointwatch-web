@@ -343,11 +343,11 @@ const ViewSWTD = () => {
                 >
                   {isProcessing ? (
                     <span
-                      className="spinner-border spinner-border-sm"
+                      className="spinner-border spinner-border-sm m-1"
                       role="status"
                       aria-hidden="true"></span>
                   ) : (
-                    <i className="fa-solid fa-check"></i>
+                    <i className="fa-solid fa-check m-1"></i>
                   )}
                   APPROVE
                 </Button>
@@ -363,11 +363,11 @@ const ViewSWTD = () => {
                 >
                   {isProcessing ? (
                     <span
-                      className="spinner-border spinner-border-sm"
+                      className="spinner-border spinner-border-sm m-1"
                       role="status"
                       aria-hidden="true"></span>
                   ) : (
-                    <i className="fa-solid fa-xmark"></i>
+                    <i className="fa-solid fa-xmark m-1"></i>
                   )}
                   NEEDS REVISION
                 </Button>
