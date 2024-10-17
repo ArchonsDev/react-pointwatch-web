@@ -102,10 +102,12 @@ const ViewSWTD = () => {
         token: token,
       },
       (response) => {
+        setIsProcessing(false);
         triggerShowSuccess(3000);
         fetchSWTD();
       },
       (error) => {
+        setIsProcessing(false);
         setErrorMessage(error.response);
         triggerShowError(3000);
       }
@@ -401,17 +403,15 @@ const ViewSWTD = () => {
                   onClick={() => {
                     setValidation("APPROVED");
                     openValidateModal();
-                    setIsProcessing(true); // Start processing
                   }}
-                  disabled={isProcessing} // Disable while processing
-                >
+                  disabled={isProcessing}>
                   {isProcessing ? (
                     <span
-                      className="spinner-border spinner-border-sm m-1"
+                      className="spinner-border spinner-border-sm me-2"
                       role="status"
                       aria-hidden="true"></span>
                   ) : (
-                    <i className="fa-solid fa-check m-1"></i>
+                    <i className="fa-solid fa-check me-2"></i>
                   )}
                   APPROVE
                 </Button>
@@ -421,17 +421,15 @@ const ViewSWTD = () => {
                   onClick={() => {
                     setValidation("REJECTED");
                     openValidateModal();
-                    setIsProcessing(true); // Start processing
                   }}
-                  disabled={isProcessing} // Disable while processing
-                >
+                  disabled={isProcessing}>
                   {isProcessing ? (
                     <span
-                      className="spinner-border spinner-border-sm m-1"
+                      className="spinner-border spinner-border-sm me-2"
                       role="status"
                       aria-hidden="true"></span>
                   ) : (
-                    <i className="fa-solid fa-xmark m-1"></i>
+                    <i className="fa-solid fa-xmark me-2"></i>
                   )}
                   NEEDS REVISION
                 </Button>
@@ -440,11 +438,9 @@ const ViewSWTD = () => {
                 show={showValidateModal}
                 onHide={() => {
                   closeValidateModal();
-                  setIsProcessing(false); // Reset when modal is closed
                 }}
                 onConfirm={() => {
                   handleValidate();
-                  setIsProcessing(false); // Stop processing after validation
                 }}
                 header={"Validate SWTD"}
                 message={
