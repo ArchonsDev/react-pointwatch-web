@@ -30,11 +30,11 @@ const Dashboard = () => {
   const [userClearanceStatus, setUserClearanceStatus] = useState([]);
   const [requiredPoints, setRequiredPoints] = useState(0);
   const lackingUsers = Object.values(userClearanceStatus).filter(
-    (status) => status.points.valid_points < requiredPoints
+    (status) => status.is_cleared === false
   ).length;
 
   const validUsers = Object.values(userClearanceStatus).filter(
-    (status) => status.points.valid_points >= requiredPoints
+    (status) => status.is_cleared === true
   ).length;
 
   const clearedUsersPercentage = (
@@ -124,6 +124,14 @@ const Dashboard = () => {
           (swtd) => swtd.term.id === term.id
         );
 
+        const termStatus = employee?.clearances.find(
+          (clearance) => clearance.term.id === term.id
+        );
+
+        let isCleared = false;
+        if (termStatus) isCleared = termStatus?.is_deleted ? false : true;
+        else isCleared = false;
+
         getClearanceStatus(
           {
             id: employee.id,
@@ -139,6 +147,7 @@ const Dashboard = () => {
                 employee_id: employee.employee_id,
                 firstname: employee.firstname,
                 lastname: employee.lastname,
+                is_cleared: isCleared,
                 swtds: filteredSWTDs,
               },
             }));
@@ -158,8 +167,8 @@ const Dashboard = () => {
   };
 
   const fetchClearanceStatusForAllUsers = (term) => {
-    departmentUsers?.forEach((us) => {
-      fetchClearanceStatus(us, term);
+    departmentUsers?.forEach((member) => {
+      fetchClearanceStatus(member, term);
     });
   };
 
@@ -226,16 +235,14 @@ const Dashboard = () => {
           midyear: user?.department?.midyear_points > 0 ? true : false,
           academic: user?.department?.use_schoolyear,
         });
-
-        const fetchData = async () => {
-          fetchTerms();
-          await fetchDepartmentMembers();
-        };
-
-        fetchData();
+        fetchDepartmentMembers();
       }
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (departmentTypes) fetchTerms();
+  }, [departmentTypes]);
 
   useEffect(() => {
     if (departmentUsers && departmentUsers.length > 0) {
@@ -313,9 +320,7 @@ const Dashboard = () => {
                     <Col
                       className={`${styles.cardCol1} d-flex justify-content-center align-items-center flex-column p-2`}
                       md="5">
-                      <Row className="text-center">
-                        % of employees with required points
-                      </Row>
+                      <Row className="text-center">% of cleared employees</Row>
                       <Row className={styles.lackingPercent}>
                         {clearedUsersPercentage ? clearedUsersPercentage : "0"}%
                       </Row>
@@ -491,7 +496,7 @@ const Dashboard = () => {
                         </Col>
 
                         <Col className="text-center" md={1}>
-                          {item.points.valid_points}
+                          {item.valid_points}
                         </Col>
 
                         <Col

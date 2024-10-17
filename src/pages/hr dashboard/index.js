@@ -40,7 +40,7 @@ const HRDashboard = () => {
         token: token,
       },
       (response) => {
-        const employees = response.users.filter(
+        const employees = response.data?.filter(
           (us) => us.id !== user.id && !us.is_superuser
         );
         setDepartmentUsers(employees);
@@ -191,31 +191,39 @@ const HRDashboard = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    let filteredTerms = terms;
-
-    setDepartmentTypes({
-      ...departmentTypes,
-      semester: selectedDepartment?.use_schoolyear === false ? true : false,
-      midyear: selectedDepartment?.midyear_points > 0 ? true : false,
-      academic: selectedDepartment?.use_schoolyear,
-    });
-
-    const validTypes = [
-      ...(departmentTypes.semester ? ["SEMESTER"] : []),
-      ...(departmentTypes.midyear ? ["MIDYEAR/SUMMER"] : []),
-      ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
-    ];
-
-    if (validTypes.length > 0) {
-      filteredTerms = filteredTerms.filter((term) =>
-        validTypes.includes(term.type)
-      );
+    if (selectedDepartment) {
+      setDepartmentTypes({
+        ...departmentTypes,
+        semester: selectedDepartment?.use_schoolyear === false ? true : false,
+        midyear: selectedDepartment?.midyear_points > 0 ? true : false,
+        academic: selectedDepartment?.use_schoolyear,
+      });
     }
-
-    const ongoingTerm = filteredTerms.find((term) => term.is_ongoing === true);
-    setSelectedTerm(ongoingTerm?.id);
-    setDepartmentTerms(filteredTerms);
   }, [selectedDepartment]);
+
+  useEffect(() => {
+    if (selectedDepartment) {
+      let filteredTerms = terms;
+
+      const validTypes = [
+        ...(departmentTypes.semester ? ["SEMESTER"] : []),
+        ...(departmentTypes.midyear ? ["MIDYEAR/SUMMER"] : []),
+        ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
+      ];
+
+      if (validTypes.length > 0) {
+        filteredTerms = filteredTerms.filter((term) =>
+          validTypes.includes(term.type)
+        );
+      }
+
+      const ongoingTerm = filteredTerms.find(
+        (term) => term.is_ongoing === true
+      );
+      setSelectedTerm(ongoingTerm?.id);
+      setDepartmentTerms(filteredTerms);
+    }
+  }, [departmentTypes, terms, selectedDepartment]);
 
   useEffect(() => {
     if (selectedTerm) {
@@ -226,9 +234,16 @@ const HRDashboard = () => {
   if (loading)
     return (
       <Row
-        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
-        <Spinner className={`me-2`} animation="border" />
-        Loading data...
+        className={`${styles.msg} d-flex flex-column justify-content-center align-items-center w-100`}
+        style={{ height: "100vh" }}>
+        <Col></Col>
+        <Col className="text-center">
+          <div>
+            <Spinner animation="border" />
+          </div>
+          Loading data...
+        </Col>
+        <Col></Col>
       </Row>
     );
 
@@ -340,21 +355,22 @@ const HRDashboard = () => {
               </span>
             ) : (
               <div className="mb-3">
-                <Row className={`${styles.userStatus} mb-3`}>
-                  <Col md="auto">
+                <Row className={`${styles.semibold} mb-3`}>
+                  <Col>
+                    {" "}
                     <i className="fa-solid fa-users fa-lg me-2"></i>Total
                     Employees: {currentRecords.length}
                   </Col>
-                  <Col md="auto">
-                    <i className="fa-solid fa-user-check fa-lg me-2"></i>Cleared
-                    Employees:{" "}
+                  <Col>
+                    <i className="fa-solid fa-user-check fa-lg text-success me-2"></i>
+                    Cleared Employees:{" "}
                     {
                       currentRecords.filter((item) => item.is_cleared === true)
                         .length
                     }
                   </Col>
-                  <Col md="auto">
-                    <i className="fa-solid fa-user-xmark fa-lg me-2"></i>
+                  <Col>
+                    <i className="fa-solid fa-user-xmark fa-lg text-danger me-2"></i>
                     Non-cleared Employees:{" "}
                     {
                       currentRecords.filter((item) => item.is_cleared === false)
@@ -363,6 +379,7 @@ const HRDashboard = () => {
                   </Col>
                   <Col></Col>
                 </Row>
+
                 <ListGroup className="w-100" variant="flush">
                   <ListGroup.Item className={styles.tableHeader}>
                     <Row>

@@ -49,6 +49,10 @@
   color: #9d084a;
 }
 
+.semibold {
+  font-family: "Poppins-SemiBold";
+}
+
 .tableHeader {
   background-color: #e8b4bc !important;
   font-family: "Poppins-Medium";

@@ -11,7 +11,6 @@ import { isEmpty, isValidSWTDDate } from "../../common/validation/utils";
 import { calculateHourPoints } from "../../common/validation/points"; /* prettier-ignore */
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
-import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getSWTD, editSWTD } from "../../api/swtd";
 
@@ -98,7 +97,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
         }
 
         setTerms(filteredTerms);
-        fetchSWTD();
       },
       (error) => {
         console.log(error.message);
@@ -109,10 +107,16 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
   const setTerm = (term_id) => {
     if (!term_id) return;
     const term = terms.find((term) => term.id === term_id);
+    const status = user?.clearances.find(
+      (clearance) => clearance.term.id === term_id
+    );
+    if (status) setInvalidTerm(status.is_deleted ? false : true);
+    else setInvalidTerm(false);
 
     const formattedStartDate = formatDate(term?.start_date);
     const formattedEndDate = formatDate(term?.end_date);
     setSelectedTerm({
+      id: term_id,
       start: formattedStartDate,
       end: formattedEndDate,
       ongoing: term?.is_ongoing,
@@ -121,10 +125,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
 
   const fetchSWTD = () => {
     getSWTD(
-      {
-        token: token,
-        form_id: swtd_id,
-      },
+      { token: token, form_id: swtd_id },
       (response) => {
         const data = response.data.data;
         if (id !== data.author.id) {
@@ -132,20 +133,22 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
           return;
         }
 
+        if (terms.length > 0) {
+          setTerm(data.term.id);
+        }
+
         setCheckBox({
           ...checkbox,
           deliverable: data.has_deliverables,
         });
 
-        getClearance(data.term.id);
-
-        //CHANGE DATE FORMAT FROM MM-DD-YYYY to YYYY-MM-DD
         setForm({
           ...data,
           term_id: data.term.id,
           start_date: formatDate(data.start_date),
           end_date: formatDate(data.end_date),
         });
+
         setLoading(false);
       },
       (error) => {
@@ -155,44 +158,48 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     );
   };
 
-  const getClearance = (term_id) => {
-    getClearanceStatus(
-      {
-        id: id,
-        term_id: term_id,
-        token: token,
-      },
-      (response) => {
-        setInvalidTerm(response.is_cleared);
-      }
-    );
-  };
-
   const handleChange = (e) => {
-    const { name, value } = e.target;
     const textarea = textareaRef.current;
     textarea.style.height = "auto";
     textarea.style.height = `${textarea.scrollHeight}px`;
 
-    if (name === "category" && value.startsWith("Degree")) {
-      setForm((prevForm) => ({
-        ...prevForm,
-        [name]: value,
-      }));
-    } else if (name === "term_id") {
-      const selectedTermId = parseInt(value, 10);
-      setTerm(selectedTermId);
-      getClearance(selectedTermId);
-      setForm((prevForm) => ({
-        ...prevForm,
-        date: "",
-        [name]: value,
-      }));
+    if (e.target.name === "category" && e.target.value.startsWith("Degree")) {
+      setForm({
+        ...form,
+        [e.target.name]: e.target.value,
+      });
+    } else if (e.target.name === "term_id") {
+      const selectedTermId = parseInt(e.target.value);
+      const term = terms.find((term) => term.id === selectedTermId);
+
+      if (term) {
+        const status = user?.clearances.find(
+          (clearance) => clearance.term.id === selectedTermId
+        );
+        if (status) setInvalidTerm(status?.is_deleted ? false : true);
+        else setInvalidTerm(false);
+
+        const formattedStartDate = formatDate(term.start_date);
+        const formattedEndDate = formatDate(term.end_date);
+
+        setSelectedTerm({
+          id: selectedTermId,
+          start: formattedStartDate,
+          end: formattedEndDate,
+          ongoing: term.is_ongoing,
+        });
+      }
+      setForm({
+        ...form,
+        [e.target.name]: e.target.value,
+        start_date: "",
+        end_date: "",
+      });
     } else {
-      setForm((prevForm) => ({
-        ...prevForm,
-        [name]: value,
-      }));
+      setForm({
+        ...form,
+        [e.target.name]: e.target.value,
+      });
     }
   };
 
@@ -201,12 +208,14 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       form.term_id === 0 ||
+      !form.files ||
       form.points <= 0 ||
+      !isValidSWTDDate(form.start_date, selectedTerm) ||
+      !isValidSWTDDate(form.end_date, selectedTerm) ||
       invalidTerm
     );
   };
 
-  //TODO
   const handleSubmit = async () => {
     //Change date format from YYYY-MM-DD to MM-DD-YYYY
     const formattedStartDate = apiDate(form.start_date);
@@ -252,11 +261,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
   }, [user]);
 
   useEffect(() => {
-    const allEntriesFilled =
-      !isEmpty(form?.start_date) &&
-      !isEmpty(form?.end_date) &&
-      form.total_hours > 0;
-    if (allEntriesFilled && !checkbox.deliverable) {
+    if (form.total_hours > 0 && !checkbox.deliverable) {
       const totalPoints = calculateHourPoints(
         form?.category,
         form?.total_hours
@@ -271,17 +276,25 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
         ...prevForm,
       }));
     }
-  }, [form.category, checkbox.deliverable]);
+  }, [form.category, form.total_hours, checkbox.deliverable]);
 
   useEffect(() => {
-    fetchTerms();
+    if (departmentTypes) fetchTerms();
   }, [departmentTypes]);
 
   useEffect(() => {
-    if (terms.length > 0 && form.term_id) {
-      setTerm(form.term_id);
+    if (selectedTerm) {
+      const status = user?.clearances.find(
+        (clearance) => clearance.term.id === selectedTerm.id
+      );
+      if (status) setInvalidTerm(status?.is_deleted ? false : true);
+      else setInvalidTerm(false);
     }
-  }, [terms, form.term_id]);
+  }, [selectedTerm]);
+
+  useEffect(() => {
+    if (terms.length > 0) fetchSWTD();
+  }, [terms]);
 
   if (loading)
     return (
@@ -437,11 +450,11 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                 <Form.Control
                   type="date"
                   name="start_date"
-                  min={selectedTerm?.start_date}
+                  min={selectedTerm?.start}
                   max={
                     selectedTerm?.ongoing
                       ? new Date().toISOString().slice(0, 10)
-                      : selectedTerm.end_date
+                      : selectedTerm.end
                   }
                   className={styles.formBox}
                   onChange={handleChange}
@@ -467,7 +480,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   max={
                     selectedTerm?.ongoing
                       ? new Date().toISOString().slice(0, 10)
-                      : selectedTerm.end_date
+                      : selectedTerm.end
                   }
                   className={styles.formBox}
                   onChange={handleChange}

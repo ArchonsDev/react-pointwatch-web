@@ -3,7 +3,6 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, ListGroup, DropdownButton, Dropdown, 
         Modal, Spinner, Card, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
-
 import categories from "../../data/categories.json";
 import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
@@ -32,8 +31,8 @@ const SWTDDashboard = () => {
   const [terms, setTerms] = useState([]);
   const [pendingSWTDCount, setPendingSWTDCount] = useState(0);
   const [rejectedSWTDCount, setRejectedSWTDCount] = useState(0);
-
-  const [termStatus, setTermStatus] = useState(null);
+  const [termPoints, setTermPoints] = useState(null);
+  const [termClearance, setTermClearance] = useState(null);
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [departmentTypes, setDepartmentTypes] = useState({
@@ -111,7 +110,7 @@ const SWTDDashboard = () => {
     );
   };
 
-  const fetchClearanceStatus = (term) => {
+  const fetchTermPoints = (term) => {
     getClearanceStatus(
       {
         id: id,
@@ -119,7 +118,7 @@ const SWTDDashboard = () => {
         token: token,
       },
       (response) => {
-        setTermStatus(response);
+        setTermPoints(response);
       }
     );
   };
@@ -151,7 +150,12 @@ const SWTDDashboard = () => {
 
   useEffect(() => {
     if (selectedTerm) {
-      fetchClearanceStatus(selectedTerm);
+      fetchTermPoints(selectedTerm);
+      setTermClearance(
+        user?.clearances.find(
+          (clearance) => clearance.term.id === selectedTerm.id
+        )
+      );
       const termCounts = userSWTDs?.reduce(
         (counts, swtd) => {
           if (swtd.term.id === selectedTerm.id) {
@@ -161,7 +165,6 @@ const SWTDDashboard = () => {
         },
         { pending: 0, rejected: 0 }
       );
-
       setPendingSWTDCount(termCounts?.pending);
       setRejectedSWTDCount(termCounts?.rejected);
       setLoading(false);
@@ -251,7 +254,7 @@ const SWTDDashboard = () => {
                   <Dropdown.Item
                     key={term.id}
                     onClick={() => {
-                      fetchClearanceStatus(term);
+                      fetchTermPoints(term);
                       setSelectedTerm(term);
                     }}>
                     {term.name}
@@ -275,9 +278,9 @@ const SWTDDashboard = () => {
             <i className="fa-solid fa-user-check fa-lg me-2"></i>Status:
             <span
               className={`ms-2 text-${
-                termStatus?.is_cleared ? "success" : "danger"
+                !termClearance?.is_deleted ? "success" : "danger"
               } ${styles.userStat}`}>
-              {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
+              {!termClearance?.is_deleted ? "CLEARED" : "PENDING CLEARANCE"}
             </span>
           </Col>
         )}
@@ -365,35 +368,28 @@ const SWTDDashboard = () => {
         </Col>
 
         {/* POINTS */}
-        <Col>
-          {selectedTerm !== null && (
-            <div className={styles.termPoints}>
-              <span className="mb-2">Term Points:</span>
-              <span
-                className={`${styles.validPoints} ${
-                  termStatus?.points?.valid_points <
-                  termStatus?.points?.required_points
-                    ? "text-danger"
-                    : "text-success"
-                }`}>
-                {termStatus?.points?.valid_points > 0
-                  ? termStatus.points.valid_points
-                  : "0"}{" "}
-                pts
-              </span>
-            </div>
-          )}
+        <Col className={styles.termPoints}>
+          <span className="mb-2">Term Pts:</span>
+          <span
+            className={`${styles.validPoints} ${
+              termPoints?.valid_points < termPoints?.required_points
+                ? "text-danger"
+                : "text-success"
+            }`}>
+            {termPoints?.valid_points > 0 ? termPoints.valid_points : "0"}
+          </span>
         </Col>
-
-        <Col>
-          {selectedTerm !== null && (
-            <div className={styles.termPoints}>
-              <span className="mb-2">Excess Points:</span>
-              <span className={`${styles.validPoints} `}>
-                {user?.point_balance} pts
-              </span>
-            </div>
-          )}
+        <Col className={styles.termPoints}>
+          <span className="mb-2">Required Pts:</span>
+          <span className={`${styles.validPoints} `}>
+            {termPoints?.required_points > 0 ? termPoints.required_points : "0"}
+          </span>
+        </Col>
+        <Col className={styles.termPoints}>
+          <span className="mb-2">Excess Pts:</span>
+          <span className={`${styles.validPoints} `}>
+            {user?.point_balance}
+          </span>
         </Col>
       </Row>
 

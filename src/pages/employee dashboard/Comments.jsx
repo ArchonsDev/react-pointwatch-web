@@ -135,9 +135,7 @@ const Comments = () => {
                       <Col className="text-wrap" lg={5}>
                         {item.message}
                       </Col>
-                      <Col className="text-end" lg={3}>
-                        {formatDateTime(item.date_modified)}
-                      </Col>
+                      <Col lg={3}>{formatDateTime(item.date_modified)}</Col>
                       {item.is_edited ? (
                         <Col lg={1}>
                           <Badge bg="secondary" pill>

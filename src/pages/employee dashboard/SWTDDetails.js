@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import Cookies from "js-cookie";
 import { Container, Row, Col, Card, Modal, Spinner, Form } from "react-bootstrap"; /* prettier-ignore */
 import { useNavigate, useParams } from "react-router-dom";
 
 import Comments from "./Comments";
 import EditSWTD from "./EditSWTD";
-import { getClearanceStatus } from "../../api/user";
-import { getSWTD, deleteSWTD, getProof, addProof, deleteProof } from "../../api/swtd"; /* prettier-ignore */
+import { getSWTD, deleteSWTD, getProof, deleteProof } from "../../api/swtd"; /* prettier-ignore */
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { wordDate } from "../../common/format/date";
+import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
@@ -18,6 +18,7 @@ import EditProofModal from "../../common/modals/EditProofModal";
 import styles from "./style.module.css";
 
 const SWTDDetails = () => {
+  const { user } = useContext(SessionUserContext);
   const { swtd_id } = useParams();
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
@@ -36,7 +37,8 @@ const SWTDDetails = () => {
   const [loadingProof, setLoadingProof] = useState(true);
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
-  const [termStatus, setTermStatus] = useState(true);
+
+  const [termClearance, setTermClearance] = useState(false);
   const [currentProofIndex, setCurrentProofIndex] = useState(0);
 
   const fetchSWTD = () => {
@@ -46,8 +48,13 @@ const SWTDDetails = () => {
         token: token,
       },
       (response) => {
-        setSWTD(response.data.data);
-        fetchClearance(response.data.data.term?.id);
+        const data = response.data.data;
+        const status = user?.clearances.find(
+          (clearance) => clearance.term.id === data.term.id
+        );
+        if (status) setTermClearance(status?.is_deleted ? false : true);
+        else setTermClearance(false);
+        setSWTD(data);
         setLoading(false);
       },
       (error) => {
@@ -80,22 +87,6 @@ const SWTDDetails = () => {
       },
       (error) => {
         console.log("Error fetching SWTD data: ", error);
-      }
-    );
-  };
-
-  const fetchClearance = (term_id) => {
-    getClearanceStatus(
-      {
-        id: id,
-        term_id: term_id,
-        token: token,
-      },
-      (response) => {
-        setTermStatus(response.is_cleared);
-      },
-      (error) => {
-        console.log("Error fetching clearance status: ", error);
       }
     );
   };
@@ -223,7 +214,7 @@ const SWTDDetails = () => {
             </BtnSecondary>
           ) : (
             <>
-              {!termStatus && (
+              {!termClearance && (
                 <>
                   <BtnPrimary
                     onClick={() => {
@@ -373,7 +364,14 @@ const SWTDDetails = () => {
                   Duration
                 </Col>
                 <Col md="4">
-                  {wordDate(swtd?.start_date)} to {wordDate(swtd?.end_date)}
+                  {swtd?.start_date === swtd?.end_date ? (
+                    wordDate(swtd?.start_date)
+                  ) : (
+                    <>
+                      {wordDate(swtd?.start_date)} to {wordDate(swtd?.end_date)}
+                    </>
+                  )}
+
                   {!swtd?.category.startsWith("Degree") && (
                     <> ({swtd?.total_hours} hours)</>
                   )}
@@ -391,7 +389,17 @@ const SWTDDetails = () => {
                       View
                     </BtnPrimary>
                   ) : (
-                    <span className="text-danger">No file(s) attached.</span>
+                    <>
+                      <span className="text-danger me-3">
+                        No file(s) attached.
+                      </span>
+                      <BtnPrimary
+                        onClick={() => {
+                          openEditProof();
+                        }}>
+                        <i className="fa-solid fa-circle-plus me-2"></i>Add
+                      </BtnPrimary>
+                    </>
                   )}
                 </Col>
               </Row>

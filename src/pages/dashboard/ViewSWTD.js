@@ -8,7 +8,6 @@ import { useTrigger } from "../../hooks/useTrigger";
 import { validateSWTD } from "../../api/admin";
 import { getSWTD, getProof } from "../../api/swtd"; /* prettier-ignore */
 import { wordDate } from "../../common/format/date";
-import { formatTime } from "../../common/format/time";
 import Comments from "../employee dashboard/Comments";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
@@ -21,23 +20,20 @@ const ViewSWTD = () => {
   const { id, swtd_id } = useParams();
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
-
   const textareaRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
+  const [loadingProof, setLoadingProof] = useState(true);
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
-
   const [validation, setValidation] = useState("");
-
   const [showValidateModal, openValidateModal, closeValidateModal] =
     useSwitch();
-
   const [showProofModal, openProofModal, closeProofModal] = useSwitch();
-
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [currentProofIndex, setCurrentProofIndex] = useState(0);
 
   const handleBack = () => {
     const previousUrl = `/dashboard/${id}`;
@@ -67,10 +63,11 @@ const ViewSWTD = () => {
     return title;
   };
 
-  const fetchSWTDProof = () => {
+  const fetchSWTDProof = (id) => {
     getProof(
       {
         form_id: swtd_id,
+        proof_id: id,
         token: token,
       },
       (response) => {
@@ -84,6 +81,8 @@ const ViewSWTD = () => {
           src: blobURL,
           type: contentType,
         });
+
+        setLoadingProof(false);
       },
       (error) => {
         console.log("Error fetching SWTD data: ", error);
@@ -108,6 +107,21 @@ const ViewSWTD = () => {
         triggerShowError(3000);
       }
     );
+  };
+
+  const handleCloseProofModal = () => {
+    setCurrentProofIndex(0);
+    closeProofModal();
+  };
+
+  const handleProofNavigation = (direction) => {
+    const newIndex = currentProofIndex + direction;
+
+    if (newIndex >= 0 && newIndex < swtd.proof.length) {
+      setLoadingProof(true);
+      setCurrentProofIndex(newIndex);
+      fetchSWTDProof(swtd.proof[newIndex].id);
+    }
   };
 
   useEffect(() => {
@@ -148,37 +162,82 @@ const ViewSWTD = () => {
   return (
     <Container className="d-flex flex-column justify-content-start align-items-start">
       {/* Proof Display */}
-      <Modal show={showProofModal} onHide={closeProofModal} size="lg" centered>
+      <Modal
+        show={showProofModal}
+        onHide={handleCloseProofModal}
+        size="xl"
+        centered>
+        <Modal.Header closeButton></Modal.Header>
         <Modal.Body className="d-flex justify-content-center align-items-center">
-          <Row className="w-100">
-            {!swtdProof ? (
+          {!swtdProof ? (
+            <Row className="w-100">
               <div
                 className={`${styles.msg} d-flex justify-content-center align-items-center`}>
                 <Spinner className={`me-2`} animation="border" />
                 Loading proof...
               </div>
-            ) : (
-              <>
-                {swtdProof?.type.startsWith("image") && (
-                  <img
-                    src={swtdProof?.src}
-                    title="SWTD Proof"
-                    className={styles.imgProof}
-                    alt="SWTD Proof"
-                  />
-                )}
-                {swtdProof?.type === "application/pdf" && (
-                  <iframe
-                    src={swtdProof?.src}
-                    type="application/pdf"
-                    width="100%"
-                    height="650px"
-                    title="SWTD Proof PDF"
-                    aria-label="SWTD Proof PDF"></iframe>
-                )}
-              </>
-            )}
-          </Row>
+            </Row>
+          ) : (
+            <Container>
+              <Row className="d-flex justify-content-center flex-row w-100 mb-3">
+                <Col></Col>
+                <Col lg="auto" md="auto">
+                  <i
+                    className={`${styles.points} ${styles.triangle} fa-solid fa-square-caret-left fa-2xl`}
+                    onClick={() => {
+                      handleProofNavigation(-1);
+                    }}></i>
+                </Col>
+                <Col className={styles.formLabel} lg="auto" md="auto">
+                  {currentProofIndex + 1} / {swtd.proof?.length}
+                </Col>
+                <Col lg="auto" md="auto">
+                  <i
+                    className={`${styles.points} ${styles.triangle} fa-solid fa-square-caret-right fa-2xl`}
+                    onClick={() => {
+                      handleProofNavigation(1);
+                    }}></i>
+                </Col>
+                <Col className="text-end"></Col>
+              </Row>
+
+              <Row className="d-flex justify-content-center align-items-center w-100 mb-3">
+                <Col className="text-center">
+                  {loadingProof ? (
+                    <>
+                      <Row className="w-100">
+                        <div
+                          className={`${styles.msg} d-flex justify-content-center align-items-center`}>
+                          <Spinner className={`me-2`} animation="border" />
+                          Loading proof...
+                        </div>
+                      </Row>
+                    </>
+                  ) : (
+                    <>
+                      {swtdProof?.type.startsWith("image") && (
+                        <img
+                          src={swtdProof?.src}
+                          title="SWTD Proof"
+                          className={styles.imgProof}
+                          alt="SWTD Proof"
+                        />
+                      )}
+                      {swtdProof?.type === "application/pdf" && (
+                        <iframe
+                          src={swtdProof?.src}
+                          type="application/pdf"
+                          width="100%"
+                          height="600px"
+                          title="SWTD Proof PDF"
+                          aria-label="SWTD Proof PDF"></iframe>
+                      )}
+                    </>
+                  )}
+                </Col>
+              </Row>
+            </Container>
+          )}
         </Modal.Body>
       </Modal>
 
@@ -194,12 +253,17 @@ const ViewSWTD = () => {
       </Row>
 
       {showError && (
-        <div className="alert alert-danger mb-3 w-100" role="alert">
+        <div
+          className={`${styles.filterOption} alert alert-danger mb-3 w-100`}
+          role="alert">
           {errorMessage}
         </div>
       )}
+
       {showSuccess && (
-        <div className="alert alert-success mb-3 w-100" role="alert">
+        <div
+          className={`${styles.filterOption} alert alert-success mb-3 w-100`}
+          role="alert">
           SWTD Submission validated.
         </div>
       )}
@@ -277,21 +341,20 @@ const ViewSWTD = () => {
 
           <Row className="mb-4">
             <Col className={styles.formLabel} md="2">
-              Date & Time
+              Duration
             </Col>
             <Col md="4">
-              {swtd?.dates?.map((entry, index) => (
-                <div key={index}>
-                  {wordDate(entry.date)}
-                  {!swtd?.category?.startsWith("Degree") && (
-                    <>
-                      {" "}
-                      ({formatTime(entry.time_started)} to{" "}
-                      {formatTime(entry.time_ended)})
-                    </>
-                  )}
-                </div>
-              ))}
+              {swtd?.start_date === swtd?.end_date ? (
+                wordDate(swtd?.start_date)
+              ) : (
+                <>
+                  {wordDate(swtd?.start_date)} to {wordDate(swtd?.end_date)}
+                </>
+              )}
+
+              {!swtd?.category.startsWith("Degree") && (
+                <> ({swtd?.total_hours} hours)</>
+              )}
             </Col>
             <Col className={styles.formLabel} md="2">
               Proof
@@ -299,7 +362,7 @@ const ViewSWTD = () => {
             <Col md="4">
               <BtnPrimary
                 onClick={() => {
-                  fetchSWTDProof();
+                  fetchSWTDProof(swtd.proof[0].id);
                   openProofModal();
                 }}>
                 View

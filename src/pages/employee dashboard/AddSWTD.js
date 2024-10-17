@@ -5,7 +5,6 @@ import { Row, Col, Container, Card, Form, Modal, Spinner, FloatingLabel } from "
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import categories from "../../data/categories.json";
-import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { addSWTD } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
@@ -107,8 +106,6 @@ const AddSWTD = () => {
     if (e.target.name === "category" && e.target.value.startsWith("Degree")) {
       setForm({
         ...form,
-        time_started: "00:00",
-        time_ended: "00:00",
         [e.target.name]: e.target.value,
       });
     } else if (e.target.name === "term_id") {
@@ -118,18 +115,25 @@ const AddSWTD = () => {
       if (term) {
         const formattedStartDate = formatDate(term.start_date);
         const formattedEndDate = formatDate(term.end_date);
-
         setSelectedTerm({
+          id: selectedTermId,
           start: formattedStartDate,
           end: formattedEndDate,
           ongoing: term.is_ongoing,
         });
 
-        fetchClearanceStatus(term);
+        const status = user?.clearances.find(
+          (clearance) => clearance.term.id === selectedTermId
+        );
+
+        setInvalidTerm(status?.is_deleted ? false : true);
       }
+
       setForm({
         ...form,
         [e.target.name]: e.target.value,
+        start_date: "",
+        end_date: "",
       });
     } else {
       setForm({
@@ -137,23 +141,6 @@ const AddSWTD = () => {
         [e.target.name]: e.target.value,
       });
     }
-  };
-
-  const fetchClearanceStatus = (term) => {
-    getClearanceStatus(
-      {
-        id: id,
-        term_id: term.id,
-        token: accessToken,
-      },
-      (response) => {
-        if (response.is_cleared === true) {
-          setInvalidTerm(true);
-        } else {
-          setInvalidTerm(false);
-        }
-      }
-    );
   };
 
   const handleProof = (e) => {
@@ -185,6 +172,8 @@ const AddSWTD = () => {
       form.term_id === 0 ||
       !form.files ||
       form.points <= 0 ||
+      !isValidSWTDDate(form.start_date, selectedTerm) ||
+      !isValidSWTDDate(form.end_date, selectedTerm) ||
       invalidTerm
     );
   };
@@ -251,20 +240,18 @@ const AddSWTD = () => {
         }
 
         const ongoingTerm = filteredTerms.find((term) => term.is_ongoing);
-
         const termToFormat = ongoingTerm || filteredTerms[0];
 
         const formattedStartDate = formatDate(termToFormat.start_date);
         const formattedEndDate = formatDate(termToFormat.end_date);
-
         setSelectedTerm({
+          id: termToFormat.id,
           start: formattedStartDate,
           end: formattedEndDate,
           ongoing: termToFormat.is_ongoing,
         });
 
         setTerms(filteredTerms);
-        //Set form to the on-going term
         setForm((prevForm) => ({
           ...prevForm,
           term_id: ongoingTerm.id || filteredTerms[0].id,
@@ -278,11 +265,7 @@ const AddSWTD = () => {
 
   //USEEFFECT FOR CALCULATING POINTS
   useEffect(() => {
-    const allEntriesFilled =
-      !isEmpty(form.start_date) &&
-      !isEmpty(form.end_date) &&
-      form.total_hours > 0;
-    if (allEntriesFilled && !checkbox.deliverable) {
+    if (form.total_hours > 0 && !checkbox.deliverable) {
       const totalPoints = calculateHourPoints(
         form?.category,
         form?.total_hours
@@ -317,6 +300,16 @@ const AddSWTD = () => {
   useEffect(() => {
     fetchTerms();
   }, [departmentTypes]);
+
+  useEffect(() => {
+    if (selectedTerm) {
+      const status = user?.clearances.find(
+        (clearance) => clearance.term.id === selectedTerm.id
+      );
+      if (status) setInvalidTerm(status?.is_deleted ? false : true);
+      else setInvalidTerm(false);
+    }
+  }, [selectedTerm]);
 
   return (
     <Container
@@ -498,11 +491,11 @@ const AddSWTD = () => {
                   <Form.Control
                     type="date"
                     name="start_date"
-                    min={selectedTerm?.start_date}
+                    min={selectedTerm?.start}
                     max={
                       selectedTerm?.ongoing
                         ? new Date().toISOString().slice(0, 10)
-                        : selectedTerm.end_date
+                        : selectedTerm.end
                     }
                     className={styles.formBox}
                     onChange={handleChange}
@@ -528,7 +521,7 @@ const AddSWTD = () => {
                     max={
                       selectedTerm?.ongoing
                         ? new Date().toISOString().slice(0, 10)
-                        : selectedTerm.end_date
+                        : selectedTerm.end
                     }
                     className={styles.formBox}
                     onChange={handleChange}
@@ -537,7 +530,7 @@ const AddSWTD = () => {
                       !isEmpty(form.end_date) &&
                       !isValidSWTDDate(form.end_date, selectedTerm)
                     }
-                    disabled={form.term_id === 0 || loading}
+                    disabled={isEmpty(form.start_date) || loading}
                   />
                   <Form.Control.Feedback type="invalid">
                     Date must be valid and within the selected term.

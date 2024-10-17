@@ -18,6 +18,11 @@
   border: none;
 }
 
+.imgProof {
+  height: 70%;
+  width: 70%;
+}
+
 .swtdHeader {
   background-color: #e8b4bc !important;
   font-family: "Poppins-SemiBold";

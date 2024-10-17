@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
 
 import status from "../../data/status.json";
-import { getAllMembers } from "../../api/department";
 import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
 import { getAllSWTDs } from "../../api/swtd";
 import { getUser, getClearanceStatus } from "../../api/user";
@@ -27,7 +26,8 @@ const EmployeeSWTD = () => {
   const [loading, setLoading] = useState(true);
   const [userSWTDs, setUserSWTDs] = useState([]);
   const [employee, setEmployee] = useState(null);
-  const [termStatus, setTermStatus] = useState(null);
+  const [termPoints, setTermPoints] = useState(null);
+  const [termClearance, setTermClearance] = useState(null);
   const [terms, setTerms] = useState([]);
   const [selectedTerm, setSelectedTerm] = useState(null);
   const [departmentTypes, setDepartmentTypes] = useState({
@@ -44,28 +44,6 @@ const EmployeeSWTD = () => {
   const [showPointsModal, openPointsModal, closePointsModal] = useSwitch();
   const recordsPerPage = 15;
 
-  const fetchDepartmentMembers = async () => {
-    await getAllMembers(
-      {
-        id: user?.department.id,
-        token: token,
-      },
-      (response) => {
-        if (response.data.members?.length !== 0) {
-          const emp = response.data.members.find(
-            (member) => member.id === parseInt(id, 10)
-          );
-          setEmployee(emp);
-          fetchTerms();
-          fetchAllSWTDs();
-        }
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
-  };
-
   const fetchUser = async () => {
     await getUser(
       {
@@ -73,9 +51,8 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        setEmployee(response.data);
-        fetchTerms();
-        fetchAllSWTDs(response.data.id);
+        setEmployee(response.data.data);
+        fetchAllSWTDs();
       },
       (error) => {
         console.log(error.response);
@@ -133,7 +110,7 @@ const EmployeeSWTD = () => {
     );
   };
 
-  const fetchClearanceStatus = (term) => {
+  const fetchTermPoints = (term) => {
     getClearanceStatus(
       {
         id: id,
@@ -141,7 +118,7 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        setTermStatus(response);
+        setTermPoints(response);
       }
     );
   };
@@ -150,30 +127,30 @@ const EmployeeSWTD = () => {
     navigate(`/dashboard/${id}/${swtd_id}`);
   };
 
-  const handleClear = (term) => {
-    clearEmployee(
+  const handleClear = async (term) => {
+    await clearEmployee(
       {
         id: id,
         term_id: term.id,
         token: token,
       },
-      (response) => {
-        fetchClearanceStatus(term);
-        fetchDepartmentMembers();
+      async (response) => {
+        await fetchUser();
+        await fetchTermPoints(term);
       }
     );
   };
 
-  const handleRevoke = (term) => {
-    revokeEmployee(
+  const handleRevoke = async (term) => {
+    await revokeEmployee(
       {
         id: id,
         term_id: term.id,
         token: token,
       },
-      (response) => {
-        fetchClearanceStatus(term);
-        fetchDepartmentMembers();
+      async (response) => {
+        await fetchUser();
+        await fetchTermPoints(term);
       }
     );
   };
@@ -243,10 +220,6 @@ const EmployeeSWTD = () => {
   };
 
   useEffect(() => {
-    if (selectedTerm) fetchClearanceStatus(selectedTerm);
-  }, [selectedTerm]);
-
-  useEffect(() => {
     if (!user) setLoading(true);
     else {
       if (!user?.is_head && !user?.is_staff && !user?.is_superuser)
@@ -258,10 +231,36 @@ const EmployeeSWTD = () => {
           midyear: user?.department?.midyear_points > 0 ? true : false,
           academic: user?.department?.use_schoolyear,
         });
-        fetchDepartmentMembers();
+        fetchUser();
       }
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (departmentTypes) {
+      fetchTerms();
+    }
+  }, [departmentTypes]);
+
+  useEffect(() => {
+    if (selectedTerm) fetchTermPoints(selectedTerm);
+    const termStatus = employee?.clearances?.find(
+      (clearance) => clearance.term.id === selectedTerm.id
+    );
+    if (termStatus) setTermClearance(termStatus.is_deleted ? false : true);
+    else setTermClearance(false);
+  }, [selectedTerm]);
+
+  useEffect(() => {
+    if (selectedTerm && employee) {
+      fetchTermPoints(selectedTerm);
+      const termStatus = employee?.clearances?.find(
+        (clearance) => clearance.term.id === selectedTerm.id
+      );
+      if (termStatus) setTermClearance(termStatus.is_deleted ? false : true);
+      else setTermClearance(false);
+    }
+  }, [selectedTerm, employee]);
 
   if (loading)
     return (
@@ -316,7 +315,7 @@ const EmployeeSWTD = () => {
                   <Dropdown.Item
                     key={term.id}
                     onClick={() => {
-                      fetchClearanceStatus(term);
+                      fetchTermPoints(term);
                       setSelectedTerm(term);
                     }}>
                     {term.name}
@@ -344,22 +343,6 @@ const EmployeeSWTD = () => {
 
       <Row className={`w-100 mb-4`}>
         <Col className={styles.employeeDetails} lg={4}>
-          <div className={`${styles.userStat} mb-1`}>User Points</div>
-          <div>
-            <i className="fa-solid fa-circle-check fa-lg me-2"></i>Current
-            Points:{" "}
-            <span className={styles.userStat}>
-              {termStatus?.points.valid_points} pts
-            </span>
-          </div>
-          <div>
-            <i className="fa-solid fa-circle-plus fa-lg me-2"></i>Excess Points:{" "}
-            <span className={styles.userStat}>
-              {employee?.point_balance} pts
-            </span>
-          </div>
-        </Col>
-        <Col className={styles.employeeDetails} lg={4}>
           <div className={`${styles.userStat} mb-1`}>SWTD Statistics</div>
           <div>
             <i className="fa-solid fa-spinner fa-lg me-2"></i>Total Pending
@@ -386,20 +369,43 @@ const EmployeeSWTD = () => {
           </div>
         </Col>
 
+        <Col className={styles.employeeDetails} lg={4}>
+          <div className={`${styles.userStat} mb-1`}>User Points</div>
+          <div>
+            <i className="fa-solid fa-circle-check fa-lg me-2"></i>Current
+            Points:{" "}
+            <span className={styles.userStat}>
+              {termPoints?.valid_points} pts
+            </span>
+          </div>
+          <div>
+            <i className="fa-solid fa-circle-plus fa-lg me-2"></i>Excess Points:{" "}
+            <span className={styles.userStat}>
+              {employee?.point_balance} pts
+            </span>
+          </div>
+        </Col>
+
         <Col className="text-end">
-          <div className={`${styles.employeeDetails} mb-1`}>
-            <i className="fa-solid fa-user-check fa-lg me-2"></i>Status:{" "}
+          <div className={`${styles.employeeDetails}`}>
+            <i className="fa-solid fa-user-check fa-lg me-1"></i>Status:{" "}
             <span
-              className={`ms-2 text-${
-                termStatus?.is_cleared ? "success" : "danger"
-              } ${styles.userStat}`}>
-              {termStatus?.is_cleared ? "CLEARED" : "PENDING CLEARANCE"}
+              className={`ms-1 text-${termClearance ? "success" : "danger"} ${
+                styles.userStat
+              }`}>
+              {termClearance ? "CLEARED" : "PENDING CLEARANCE"}
+            </span>
+          </div>
+          <div className={`${styles.employeeDetails} mb-1`}>
+            Required Points:{" "}
+            <span className={styles.userStat}>
+              {termPoints?.required_points} pts
             </span>
           </div>
           <div className="mb-1">
             {(user?.is_head || user?.is_staff || user?.is_superuser) &&
               selectedTerm !== null &&
-              (termStatus?.is_cleared ? (
+              (termClearance ? (
                 <>
                   <BtnSecondary onClick={openRevokeModal}>
                     <i className="fa-solid fa-xmark me-2"></i>Revoke
@@ -410,9 +416,8 @@ const EmployeeSWTD = () => {
                   <BtnPrimary
                     onClick={openModal}
                     disabled={
-                      termStatus?.points?.valid_points +
-                        employee?.point_balance <
-                      termStatus?.points?.required_points
+                      termPoints?.valid_points + employee?.point_balance <
+                      termPoints?.required_points
                     }>
                     <i className="fa-solid fa-check me-2"></i>
                     Clear
