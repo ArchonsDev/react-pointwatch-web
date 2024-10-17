@@ -52,7 +52,14 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        setEmployee(response.data.data);
+        const emp = response.data.data;
+        setEmployee(emp);
+        setDepartmentTypes({
+          ...departmentTypes,
+          semester: emp?.department?.use_schoolyear === false ? true : false,
+          midyear: emp?.department?.midyear_points > 0 ? true : false,
+          academic: emp?.department?.use_schoolyear,
+        });
         fetchAllSWTDs();
       },
       (error) => {
@@ -232,12 +239,6 @@ const EmployeeSWTD = () => {
       if (!user?.is_head && !user?.is_staff && !user?.is_superuser)
         navigate("/swtd");
       else {
-        setDepartmentTypes({
-          ...departmentTypes,
-          semester: user?.department?.use_schoolyear === false ? true : false,
-          midyear: user?.department?.midyear_points > 0 ? true : false,
-          academic: user?.department?.use_schoolyear,
-        });
         fetchUser();
       }
     }
