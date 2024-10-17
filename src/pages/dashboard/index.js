@@ -246,7 +246,7 @@ const Dashboard = () => {
     if (!user) setLoading(true);
     else {
       if (user?.is_staff) navigate("/hr");
-      else if (!user?.is_head && !user?.is_superuser) navigate("/swtd");
+      else if (user?.is_superuser) navigate("/admin");
       else if (user?.department) {
         setLoading(true);
         setDepartmentTypes({
@@ -256,7 +256,7 @@ const Dashboard = () => {
           academic: user?.department?.use_schoolyear,
         });
         fetchDepartmentMembers();
-      }
+      } else navigate("/swtd");
     }
   }, [user, navigate]);
 

@@ -167,7 +167,7 @@ const HRDashboard = () => {
   const handleFilter = (employeeList, query, dept) => {
     return Object.values(employeeList).filter((employee) => {
       const matchesQuery =
-        employee.employee_id.includes(query) ||
+        employee.employee_id?.includes(query) ||
         employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
         employee.lastname.toLowerCase().includes(query.toLowerCase());
 

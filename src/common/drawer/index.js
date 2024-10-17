@@ -102,7 +102,7 @@ const Drawer = () => {
               <div className="flex-grow-1">
                 <Nav>
                   {/* Dashboard */}
-                  {(user?.is_head || user?.is_superuser) && (
+                  {user?.is_head && (
                     <Nav.Link
                       className={`mx-3 my-1 p-3 ${
                         location.pathname === "/dashboard"
