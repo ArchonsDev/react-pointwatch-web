@@ -104,82 +104,143 @@ const EditTermModal = ({ show, onHide, data, editSuccess }) => {
             </div>
           )}
           <Form noValidate onSubmit={(e) => e.preventDefault()}>
-            <Row>
-              <Form.Group as={Row} className="mb-3" controlId="inputName">
-                <Form.Label className={styles.message} column sm="2">
-                  Name
-                </Form.Label>
-                <Col sm="10">
-                  <Form.Control
-                    className={styles.comment}
-                    name="name"
+            <Form.Group as={Row} className="mb-3" controlId="inputName">
+              <Form.Label
+                className={styles.message}
+                column
+                lg={2}
+                md={2}
+                xs={12}>
+                Term Name
+              </Form.Label>
+              <Col lg={10} md={10} xs={12}>
+                <Form.Control
+                  className={styles.comment}
+                  name="name"
+                  onChange={handleChange}
+                  value={form.name}
+                />
+              </Col>
+            </Form.Group>
+
+            <Form.Group as={Row} className="mb-1" controlId="inputType">
+              <Form.Label
+                className={styles.message}
+                column
+                lg={2}
+                md={2}
+                xs={12}>
+                Term Type
+              </Form.Label>
+              <Col
+                className="d-flex justify-content-start align-items-center flex-wrap"
+                lg={10}
+                md={10}
+                xs={12}>
+                {types.type.map((item, index) => (
+                  <Form.Check
+                    key={index}
+                    label={item}
+                    value={item}
+                    type="radio"
+                    name="type"
+                    checked={form.type === item}
+                    className={`${styles.comment} mb-2`}
                     onChange={handleChange}
-                    value={form.name}
+                    inline
                   />
-                </Col>
-              </Form.Group>
-            </Row>
-            <Row>
-              <Form.Group as={Row} className="mb-3" controlId="inputType">
-                <Form.Label className={styles.message} column sm="2">
-                  Type
-                </Form.Label>
-                <Col
-                  className="d-flex justify-content-start align-items-center"
-                  sm="10">
-                  {types.type.map((item, index) => (
-                    <Form.Check
-                      key={index}
-                      label={item}
-                      value={item}
-                      type="radio"
-                      name="type"
-                      checked={form.type === item}
-                      className={styles.comment}
-                      onChange={handleChange}
-                      inline
-                    />
-                  ))}
-                </Col>
-              </Form.Group>
-            </Row>
-            <Row>
-              <Form.Group as={Row} className="mb-3" controlId="inputStartDate">
-                <Form.Label className={styles.message} column sm="2">
-                  Start
-                </Form.Label>
-                <Col sm="10">
-                  <Form.Control
-                    type="date"
-                    className={styles.comment}
-                    name="start_date"
-                    onChange={handleChange}
-                    value={form.start_date}
-                  />
-                </Col>
-              </Form.Group>
-            </Row>
-            <Row>
-              <Form.Group as={Row} className="mb-3" controlId="inputEndDate">
-                <Form.Label className={styles.message} column sm="2">
-                  End
-                </Form.Label>
-                <Col sm="10">
-                  <Form.Control
-                    type="date"
-                    min={form.start_date}
-                    className={styles.comment}
-                    name="end_date"
-                    onChange={handleChange}
-                    value={form.end_date}
-                    isInvalid={form.end_date < form.start_date}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    End date must be after the start date.
-                  </Form.Control.Feedback>
-                </Col>
-              </Form.Group>
-            </Row>
+                ))}
+              </Col>
+            </Form.Group>
+
+            <Form.Group as={Row} className="mb-2" controlId="inputStartDate">
+              <Form.Label
+                className={styles.message}
+                column
+                lg={2}
+                md={2}
+                xs={12}>
+                Start Date
+              </Form.Label>
+              <Col lg={10} md={10} xs={12}>
+                <Form.Control
+                  type="month"
+                  className={styles.comment}
+                  name="start_date"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value) {
+                      const [year, month] = value.split("-");
+                      const startOfMonth = new Date(
+                        Date.UTC(year, month - 1, 1)
+                      );
+                      handleChange({
+                        target: {
+                          name: "start_date",
+                          value: startOfMonth.toISOString().slice(0, 10),
+                        },
+                      });
+                    } else {
+                      handleChange({
+                        target: {
+                          name: "start_date",
+                          value: "",
+                        },
+                      });
+                    }
+                  }}
+                  value={form.start_date.slice(0, 7)}
+                />
+              </Col>
+            </Form.Group>
+
+            <Form.Group as={Row} className="mb-2" controlId="inputEndDate">
+              <Form.Label
+                className={styles.message}
+                column
+                lg={2}
+                md={2}
+                xs={12}>
+                End Date
+              </Form.Label>
+              <Col lg={10} md={10} xs={12}>
+                <Form.Control
+                  type="month"
+                  min={form.start_date.slice(0, 7)}
+                  className={styles.comment}
+                  name="end_date"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value) {
+                      const date = new Date(value);
+                      const endOfMonth = new Date(
+                        date.getFullYear(),
+                        date.getMonth() + 1,
+                        0
+                      );
+                      handleChange({
+                        target: {
+                          name: "end_date",
+                          value: endOfMonth.toISOString().slice(0, 10),
+                        },
+                      });
+                    } else {
+                      handleChange({
+                        target: {
+                          name: "end_date",
+                          value: "",
+                        },
+                      });
+                    }
+                  }}
+                  value={form.end_date.slice(0, 7)}
+                  isInvalid={form.end_date < form.start_date}
+                />
+                <Form.Control.Feedback type="invalid">
+                  End date must be after the start date.
+                </Form.Control.Feedback>
+              </Col>
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>

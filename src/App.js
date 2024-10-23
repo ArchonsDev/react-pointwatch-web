@@ -20,9 +20,10 @@ import Admin from "./pages/admin";
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
 
+import HRContextProvider from "./contexts/HRContext";
 import SessionUserContext from "./contexts/SessionUserContext";
-import { getUser } from "./api/user";
-
+import { getUser, getUserDepartment, getUserClearances } from "./api/user";
+import { getAllSWTDs } from "./api/swtd";
 import styles from "./styles/App.module.css";
 
 import { MsalProvider } from "@azure/msal-react";
@@ -36,12 +37,7 @@ const App = () => {
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
   const cookieID = Cookies.get("userID");
-
   const [user, setUser] = useState(null);
-  const [oauthLogin, setOauthLogin] = useState({
-    email: "",
-    password: "",
-  });
 
   let id = null;
   if (cookieID !== undefined) {
@@ -60,9 +56,31 @@ const App = () => {
         id: data.id,
       },
       (response) => {
-        setUser(response?.data.data);
+        const userData = response?.data.user;
+        if (userData) {
+          setUser(userData);
+          fetchAdditionalUserData(userData.id);
+        }
+      },
+      (error) => {
+        console.error("Error fetching user session:", error.message);
       }
     );
+  };
+
+  const fetchAdditionalUserData = async (userId) => {
+    try {
+      const [clearancesResponse] = await Promise.all([
+        getUserClearances({ id: userId, token: data.token }),
+      ]);
+
+      setUser((prevUser) => ({
+        ...prevUser,
+        clearances: clearancesResponse?.clearance,
+      }));
+    } catch (error) {
+      console.error("Error fetching additional user data:", error.message);
+    }
   };
 
   const showDrawer = ["/swtd", "/dashboard", "/settings", "/admin", "/hr"].some(
@@ -88,12 +106,7 @@ const App = () => {
     ? "SWTD Information"
     : tabNames[location.pathname] || "PointWatch";
 
-  const values = {
-    user,
-    setUser,
-    oauthLogin,
-    setOauthLogin,
-  };
+  const values = { user, setUser };
 
   useEffect(() => {
     const isTokenExpired = (token) => {
@@ -109,9 +122,7 @@ const App = () => {
       navigate("/");
     }
 
-    if (data.token !== null && data.id !== null) {
-      getSessionUser();
-    }
+    if (data.token !== null && data.id !== null) getSessionUser();
   }, [data.token, data.id]);
 
   return (
@@ -157,25 +168,29 @@ const App = () => {
               path="/dashboard"
               element={token ? <Dashboard /> : <Navigate to="/login" />}
             />
-
             <Route
               path="/dashboard/:id"
               element={token ? <EmployeeSWTD /> : <Navigate to="/login" />}
             />
-
             <Route
               path="/dashboard/:id/:swtd_id"
               element={token ? <ViewSWTD /> : <Navigate to="/login" />}
             />
-
             <Route
               path="/admin"
               element={token ? <Admin /> : <Navigate to="/login" />}
             />
-
             <Route
               path="/hr"
-              element={token ? <HRDashboard /> : <Navigate to="/login" />}
+              element={
+                token ? (
+                  <HRContextProvider>
+                    <HRDashboard />
+                  </HRContextProvider>
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
             />
           </Routes>
         </SessionUserContext.Provider>

@@ -35,9 +35,6 @@ const General = () => {
 
   const fetchDepartments = async () => {
     getAllDepartments(
-      {
-        token: token,
-      },
       (response) => {
         setDepartments(response.departments);
         const uniqueLevels = [
@@ -92,7 +89,10 @@ const General = () => {
         ...form,
       },
       (response) => {
-        setUser(response.data.data);
+        setUser({
+          ...user,
+          department: response.data.user.department,
+        });
         cancelEditing();
         triggerShowSuccess(4500);
       },
@@ -106,7 +106,6 @@ const General = () => {
   const handleCancel = () => {
     setSelectedLevel("");
     if (user?.department?.id !== 0) setSelectedLevel(user?.department?.level);
-
     setForm({
       ...form,
       firstname: user?.firstname,
@@ -119,15 +118,15 @@ const General = () => {
   useEffect(() => {
     if (user) {
       if (user?.department?.id !== 0) setSelectedLevel(user?.department?.level);
-
       setForm({
         employee_id: user.employee_id,
         firstname: user.firstname,
         lastname: user.lastname,
         department_id: user.department?.id ? user.department.id : 0,
       });
+
+      fetchDepartments();
     }
-    fetchDepartments();
   }, [user]);
 
   return (
@@ -245,11 +244,13 @@ const General = () => {
                     <option value="" disabled>
                       Levels
                     </option>
-                    {levels.map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
+                    {levels
+                      .sort((a, b) => a.localeCompare(b))
+                      .map((level) => (
+                        <option key={level} value={level}>
+                          {level}
+                        </option>
+                      ))}
                   </Form.Select>
                 </Col>
 
@@ -282,9 +283,7 @@ const General = () => {
               <Col
                 className="d-flex justify-content-start align-items-center"
                 md="9">
-                {user?.department?.name
-                  ? user.department.name
-                  : "No department set."}
+                {user?.department ? user.department.name : "No department set."}
               </Col>
             )}
           </Form.Group>

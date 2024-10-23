@@ -45,9 +45,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     midyear: false,
     academic: false,
   });
-  const [checkbox, setCheckBox] = useState({
-    deliverable: false,
-  });
+
   const [form, setForm] = useState({
     author_id: id,
     title: "",
@@ -59,23 +57,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     total_hours: 0,
     points: 0,
     benefits: "",
-    has_deliverables: checkbox.deliverable,
   });
-
-  const handleBoxChange = (e) => {
-    const { id, checked } = e.target;
-    setCheckBox({
-      ...checkbox,
-      [id]: checked,
-    });
-
-    setForm((prevForm) => ({
-      ...prevForm,
-      points: 0,
-      has_deliverables:
-        id === "deliverable" ? checked : prevForm.has_deliverables,
-    }));
-  };
 
   const fetchTerms = () => {
     getTerms(
@@ -107,7 +89,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
   const setTerm = (term_id) => {
     if (!term_id) return;
     const term = terms.find((term) => term.id === term_id);
-    const status = user?.clearances.find(
+    const status = user?.clearances?.find(
       (clearance) => clearance.term.id === term_id
     );
     if (status) setInvalidTerm(status.is_deleted ? false : true);
@@ -127,7 +109,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     getSWTD(
       { token: token, form_id: swtd_id },
       (response) => {
-        const data = response.data.data;
+        const data = response.data.swtd_form;
         if (id !== data.author.id) {
           navigate("/swtd");
           return;
@@ -136,11 +118,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
         if (terms.length > 0) {
           setTerm(data.term.id);
         }
-
-        setCheckBox({
-          ...checkbox,
-          deliverable: data.has_deliverables,
-        });
 
         setForm({
           ...data,
@@ -156,6 +133,22 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
         setLoading(false);
       }
     );
+  };
+
+  const setMinDate = (category, term) => {
+    if (category.startsWith("Degree")) return undefined;
+    return term?.start;
+  };
+
+  const setMaxDate = (category, term) => {
+    if (category.startsWith("Degree")) return undefined;
+    if (term?.ongoing) return new Date().toISOString().slice(0, 10);
+    return term?.end;
+  };
+
+  const validateDates = (date, category, term) => {
+    if (category.startsWith("Degree")) return isEmpty(date);
+    return isEmpty(date) && isValidSWTDDate(date, term);
   };
 
   const handleChange = (e) => {
@@ -209,8 +202,8 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
       requiredFields.some((field) => isEmpty(form[field])) ||
       form.term_id === 0 ||
       form.points <= 0 ||
-      !isValidSWTDDate(form.start_date, selectedTerm) ||
-      !isValidSWTDDate(form.end_date, selectedTerm) ||
+      validateDates(form.start_date, form.category, selectedTerm) ||
+      validateDates(form.end_date, form.category, selectedTerm) ||
       invalidTerm
     );
   };
@@ -260,7 +253,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
   }, [user]);
 
   useEffect(() => {
-    if (form.total_hours > 0 && !checkbox.deliverable) {
+    if (form.total_hours > 0) {
       const totalPoints = calculateHourPoints(
         form?.category,
         form?.total_hours
@@ -275,7 +268,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
         ...prevForm,
       }));
     }
-  }, [form.category, form.total_hours, checkbox.deliverable]);
+  }, [form.category, form.total_hours]);
 
   useEffect(() => {
     if (departmentTypes) fetchTerms();
@@ -283,7 +276,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
 
   useEffect(() => {
     if (selectedTerm) {
-      const status = user?.clearances.find(
+      const status = user?.clearances?.find(
         (clearance) => clearance.term.id === selectedTerm.id
       );
       if (status) setInvalidTerm(status?.is_deleted ? false : true);
@@ -416,19 +409,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                 </Form.Select>
               </FloatingLabel>
             </Col>
-
-            <Col className="d-flex p-3">
-              <Form.Check
-                inline
-                type="checkbox"
-                id="deliverable"
-                checked={checkbox.deliverable}
-                onChange={handleBoxChange}
-              />
-              <Form.Check.Label>
-                Does the SWTD have deliverables?
-              </Form.Check.Label>
-            </Col>
           </Row>
 
           {/* DURATION & POINTS LABEL */}
@@ -449,19 +429,16 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                 <Form.Control
                   type="date"
                   name="start_date"
-                  min={selectedTerm?.start}
-                  max={
-                    selectedTerm?.ongoing
-                      ? new Date().toISOString().slice(0, 10)
-                      : selectedTerm.end
-                  }
+                  min={setMinDate(form?.category, selectedTerm)}
+                  max={setMaxDate(form?.category, selectedTerm)}
                   className={styles.formBox}
                   onChange={handleChange}
                   value={form.start_date}
-                  isInvalid={
-                    !isEmpty(form.start_date) &&
-                    !isValidSWTDDate(form.start_date, selectedTerm)
-                  }
+                  isInvalid={validateDates(
+                    form?.start_date,
+                    form?.category,
+                    selectedTerm
+                  )}
                   disabled={form.term_id === 0 || loading}
                 />
               </FloatingLabel>
@@ -476,18 +453,15 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   type="date"
                   name="end_date"
                   min={form?.start_date}
-                  max={
-                    selectedTerm?.ongoing
-                      ? new Date().toISOString().slice(0, 10)
-                      : selectedTerm.end
-                  }
+                  max={setMaxDate(form?.category, selectedTerm)}
                   className={styles.formBox}
                   onChange={handleChange}
                   value={form.end_date}
-                  isInvalid={
-                    !isEmpty(form.end_date) &&
-                    !isValidSWTDDate(form.end_date, selectedTerm)
-                  }
+                  isInvalid={validateDates(
+                    form?.end_date,
+                    form?.category,
+                    selectedTerm
+                  )}
                   disabled={form.term_id === 0 || loading}
                 />
                 <Form.Control.Feedback type="invalid">
@@ -497,24 +471,25 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
             </Col>
 
             {/* HOURS */}
-            {!form?.category.startsWith("Degree") && (
-              <Col md="2">
-                <FloatingLabel
-                  controlId={`floatingInputTotalHours`}
-                  label="Total Hours"
-                  className="mb-3">
-                  <Form.Control
-                    type="number"
-                    name="total_hours"
-                    className={styles.formBox}
-                    min={0}
-                    onChange={handleChange}
-                    value={form.total_hours}
-                    disabled={loading}
-                  />
-                </FloatingLabel>
-              </Col>
-            )}
+
+            <Col md="2">
+              <FloatingLabel
+                controlId={`floatingInputTotalHours`}
+                label={
+                  form?.category.startsWith("Degree") ? "Units" : "Total Hours"
+                }
+                className="mb-3">
+                <Form.Control
+                  type="number"
+                  name="total_hours"
+                  className={styles.formBox}
+                  min={0}
+                  onChange={handleChange}
+                  value={form.total_hours}
+                  disabled={loading}
+                />
+              </FloatingLabel>
+            </Col>
 
             <Col md="2">
               <FloatingLabel
@@ -530,16 +505,9 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   onChange={handleChange}
                   value={form.points}
                   disabled={loading}
-                  readOnly={
-                    !form?.category.startsWith("Degree") &&
-                    !checkbox.deliverable
-                  }
+                  readOnly={!form?.category.startsWith("Degree")}
                 />
-                <Form.Text>
-                  {checkbox.deliverable || form?.category.startsWith("Degree")
-                    ? "Enter points for this SWTD."
-                    : "Calculated automatically."}
-                </Form.Text>
+                <Form.Text>Calculated automatically.</Form.Text>
               </FloatingLabel>
             </Col>
           </Row>

@@ -151,9 +151,21 @@ export const getClearanceStatus = async (data, onSuccess, onFail) => {
   }
 };
 
-export const getAllDepartments = async (data, onSuccess, onFail) => {
+export const getAllDepartments = async (onSuccess, onFail) => {
   try {
-    const response = await axios.get(`${apiUrl}/departments/?basic_view=true`, {
+    const response = await axios.get(`${apiUrl}/departments`);
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};
+
+export const getUserDepartment = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.get(`${apiUrl}/users/${data.id}/department`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
@@ -161,6 +173,24 @@ export const getAllDepartments = async (data, onSuccess, onFail) => {
 
     if (response.status === 200) {
       onSuccess && onSuccess(response.data);
+      return response.data;
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};
+
+export const getUserClearances = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.get(`${apiUrl}/users/${data.id}/clearances`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+      },
+    });
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+      return response.data;
     }
   } catch (error) {
     onFail && onFail(error);

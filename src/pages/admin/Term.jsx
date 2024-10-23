@@ -320,9 +320,8 @@ const Term = () => {
             <Table striped bordered hover responsive>
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th className="col-1">Type</th>
+                  <th>Term Name</th>
+                  <th className="col-1">Term Type</th>
                   <th className="col-2">Start Date</th>
                   <th className="col-2">End Date</th>
                   <th className="text-center">Actions</th>
@@ -332,7 +331,6 @@ const Term = () => {
                 {terms &&
                   [...terms].reverse().map((term) => (
                     <tr key={term.id}>
-                      <td>{term.id}</td>
                       <td>{term.name}</td>
                       <td>{term.type}</td>
                       <td>{monthYearDate(term.start_date)}</td>

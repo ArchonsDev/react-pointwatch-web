@@ -102,12 +102,11 @@ const Admin = () => {
                 {/* <Dropdown.Item onClick={() => setActiveTab("activity")}>
                   Validation & Clearance Reports
                 </Dropdown.Item> */}
-
                 <Dropdown.Item onClick={() => setActiveTab("head")}>
-                  Department Chairs/Heads
+                  Head/Chair Promotion
                 </Dropdown.Item>
                 <Dropdown.Item onClick={() => setActiveTab("staff")}>
-                  HR Staff
+                  HR Staff Promotion
                 </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
@@ -131,7 +130,7 @@ const Admin = () => {
                   className={`${styles.navHeader} ${
                     activeTab === "head" ? styles.activeTab : styles.inactiveTab
                   }`}>
-                  Department Chairs/Heads
+                  Head/Chair Promotion
                 </Nav.Link>
               </Nav.Item>
               <Nav.Item>
@@ -142,7 +141,7 @@ const Admin = () => {
                       ? styles.activeTab
                       : styles.inactiveTab
                   }`}>
-                  HR Staff
+                  HR Staff Promotion
                 </Nav.Link>
               </Nav.Item>
             </>

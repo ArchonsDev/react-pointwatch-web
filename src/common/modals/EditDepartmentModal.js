@@ -145,7 +145,8 @@ const EditTermModal = ({ show, onHide, data, editSuccess }) => {
         midyear_points: data.midyear_points,
       });
 
-      if (data.level === data.name) setCheckbox({ deptName: true });
+      if (data.level === data.name.toUpperCase())
+        setCheckbox({ deptName: true });
       setTermCheckbox((prev) => ({
         ...prev,
         semester: data.use_schoolyear === false ? true : false,

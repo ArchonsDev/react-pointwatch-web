@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Container, Card, Row, Col, Form, FloatingLabel, InputGroup, Toast,ToastContainer} from "react-bootstrap"; /* prettier-ignore */
+import { Container, Card, Row, Col, Form, InputGroup, Toast,ToastContainer} from "react-bootstrap"; /* prettier-ignore */
 
 import { register } from "../../api/auth";
+import { getAllDepartments } from "../../api/user";
 import { isEmpty, isValidLength, isValidEmail, isValidPassword } from "../../common/validation/utils"; /* prettier-ignore */
 
 import styles from "./style.module.css";
@@ -15,7 +16,9 @@ const Registration = () => {
   const [showToast, setShowToast] = useState(false);
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-
+  const [levels, setLevels] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedLevel, setSelectedLevel] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -27,8 +30,24 @@ const Registration = () => {
     firstname: "",
     lastname: "",
     password: "",
+    department_id: 0,
     confirmPassword: "",
   });
+
+  const fetchDepartments = async () => {
+    getAllDepartments(
+      (response) => {
+        setDepartments(response.departments);
+        const uniqueLevels = [
+          ...new Set(response.departments.map((dept) => dept.level)),
+        ];
+        setLevels(uniqueLevels);
+      },
+      (error) => {
+        console.log(error.message);
+      }
+    );
+  };
 
   const handleChange = (e) => {
     setForm({
@@ -36,6 +55,16 @@ const Registration = () => {
       [e.target.name]: e.target.value,
     });
   };
+
+  const handleLevelChange = (e) => {
+    const level = e.target.value;
+    setSelectedLevel(level);
+    setForm({ ...form, department_id: 0 });
+  };
+
+  const filteredDepartments = selectedLevel
+    ? departments.filter((dept) => dept.level === selectedLevel)
+    : departments;
 
   const passwordsMatch = () => {
     return form.password === form.confirmPassword;
@@ -57,7 +86,8 @@ const Registration = () => {
       !isValidLength(form.firstname, 1) ||
       !isValidLength(form.lastname, 1) ||
       !isValidPassword(form.password) ||
-      !passwordsMatch()
+      !passwordsMatch() ||
+      form.department_id === 0
     );
   };
 
@@ -72,9 +102,12 @@ const Registration = () => {
       setIsProcessing(false);
       return;
     }
-
+    const updatedForm = {
+      ...form,
+      department_id: parseInt(form.department_id, 10),
+    };
     await register(
-      form,
+      updatedForm,
       (response) => {
         setTimeout(() => {
           setIsRegistrationComplete(true);
@@ -91,6 +124,10 @@ const Registration = () => {
       }
     );
   };
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
 
   return (
     <div className={styles.background}>
@@ -253,6 +290,61 @@ const Registration = () => {
                               Last name is too short.
                             </Form.Control.Feedback>
                           )}
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6} xs={12}>
+                    <Form.Group className="mb-3" controlId="selectLevel">
+                      <InputGroup hasValidation>
+                        <InputGroup.Text className={styles.iconBox}>
+                          <i
+                            className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
+                        </InputGroup.Text>
+                        <Form.Select
+                          name="selected_level"
+                          onChange={handleLevelChange}
+                          value={selectedLevel || ""}>
+                          <option value="" disabled>
+                            Select Level
+                          </option>
+                          {levels
+                            .sort((a, b) => a.localeCompare(b))
+                            .map((level) => (
+                              <option key={level} value={level}>
+                                {level}
+                              </option>
+                            ))}
+                        </Form.Select>
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={6} xs={12}>
+                    <Form.Group className="mb-3" controlId="selectDepartment">
+                      <InputGroup hasValidation>
+                        <InputGroup.Text className={styles.iconBox}>
+                          <i
+                            className={`${styles.formIcon} fa-solid fa-book fa-lg`}></i>
+                        </InputGroup.Text>
+                        <Form.Select
+                          name="department_id"
+                          onChange={handleChange}
+                          value={form.department_id}
+                          disabled={!selectedLevel}>
+                          <option value={0} disabled>
+                            Departments
+                          </option>
+                          {filteredDepartments
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map((department) => (
+                              <option key={department.id} value={department.id}>
+                                {department.name}
+                              </option>
+                            ))}
+                        </Form.Select>
                       </InputGroup>
                     </Form.Group>
                   </Col>

@@ -12,6 +12,7 @@ export const register = async (data, onSuccess, onFail, onCleanup) => {
         email: data.email,
         firstname: data.firstname,
         lastname: data.lastname,
+        department_id: data.department_id,
         password: data.password,
       },
       {
@@ -48,7 +49,7 @@ export const login = async (data, onSuccess, onFail, onCleanup) => {
 
     if (response.status === 200) {
       Cookies.set("userToken", response?.data?.access_token);
-      Cookies.set("userID", JSON.stringify(response?.data?.data?.id));
+      Cookies.set("userID", JSON.stringify(response?.data?.user?.id));
       onSuccess && onSuccess(response);
     }
   } catch (error) {

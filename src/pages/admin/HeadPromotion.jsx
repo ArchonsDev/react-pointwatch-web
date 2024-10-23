@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, InputGroup, Table, Spinner, Pagination, OverlayTrigger, Tooltip } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Form, InputGroup, Table, Spinner, OverlayTrigger, Tooltip, Badge } from "react-bootstrap"; /* prettier-ignore */
 import Cookies from "js-cookie";
 
 import { getAllUsers, addHead, removeHead } from "../../api/admin";
 
+import PaginationComponent from "../../components/Paging";
 import styles from "./style.module.css";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
@@ -23,7 +24,7 @@ const HeadPromotion = () => {
         token: token,
       },
       (response) => {
-        const filter = response.data.filter(
+        const filter = response.users?.filter(
           (user) => user.id !== parseInt(userID, 10)
         );
         setEmployees(filter);
@@ -71,7 +72,7 @@ const HeadPromotion = () => {
   const handleSearchFilter = (employeeList, query) => {
     return employeeList.filter((employee) => {
       const match =
-        employee.employee_id.includes(query) ||
+        employee.employee_id?.includes(query) ||
         employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
         employee.lastname.toLowerCase().includes(query.toLowerCase());
       return match;
@@ -82,12 +83,14 @@ const HeadPromotion = () => {
   const filteredEmployees = searchQuery
     ? handleSearchFilter(employees, searchQuery)
     : employees;
-  const totalRecords = filteredEmployees.length;
-  const totalPages = Math.ceil(totalRecords / recordsPerPage);
+  const totalRecords = filteredEmployees?.length;
+  const totalPages = totalRecords
+    ? Math.ceil(totalRecords / recordsPerPage)
+    : 0;
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredEmployees.slice(
+  const currentRecords = filteredEmployees?.slice(
     indexOfFirstRecord,
     indexOfLastRecord
   );
@@ -109,17 +112,19 @@ const HeadPromotion = () => {
         </span>
       </Row>
       <Row>
-        <InputGroup className={`${styles.searchBar} mb-3`}>
-          <InputGroup.Text>
-            <i className="fa-solid fa-magnifying-glass"></i>
-          </InputGroup.Text>
-          <Form.Control
-            type="search"
-            placeholder="Search by ID number, firstname, or lastname"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </InputGroup>
+        <Col className="mb-1">
+          <InputGroup className={`${styles.searchBar} mb-3`}>
+            <InputGroup.Text>
+              <i className="fa-solid fa-magnifying-glass"></i>
+            </InputGroup.Text>
+            <Form.Control
+              type="search"
+              placeholder="Search by ID number, firstname, or lastname"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </InputGroup>
+        </Col>
       </Row>
       <Row>
         {loading ? (
@@ -130,7 +135,7 @@ const HeadPromotion = () => {
           </Row>
         ) : (
           <>
-            {currentRecords.length === 0 ? (
+            {!currentRecords ? (
               <Row className="d-flex justify-content-center align-items-center mt-3 mb-3 w-100">
                 <span className={`${styles.table} `}>No employees found.</span>
               </Row>
@@ -147,14 +152,14 @@ const HeadPromotion = () => {
                       <th className="col-1">ID No.</th>
                       <th className="col-2">Name</th>
                       <th className="col-2">Department</th>
-                      <th className="col-1 text-center">Department Head</th>
+                      <th className="col-1 text-center">Role</th>
                       <th className="col-1 text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentRecords
-                      .sort((a, b) => b.is_head - a.is_head)
-                      .map((item) => (
+                      ?.sort((a, b) => b.is_head - a.is_head)
+                      ?.map((item) => (
                         <tr key={item.id}>
                           <td
                             className={`${
@@ -172,11 +177,9 @@ const HeadPromotion = () => {
                           </td>
                           <td className="text-center">
                             {item.is_head ? (
-                              <i
-                                className={`${styles.icon} fa-solid fa-user-check text-success`}></i>
+                              <Badge bg="success">Head/Chair</Badge>
                             ) : (
-                              <i
-                                className={`${styles.icon} fa-solid fa-user-xmark text-danger`}></i>
+                              <Badge bg="secondary">Employee</Badge>
                             )}
                           </td>
                           <td className="text-center">
@@ -225,39 +228,11 @@ const HeadPromotion = () => {
                 </Table>
                 <Row className="w-100 mb-3">
                   <Col className="d-flex justify-content-center">
-                    <Pagination>
-                      <Pagination.First
-                        className={styles.pageNum}
-                        onClick={() => handlePageChange(1)}
-                      />
-                      <Pagination.Prev
-                        className={styles.pageNum}
-                        onClick={() => {
-                          if (currentPage > 1)
-                            handlePageChange(currentPage - 1);
-                        }}
-                      />
-                      {Array.from({ length: totalPages }, (_, index) => (
-                        <Pagination.Item
-                          key={index + 1}
-                          active={index + 1 === currentPage}
-                          className={styles.pageNum}
-                          onClick={() => handlePageChange(index + 1)}>
-                          {index + 1}
-                        </Pagination.Item>
-                      ))}
-                      <Pagination.Next
-                        className={styles.pageNum}
-                        onClick={() => {
-                          if (currentPage < totalPages)
-                            handlePageChange(currentPage + 1);
-                        }}
-                      />
-                      <Pagination.Last
-                        className={styles.pageNum}
-                        onClick={() => handlePageChange(totalPages)}
-                      />
-                    </Pagination>
+                    <PaginationComponent
+                      totalPages={totalPages}
+                      currentPage={currentPage}
+                      handlePageChange={handlePageChange}
+                    />
                   </Col>
                 </Row>
               </>

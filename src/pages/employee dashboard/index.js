@@ -11,7 +11,7 @@ import { exportSWTDList } from "../../api/export";
 import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
-import SWTDInfo from "./SWTDInfo";
+import PointsRequirement from "../../common/info/PointsRequirement";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import styles from "./style.module.css";
@@ -21,8 +21,8 @@ const SWTDDashboard = () => {
   const id = Cookies.get("userID");
   const token = Cookies.get("userToken");
   const { user } = useContext(SessionUserContext);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const [showModal, openModal, closeModal] = useSwitch();
   const [showPointsModal, openPointsModal, closePointsModal] = useSwitch();
@@ -48,12 +48,12 @@ const SWTDDashboard = () => {
   const fetchAllSWTDs = async () => {
     await getAllSWTDs(
       {
-        author_id: id,
+        author_id: parseInt(id, 10),
         token: token,
       },
       (response) => {
-        setUserSWTDs(response.data);
-        const totalCounts = response.data?.reduce(
+        setUserSWTDs(response.swtd_forms);
+        const totalCounts = response.swtd_forms?.reduce(
           (counts, swtd) => {
             counts[swtd.validation_status.toLowerCase()]++;
             return counts;
@@ -61,9 +61,9 @@ const SWTDDashboard = () => {
           { pending: 0, rejected: 0 }
         );
 
-        // Update the state with the counts
         setPendingSWTDCount(totalCounts?.pending);
         setRejectedSWTDCount(totalCounts?.rejected);
+        setLoading(false);
       },
       (error) => {
         console.log(error);
@@ -103,6 +103,7 @@ const SWTDDashboard = () => {
 
         setTerms(filteredTerms);
         setSelectedTerm(ongoingTerm || filteredTerms[0]);
+        fetchAllSWTDs();
       },
       (error) => {
         console.log(error.message);
@@ -149,16 +150,41 @@ const SWTDDashboard = () => {
   };
 
   useEffect(() => {
+    if (user && user?.department === null) {
+      setLoading(false);
+      openModal();
+    } else if (user && user?.department !== null) {
+      setLoading(true);
+
+      const updatedDepartmentTypes = {
+        ...departmentTypes,
+        semester: user?.department?.use_schoolyear === false,
+        midyear: user?.department?.midyear_points > 0,
+        academic: user?.department?.use_schoolyear,
+      };
+      setDepartmentTypes(updatedDepartmentTypes);
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (departmentTypes.semester || departmentTypes.midyear || departmentTypes.academic) {
+      fetchTerms();
+    }
+  }, [departmentTypes.semester, departmentTypes.midyear, departmentTypes.academic]); /* prettier-ignore */
+
+  useEffect(() => {
     if (selectedTerm) {
       fetchTermPoints(selectedTerm);
-      const termData = user?.clearances.find(
+      const termData = user?.clearances?.find(
         (clearance) => clearance.term.id === selectedTerm.id
       );
       if (termData) setTermClearance(termData.is_deleted ? false : true);
       else setTermClearance(false);
       const termCounts = userSWTDs?.reduce(
         (counts, swtd) => {
-          if (swtd.term.id === selectedTerm.id) {
+          if (swtd.term?.id === selectedTerm.id) {
             counts[swtd.validation_status.toLowerCase()]++;
           }
           return counts;
@@ -167,32 +193,8 @@ const SWTDDashboard = () => {
       );
       setPendingSWTDCount(termCounts?.pending);
       setRejectedSWTDCount(termCounts?.rejected);
-      setLoading(false);
     }
   }, [selectedTerm, userSWTDs]);
-
-  useEffect(() => {
-    if (!user) setLoading(true);
-    else if (!user?.department) {
-      setLoading(false);
-      openModal();
-    } else {
-      setDepartmentTypes({
-        ...departmentTypes,
-        semester: user?.department?.use_schoolyear === false ? true : false,
-        midyear: user?.department?.midyear_points > 0 ? true : false,
-        academic: user?.department?.use_schoolyear,
-      });
-
-      fetchAllSWTDs();
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    fetchTerms();
-  }, [departmentTypes]);
 
   if (loading)
     return (
@@ -231,7 +233,7 @@ const SWTDDashboard = () => {
               </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              <SWTDInfo />
+              <PointsRequirement />
             </Modal.Body>
           </Modal>
         </Col>
@@ -331,7 +333,7 @@ const SWTDDashboard = () => {
             placement="bottom"
             overlay={
               <Tooltip id="button-tooltip-2" className={styles.cardBody}>
-                Unreviewed SWTDs by your department head.
+                Unreviewed SWTDs
               </Tooltip>
             }>
             <Card className={`${styles.statCard} text-center`}>
@@ -352,7 +354,7 @@ const SWTDDashboard = () => {
             placement="bottom"
             overlay={
               <Tooltip id="button-tooltip-3" className={styles.cardBody}>
-                Reviewed SWTDs that require revision.
+                Reviewed SWTDs that require revision
               </Tooltip>
             }>
             <Card className={`${styles.statCard} text-center`}>
@@ -376,13 +378,24 @@ const SWTDDashboard = () => {
                 ? "text-danger"
                 : "text-success"
             }`}>
-            {termPoints?.valid_points > 0 ? termPoints.valid_points : "0"}
+            {userSWTDs
+              ?.filter(
+                (swtd) =>
+                  swtd.term?.id === selectedTerm?.id &&
+                  swtd?.validation_status === "APPROVED"
+              )
+              .reduce((total, swtd) => total + swtd.points, 0)}
           </span>
         </Col>
         <Col className={styles.termPoints}>
           <span className="mb-2">Required Pts:</span>
           <span className={`${styles.validPoints} `}>
-            {termPoints?.required_points > 0 ? termPoints.required_points : "0"}
+            {selectedTerm?.type === "SEMESTER" ||
+            selectedTerm?.type === "ACADEMIC YEAR"
+              ? user?.department?.required_points || "0"
+              : selectedTerm?.type === "MIDYEAR/SUMMER"
+              ? user?.department?.midyear_points || "0"
+              : "0"}
           </span>
         </Col>
         <Col className={styles.termPoints}>

@@ -43,7 +43,7 @@ const Comments = () => {
         token: token,
       },
       (response) => {
-        setComments(response.data.data);
+        setComments(response.data.comments);
       },
       (error) => {
         console.log("Error: ", error.message);

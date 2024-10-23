@@ -11,7 +11,7 @@ import { exportSWTDList } from "../../api/export";
 import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
-import SWTDInfo from "../employee dashboard/SWTDInfo";
+import PointsRequirement from "../../common/info/PointsRequirement";
 import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
@@ -344,7 +344,7 @@ const EmployeeSWTD = () => {
             </Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <SWTDInfo />
+            <PointsRequirement />
           </Modal.Body>
         </Modal>
       </Row>

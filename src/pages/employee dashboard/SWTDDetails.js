@@ -48,8 +48,8 @@ const SWTDDetails = () => {
         token: token,
       },
       (response) => {
-        const data = response.data.data;
-        const status = user?.clearances.find(
+        const data = response.data.swtd_form;
+        const status = user?.clearances?.find(
           (clearance) => clearance.term.id === data.term.id
         );
         if (status) setTermClearance(status?.is_deleted ? false : true);
@@ -131,6 +131,7 @@ const SWTDDetails = () => {
         token: token,
       },
       (response) => {
+        setCurrentProofIndex(0);
         triggerShowSuccess(3000);
         handleCloseProofModal();
         fetchSWTD();
@@ -152,6 +153,7 @@ const SWTDDetails = () => {
   };
 
   const updateProofSuccess = async () => {
+    setCurrentProofIndex(0);
     triggerShowSuccess(3000);
     fetchSWTD();
   };
@@ -333,29 +335,7 @@ const SWTDDetails = () => {
                 <Col lg={4} md={4} xs={8}>
                   {swtd?.category}
                 </Col>
-                <Col
-                  className={`${styles.formLabel} mb-lg-3 mb-2`}
-                  lg={2}
-                  md={2}
-                  xs={4}>
-                  Has deliverables
-                </Col>
-                <Col>
-                  {swtd?.has_deliverables === true ? (
-                    <>
-                      <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
-                      Yes
-                    </>
-                  ) : (
-                    <>
-                      <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
-                      No
-                    </>
-                  )}
-                </Col>
-              </Row>
 
-              <Row className="mb-lg-3 mb-2">
                 <Col
                   className={`${styles.formLabel} mb-lg-3 mb-2`}
                   lg={2}
@@ -363,7 +343,7 @@ const SWTDDetails = () => {
                   xs={4}>
                   Duration
                 </Col>
-                <Col md="4">
+                <Col lg={4} md={4} xs={8}>
                   {swtd?.start_date === swtd?.end_date ? (
                     wordDate(swtd?.start_date)
                   ) : (
@@ -376,6 +356,9 @@ const SWTDDetails = () => {
                     <> ({swtd?.total_hours} hours)</>
                   )}
                 </Col>
+              </Row>
+
+              <Row className="mb-lg-3 mb-2">
                 <Col className={styles.formLabel} md="2">
                   Proof
                 </Col>

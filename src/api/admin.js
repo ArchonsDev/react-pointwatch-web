@@ -4,7 +4,7 @@ const apiUrl = process.env.REACT_APP_API_URL;
 
 export const getAllUsers = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.get(`${apiUrl}/users/`, {
+    const response = await axios.get(`${apiUrl}/users`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
@@ -44,7 +44,7 @@ export const validateSWTD = async (data, onSuccess, onFail) => {
 export const addTerm = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.post(
-      `${apiUrl}/terms/`,
+      `${apiUrl}/terms`,
       {
         name: data.name,
         start_date: data.start_date,
@@ -111,7 +111,7 @@ export const deleteTerm = async (data, onSuccess, onFail) => {
 
 export const getTerms = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.get(`${apiUrl}/terms/`, {
+    const response = await axios.get(`${apiUrl}/terms`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
@@ -194,7 +194,7 @@ export const removeHead = async (data, onSuccess, onFail, onCleanup) => {
     const response = await axios.put(
       `${apiUrl}/departments/${data.id}`,
       {
-        remove_head: true,
+        head_id: 0,
       },
       {
         headers: {
@@ -242,7 +242,7 @@ export const updateStaff = async (data, onSuccess, onFail, onCleanup) => {
 export const addDepartment = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.post(
-      `${apiUrl}/departments/`,
+      `${apiUrl}/departments`,
       {
         level: data.level,
         name: data.name,
@@ -268,7 +268,7 @@ export const addDepartment = async (data, onSuccess, onFail) => {
 
 export const getAllDepartments = async (data, onSuccess, onFail) => {
   try {
-    const response = await axios.get(`${apiUrl}/departments/`, {
+    const response = await axios.get(`${apiUrl}/departments`, {
       headers: {
         Authorization: `Bearer ${data.token}`,
       },
