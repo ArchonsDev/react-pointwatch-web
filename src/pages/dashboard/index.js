@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination, Card, ProgressBar,
-        Dropdown, DropdownButton } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Card, ProgressBar, Dropdown, DropdownButton } from "react-bootstrap"; /* prettier-ignore */
+
 import status from "../../data/status.json";
 import { getAllMembers } from "../../api/department";
 import { getTerms } from "../../api/admin";
@@ -11,6 +11,7 @@ import { getAllSWTDs } from "../../api/swtd";
 import { exportDepartmentData } from "../../api/export";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
+import PaginationComponent from "../../components/Paging";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
 
@@ -30,7 +31,6 @@ const Dashboard = () => {
   });
   const [selectedStatus, setSelectedStatus] = useState("");
   const [userClearanceStatus, setUserClearanceStatus] = useState([]);
-  const [requiredPoints, setRequiredPoints] = useState(0);
   const lackingUsers = Object.values(userClearanceStatus).filter(
     (status) => status.is_cleared === false
   ).length;
@@ -57,7 +57,6 @@ const Dashboard = () => {
         token: token,
       },
       (response) => {
-        setRequiredPoints(response.data.required_points);
         if (response.data.members?.length !== 0) {
           setNoUsers(false);
           setDepartmentUsers(
@@ -122,12 +121,12 @@ const Dashboard = () => {
         token: token,
       },
       (response) => {
-        const filteredSWTDs = response.data?.filter(
-          (swtd) => swtd.term.id === term.id
+        const filteredSWTDs = response.swtd_forms?.filter(
+          (swtd) => swtd.term?.id === term?.id
         );
 
-        const termStatus = employee?.clearances.find(
-          (clearance) => clearance.term.id === term.id
+        const termStatus = employee?.clearances?.find(
+          (clearance) => clearance?.term?.id === term?.id
         );
 
         let isCleared = false;
@@ -144,7 +143,7 @@ const Dashboard = () => {
             setUserClearanceStatus((prevStatus) => ({
               ...prevStatus,
               [employee?.id]: {
-                ...clearanceResponse,
+                ...clearanceResponse.points,
                 id: employee?.id,
                 employee_id: employee.employee_id,
                 firstname: employee.firstname,
@@ -155,15 +154,12 @@ const Dashboard = () => {
             }));
           },
           (error) => {
-            console.log(
-              `Clearance status error for user ${employee?.id}:`,
-              error.message
-            );
+            console.log(error.message);
           }
         );
       },
       (error) => {
-        console.log(`SWTDs error for user ${employee?.id}:`, error.message);
+        console.log(error.message);
       }
     );
   };
@@ -208,10 +204,10 @@ const Dashboard = () => {
         return matchesQuery;
       })
       .sort((a, b) => {
-        const countStatusA = a.swtds.filter(
+        const countStatusA = a.swtds?.filter(
           (item) => item.validation_status === status
         ).length;
-        const countStatusB = b.swtds.filter(
+        const countStatusB = b.swtds?.filter(
           (item) => item.validation_status === status
         ).length;
         return countStatusB - countStatusA;
@@ -480,18 +476,22 @@ const Dashboard = () => {
                 <ListGroup className="w-100" variant="flush">
                   <ListGroup.Item className={styles.swtdHeader}>
                     <Row>
-                      <Col md={1}>ID No.</Col>
-                      <Col>Name</Col>
-                      <Col className="text-center" md={2}>
+                      <Col lg={1} md={1}>
+                        ID No.
+                      </Col>
+                      <Col lg={4}>Name</Col>
+                      <Col className="text-center" lg={2}>
                         Pending SWTDs
                       </Col>
-                      <Col className="text-center" md={2}>
+                      <Col className="text-center" lg={2}>
                         SWTDs For Revision
                       </Col>
-                      <Col className="text-center" md={1}>
+                      <Col className="text-center" lg={1} md={1}>
                         Points
                       </Col>
-                      <Col md={2}>Status</Col>
+                      <Col className="text-center" lg={2} md={2}>
+                        Status
+                      </Col>
                     </Row>
                   </ListGroup.Item>
                 </ListGroup>
@@ -502,13 +502,15 @@ const Dashboard = () => {
                       className={styles.tableBody}
                       onClick={() => handleEmployeeSWTDClick(item.id)}>
                       <Row>
-                        <Col md={1}>{item.employee_id}</Col>
-                        <Col>
+                        <Col lg={1} md={1}>
+                          {item.employee_id}
+                        </Col>
+                        <Col lg={4}>
                           {item.firstname} {item.lastname}
                         </Col>
                         <Col className="text-center" md={2}>
                           {
-                            item.swtds.filter(
+                            item.swtds?.filter(
                               (swtd) => swtd.validation_status === "PENDING"
                             ).length
                           }
@@ -516,20 +518,21 @@ const Dashboard = () => {
 
                         <Col className="text-center" md={2}>
                           {
-                            item.swtds.filter(
+                            item.swtds?.filter(
                               (swtd) => swtd.validation_status === "REJECTED"
                             ).length
                           }
                         </Col>
 
-                        <Col className="text-center" md={1}>
+                        <Col className="text-center" lg={1} md={1}>
                           {item.valid_points}
                         </Col>
 
                         <Col
                           className={`text-${
                             item.is_cleared ? "success" : "danger"
-                          } ${styles.filterText}`}
+                          } ${styles.filterText} text-center`}
+                          lg={2}
                           md={2}>
                           {item.is_cleared ? "CLEARED" : "NOT CLEARED"}
                         </Col>
@@ -543,38 +546,11 @@ const Dashboard = () => {
 
           <Row className="w-100 mb-3">
             <Col className="d-flex justify-content-center">
-              <Pagination>
-                <Pagination.First
-                  className={styles.pageNum}
-                  onClick={() => handlePageChange(1)}
-                />
-                <Pagination.Prev
-                  className={styles.pageNum}
-                  onClick={() => {
-                    if (currentPage > 1) handlePageChange(currentPage - 1);
-                  }}
-                />
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <Pagination.Item
-                    key={index + 1}
-                    active={index + 1 === currentPage}
-                    className={styles.pageNum}
-                    onClick={() => handlePageChange(index + 1)}>
-                    {index + 1}
-                  </Pagination.Item>
-                ))}
-                <Pagination.Next
-                  className={styles.pageNum}
-                  onClick={() => {
-                    if (currentPage < totalPages)
-                      handlePageChange(currentPage + 1);
-                  }}
-                />
-                <Pagination.Last
-                  className={styles.pageNum}
-                  onClick={() => handlePageChange(totalPages)}
-                />
-              </Pagination>
+              <PaginationComponent
+                totalPages={totalPages}
+                currentPage={currentPage}
+                handlePageChange={handlePageChange}
+              />
             </Col>
           </Row>
         </>

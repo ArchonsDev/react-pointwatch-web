@@ -49,7 +49,7 @@ const ViewSWTD = () => {
         form_id: swtd_id,
       },
       (response) => {
-        setSWTD(response.data.data);
+        setSWTD(response.data.swtd_form);
         setLoading(false);
       },
       (error) => {
@@ -328,25 +328,6 @@ const ViewSWTD = () => {
             </Col>
             <Col md="4">{swtd?.category}</Col>
             <Col className={styles.formLabel} md="2">
-              Has deliverables
-            </Col>
-            <Col md="4">
-              {swtd?.has_deliverables === true ? (
-                <>
-                  <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
-                  Yes
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
-                  No
-                </>
-              )}
-            </Col>
-          </Row>
-
-          <Row className="mb-4">
-            <Col className={styles.formLabel} md="2">
               Duration
             </Col>
             <Col md="4">
@@ -362,6 +343,9 @@ const ViewSWTD = () => {
                 <> ({swtd?.total_hours} hours)</>
               )}
             </Col>
+          </Row>
+
+          <Row className="mb-4">
             <Col className={styles.formLabel} md="2">
               Proof
             </Col>

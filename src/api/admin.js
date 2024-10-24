@@ -128,8 +128,10 @@ export const getTerms = async (data, onSuccess, onFail) => {
 export const clearEmployee = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.post(
-      `${apiUrl}/users/${data.id}/terms/${data.term_id}`,
-      {},
+      `${apiUrl}/users/${data.id}/clearances`,
+      {
+        term_id: data.term_id,
+      },
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -148,10 +150,10 @@ export const clearEmployee = async (data, onSuccess, onFail) => {
 export const revokeEmployee = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.delete(
-      `${apiUrl}/users/${data.id}/terms/${data.term_id}`,
+      `${apiUrl}/users/${data.id}/clearances/${data.clear_id}?term_id=${data.term_id}`, // Include term_id in the URL
       {
         headers: {
-          Authorization: `Bearer ${data.token}`,
+          Authorization: `Bearer ${data.token}`, // Make sure the token is correct
         },
       }
     );
