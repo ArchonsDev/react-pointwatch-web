@@ -43,7 +43,7 @@ const HRDashboard = () => {
         token: token,
       },
       (response) => {
-        const employees = response.data?.filter(
+        const employees = response.users?.filter(
           (us) => us.id !== user.id && !us.is_superuser
         );
         setDepartmentUsers(employees);
@@ -104,6 +104,7 @@ const HRDashboard = () => {
         token: token,
       },
       (clearanceResponse) => {
+        console.log(clearanceResponse);
         setUserClearanceStatus((prevStatus) => ({
           ...prevStatus,
           [employee.id]: {
