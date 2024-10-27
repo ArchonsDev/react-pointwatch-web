@@ -89,13 +89,12 @@ const HRDashboard = () => {
   };
 
   const fetchClearanceStatus = (employee, term) => {
-    const termStatus = employee?.clearances.find(
-      (clearance) => clearance.term.id === term
+    const termStatus = employee?.clearances?.find(
+      (clearance) => clearance?.term?.id === term && !clearance.is_deleted
     );
 
     let isCleared = false;
-    if (termStatus) isCleared = termStatus?.is_deleted ? false : true;
-    else isCleared = false;
+    if (termStatus) isCleared = true;
 
     getClearanceStatus(
       {
@@ -104,11 +103,10 @@ const HRDashboard = () => {
         token: token,
       },
       (clearanceResponse) => {
-        console.log(clearanceResponse);
         setUserClearanceStatus((prevStatus) => ({
           ...prevStatus,
           [employee.id]: {
-            ...clearanceResponse,
+            ...clearanceResponse.points,
             id: employee.id,
             employee_id: employee.employee_id,
             firstname: employee.firstname,
@@ -291,6 +289,27 @@ const HRDashboard = () => {
             Select a department below to see the records of employees.
           </span>
         </Col>
+        <Col className="text-end mb-2">
+          <BtnPrimary
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedLevel("");
+              setSelectedDepartment(null);
+              setSelectedTerm(0);
+            }}>
+            <i className="fa-solid fa-trash-can me-2"></i>Reset
+          </BtnPrimary>{" "}
+          <BtnSecondary
+            onClick={handlePrint}
+            disabled={
+              !selectedDepartment ||
+              !selectedDepartment?.members ||
+              !selectedDepartment?.head ||
+              selectedTerm === 0
+            }>
+            <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i> Export
+          </BtnSecondary>
+        </Col>
       </Row>
 
       <Row className="w-100">
@@ -397,13 +416,14 @@ const HRDashboard = () => {
                 />
               </InputGroup>
             </Col>
-            {/* Temporarily removed for demo */}
-            {/* <Col
+          </Row>
+
+          {/* <Row className="w-100">
+            <Col
               className={`${styles.semibold} d-flex align-items-center`}
               lg="auto">
               <i className="fa-solid fa-users fa-lg me-2"></i>Total Employees:{" "}
-              {console.log(userClearanceStatus)}
-              {Object.keys(userClearanceStatus)?.length}
+              {filteredEmployees?.length}
             </Col>
             <Col
               className={`${styles.semibold} d-flex align-items-center`}
@@ -411,9 +431,8 @@ const HRDashboard = () => {
               <i className="fa-solid fa-user-check fa-lg text-success me-2"></i>
               Cleared Employees:{" "}
               {
-                Object.keys(userClearanceStatus)?.filter(
-                  (item) => item.is_cleared === true
-                ).length
+                filteredEmployees?.filter((item) => item.is_cleared === true)
+                  .length
               }
             </Col>
             <Col
@@ -422,34 +441,11 @@ const HRDashboard = () => {
               <i className="fa-solid fa-user-xmark fa-lg text-danger me-2"></i>
               Non-cleared Employees:{" "}
               {
-                Object.keys(userClearanceStatus)?.filter(
-                  (item) => item.is_cleared === false
-                ).length
+                filteredEmployees?.filter((item) => item.is_cleared === false)
+                  .length
               }
-            </Col> */}
-            <Col className="text-end mb-2">
-              <BtnPrimary
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedLevel("");
-                  setSelectedDepartment(null);
-                  setSelectedTerm(0);
-                }}>
-                <i className="fa-solid fa-trash-can me-2"></i>Reset
-              </BtnPrimary>{" "}
-              <BtnSecondary
-                onClick={handlePrint}
-                disabled={
-                  !selectedDepartment ||
-                  !selectedDepartment?.members ||
-                  !selectedDepartment?.head ||
-                  selectedTerm === 0
-                }>
-                <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i>{" "}
-                Export
-              </BtnSecondary>
             </Col>
-          </Row>
+          </Row> */}
 
           <Row className="w-100">
             {currentRecords.length === 0 ? (
@@ -468,10 +464,10 @@ const HRDashboard = () => {
                       <Col lg={8} md={8} xs={5}>
                         Name
                       </Col>
-                      <Col lg={1} md={1} xs={2}>
+                      <Col className="text-center" lg={1} md={1} xs={2}>
                         Points
                       </Col>
-                      <Col lg={2} md={2} xs={3}>
+                      <Col className="text-center" lg={2} md={2} xs={3}>
                         Status
                       </Col>
                     </Row>
@@ -490,13 +486,13 @@ const HRDashboard = () => {
                         <Col lg={8} md={8} xs={5}>
                           {item.firstname} {item.lastname}
                         </Col>
-                        <Col lg={1} md={1} xs={2}>
+                        <Col className="text-center" lg={1} md={1} xs={2}>
                           {item.valid_points}
                         </Col>
                         <Col
                           className={`text-${
                             item.is_cleared ? "success" : "danger"
-                          } ${styles.userStatus}`}
+                          } ${styles.userStatus} text-center`}
                           lg={2}
                           md={2}
                           xs={3}>

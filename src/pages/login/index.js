@@ -5,7 +5,6 @@ import styles from "./style.module.css";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import { login, recovery, register } from "../../api/auth";
-import { getUserClearances } from "../../api/user";
 import { isEmpty } from "../../common/validation/utils";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
@@ -83,37 +82,17 @@ const Login = () => {
       async (response) => {
         const userData = response.data.user;
         setUser(userData);
-        try {
-          const [clearancesResponse] = await Promise.all([
-            getUserClearances({
-              id: userData.id,
-              token: response.data.access_token,
-            }),
-          ]);
 
-          setUser((prevUser) => ({
-            ...prevUser,
-            clearances: clearancesResponse?.clearance || [],
-          }));
+        const roles = {
+          1: "/dashboard",
+          2: "/hr",
+          3: "/admin",
+        };
+        const userAccessLevel = userData.access_level;
+        navigate(roles[userAccessLevel] || "/swtd");
 
-          if (typeof clearancesResponse !== "undefined") {
-            const roles = {
-              1: "/dashboard",
-              2: "/hr",
-              3: "/admin",
-            };
-            const userAccessLevel = userData.access_level;
-            navigate(roles[userAccessLevel] || "/swtd");
-          }
-        } catch (error) {
-          console.error(
-            "Error fetching additional user information:",
-            error.message
-          );
-        } finally {
-          setIsLoading(false);
-          clearForm();
-        }
+        setIsLoading(false);
+        clearForm();
       },
       (error) => {
         console.log(error);

@@ -262,8 +262,8 @@ const AddSWTD = () => {
     if (!user?.department) navigate("/swtd");
     setDepartmentTypes({
       ...departmentTypes,
-      semester: user?.department?.use_schoolyear === false ? true : false,
-      midyear: user?.department?.midyear_points > 0 ? true : false,
+      semester: user?.department?.use_schoolyear === false,
+      midyear: user?.department?.midyear_points > 0,
       academic: user?.department?.use_schoolyear,
     });
 
@@ -307,7 +307,7 @@ const AddSWTD = () => {
 
   return (
     <Container
-      className={`${styles.container} d-flex flex-column justify-content-center align-items-start`}>
+      className={`${styles.container} d-flex flex-column justify-content-center align-items-center`}>
       {/* View Terms Modal */}
       <Modal show={showModal} onHide={closeModal} size="lg" centered>
         <Modal.Header closeButton>
@@ -381,7 +381,7 @@ const AddSWTD = () => {
 
             {/* VENUE & TERM */}
             <Row>
-              <Col>
+              <Col lg={6} md={6} xs={12}>
                 <FloatingLabel
                   controlId="floatingInputVenue"
                   label="Venue"
@@ -398,7 +398,7 @@ const AddSWTD = () => {
                 </FloatingLabel>
               </Col>
 
-              <Col>
+              <Col lg={6} md={6} xs={12}>
                 <FloatingLabel
                   controlId="floatingSelectTerm"
                   label="Term"
@@ -428,7 +428,7 @@ const AddSWTD = () => {
               </Col>
             </Row>
 
-            {/* CATEGORY, POINTS, CHECKBOX */}
+            {/* CATEGORY */}
             <Row className="mb-4">
               <Col md="6">
                 <FloatingLabel
@@ -464,7 +464,7 @@ const AddSWTD = () => {
             {/* DURATION & POINTS */}
             <Row className="mb-4">
               {/* DATE */}
-              <Col md="3">
+              <Col lg={3} md={6} xs={12}>
                 <FloatingLabel
                   controlId={`floatingInputStartDate`}
                   label="Start Date"
@@ -487,7 +487,7 @@ const AddSWTD = () => {
                 </FloatingLabel>
               </Col>
 
-              <Col md="3">
+              <Col lg={3} md={6} xs={12}>
                 <FloatingLabel
                   controlId={`floatingInputEndDate`}
                   label="End Date"
@@ -514,7 +514,7 @@ const AddSWTD = () => {
               </Col>
 
               {/* HOURS */}
-              <Col md="2">
+              <Col lg={2} md={3} xs={6}>
                 <FloatingLabel
                   controlId={`floatingInputHoursUnits`}
                   label={
@@ -535,7 +535,7 @@ const AddSWTD = () => {
                 </FloatingLabel>
               </Col>
 
-              <Col md="2">
+              <Col lg={2} md={3} xs={6}>
                 <FloatingLabel
                   controlId="floatingInputPoints"
                   label="Points"

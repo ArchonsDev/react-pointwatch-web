@@ -150,10 +150,10 @@ export const clearEmployee = async (data, onSuccess, onFail) => {
 export const revokeEmployee = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.delete(
-      `${apiUrl}/users/${data.id}/clearances/${data.clear_id}?term_id=${data.term_id}`, // Include term_id in the URL
+      `${apiUrl}/users/${data.id}/clearances/${data.clear_id}`,
       {
         headers: {
-          Authorization: `Bearer ${data.token}`, // Make sure the token is correct
+          Authorization: `Bearer ${data.token}`,
         },
       }
     );

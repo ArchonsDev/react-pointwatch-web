@@ -57,30 +57,12 @@ const App = () => {
       },
       (response) => {
         const userData = response?.data.user;
-        if (userData) {
-          setUser(userData);
-          fetchAdditionalUserData(userData.id);
-        }
+        setUser(userData);
       },
       (error) => {
         console.error("Error fetching user session:", error.message);
       }
     );
-  };
-
-  const fetchAdditionalUserData = async (userId) => {
-    try {
-      const [clearancesResponse] = await Promise.all([
-        getUserClearances({ id: userId, token: data.token }),
-      ]);
-
-      setUser((prevUser) => ({
-        ...prevUser,
-        clearances: clearancesResponse?.clearance,
-      }));
-    } catch (error) {
-      console.error("Error fetching additional user data:", error.message);
-    }
   };
 
   const showDrawer = ["/swtd", "/dashboard", "/settings", "/admin", "/hr"].some(

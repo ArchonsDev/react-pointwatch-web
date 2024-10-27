@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Nav, Card, Spinner, Dropdown } from "react-bootstrap";
+import Cookies from "js-cookie";
 
 import Term from "./Term";
 import Department from "./Department";
@@ -12,6 +13,7 @@ import SessionUserContext from "../../contexts/SessionUserContext";
 import styles from "./style.module.css";
 const Admin = () => {
   const { user } = useContext(SessionUserContext);
+  const token = Cookies.get("userToken");
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);

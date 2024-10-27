@@ -337,7 +337,7 @@ const SWTDDashboard = () => {
                   <Col lg={2} md={2} xs={isMobile ? 4 : 2}>
                     Status
                   </Col>
-                  <Col lg={1} md={1} xs={2}>
+                  <Col className="text-center" lg={1} md={1} xs={2}>
                     Points
                   </Col>
                 </Row>
@@ -363,7 +363,7 @@ const SWTDDashboard = () => {
                         ? "FOR REVISION"
                         : item.validation_status}
                     </Col>
-                    <Col lg={1} md={1} xs={2}>
+                    <Col className="text-center" lg={1} md={1} xs={2}>
                       {item.points}
                     </Col>
                   </Row>

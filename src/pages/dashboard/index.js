@@ -19,6 +19,7 @@ const Dashboard = () => {
   const token = Cookies.get("userToken");
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 762);
 
   const [departmentUsers, setDepartmentUsers] = useState([]);
   const [noUsers, setNoUsers] = useState(true);
@@ -44,6 +45,10 @@ const Dashboard = () => {
     100
   ).toFixed(2);
 
+  const handleResize = () => {
+    setIsMobile(window.innerWidth <= 762);
+  };
+
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,7 +62,7 @@ const Dashboard = () => {
         token: token,
       },
       (response) => {
-        if (response.data.members?.length !== 0) {
+        if (response.data.members?.length > 1) {
           setNoUsers(false);
           setDepartmentUsers(
             response.data.members?.filter((member) => member.id !== user.id)
@@ -115,6 +120,7 @@ const Dashboard = () => {
   };
 
   const fetchClearanceStatus = (employee, term) => {
+    if (!employee || !term) return;
     getAllSWTDs(
       {
         author_id: employee?.id,
@@ -126,11 +132,12 @@ const Dashboard = () => {
         );
 
         const termStatus = employee?.clearances?.find(
-          (clearance) => clearance?.term?.id === term?.id
+          (clearance) =>
+            clearance?.term?.id === term?.id && !clearance.is_deleted
         );
 
         let isCleared = false;
-        if (termStatus) isCleared = termStatus?.is_deleted ? false : true;
+        if (termStatus) isCleared = true;
         else isCleared = false;
 
         getClearanceStatus(
@@ -247,12 +254,14 @@ const Dashboard = () => {
         setLoading(true);
         setDepartmentTypes({
           ...departmentTypes,
-          semester: user?.department?.use_schoolyear === false ? true : false,
-          midyear: user?.department?.midyear_points > 0 ? true : false,
+          semester: user?.department?.use_schoolyear === false,
+          midyear: user?.department?.midyear_points > 0,
           academic: user?.department?.use_schoolyear,
         });
         fetchDepartmentMembers();
       } else navigate("/swtd");
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
     }
   }, [user, navigate]);
 
@@ -292,12 +301,12 @@ const Dashboard = () => {
 
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center">
-      <Row className="mb-2 w-100">
-        <Col>
+      <Row className="w-100">
+        <Col className="mb-lg-2 mb-0">
           <h3 className={styles.label}>Department Head Dashboard</h3>
         </Col>
         <Col
-          className={`d-flex align-items-center ${styles.employeeDetails}`}
+          className={`${styles.employeeDetails} d-flex align-items-center mb-3 `}
           md="auto">
           <i className="fa-regular fa-calendar me-2"></i> Term:{" "}
           {terms.length === 0 ? (
@@ -325,23 +334,26 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      {/* APPEAR IF HAVE USERS */}
-      {!noUsers && (
+      {!noUsers ? (
         <>
           <Row className="w-100 mb-3">
-            <Col md="7">
+            <Col className="mb-lg-3 mb-md-3 mb-3" lg={7} md={7}>
               <Card className={styles.blackCard}>
                 <Card.Body>
                   <Row>
                     <Col
                       className={`${styles.cardCol1} d-flex justify-content-center align-items-center flex-column p-2`}
-                      md="5">
+                      lg={5}
+                      md={12}>
                       <Row className="text-center">% of cleared employees</Row>
                       <Row className={styles.lackingPercent}>
-                        {clearedUsersPercentage ? clearedUsersPercentage : "0"}%
+                        {isNaN(clearedUsersPercentage)
+                          ? "0"
+                          : clearedUsersPercentage}
+                        %
                       </Row>
                       <Row className="w-100">
-                        <Col>
+                        <Col className="mb-2">
                           <ProgressBar
                             className={styles.bar}
                             now={clearedUsersPercentage}
@@ -350,23 +362,57 @@ const Dashboard = () => {
                       </Row>
                     </Col>
                     <Col className={`${styles.depCol}`}>
-                      <span className={`${styles.depTitle} mb-3`}>
+                      <span className={`${styles.depTitle}`}>
                         Department Statistics
                       </span>
-                      <hr className="m-0 mb-2" style={{ opacity: "1" }} />
-                      <Row className={`${styles.depStat} w-100 mb-2`}>
-                        <Col md={7}>Total Employees</Col>
-                        <Col className="text-end">
+                      <hr className="m-0 mb-3" style={{ opacity: "1" }} />
+                      <Row className={`${styles.depStat} w-100`}>
+                        <Col
+                          className="mb-lg-2 mb-md-2 mb-1"
+                          lg={10}
+                          md={10}
+                          xs={11}>
+                          Total Employees
+                        </Col>
+                        <Col
+                          className="mb-lg-2 mb-md-2 mb-1 text-end"
+                          lg={2}
+                          md={2}
+                          xs={1}>
                           {departmentUsers?.length}
                         </Col>
                       </Row>
-                      <Row className={`${styles.depStat} w-100 mb-2`}>
-                        <Col md={7}>Cleared Employees</Col>
-                        <Col className="text-end">{validUsers}</Col>
+                      <Row className={`${styles.depStat} w-100`}>
+                        <Col
+                          className="mb-lg-2 mb-md-2 mb-1"
+                          lg={10}
+                          md={10}
+                          xs={11}>
+                          Cleared Employees
+                        </Col>
+                        <Col
+                          className="mb-lg-2 mb-md-2 mb-1 text-end"
+                          lg={2}
+                          md={2}
+                          xs={1}>
+                          {validUsers}
+                        </Col>
                       </Row>
                       <Row className={`${styles.depStat} w-100`}>
-                        <Col md={7}>Non-Cleared Employees</Col>
-                        <Col className="text-end">{lackingUsers}</Col>
+                        <Col
+                          className="mb-lg-2 mb-md-2 mb-1"
+                          lg={10}
+                          md={10}
+                          xs={11}>
+                          Non-Cleared Employees
+                        </Col>
+                        <Col
+                          className="mb-lg-2 mb-md-2 mb-1 text-end"
+                          lg={2}
+                          md={2}
+                          xs={1}>
+                          {lackingUsers}
+                        </Col>
                       </Row>
                     </Col>
                   </Row>
@@ -374,51 +420,49 @@ const Dashboard = () => {
               </Card>
             </Col>
 
-            {noUsers === false && terms.length !== 0 && (
-              <Col className="flex-row">
-                <Row className={styles.swtdStat}>
-                  <span>{user?.department?.level}</span>
-                </Row>
-                <Row className={`${styles.swtdContent} mb-1`}>
-                  <span>{user?.department?.name}</span>
-                </Row>
-
-                <hr className="m-0 mb-2" style={{ opacity: "1" }} />
-                <Row className={styles.filterText}>
-                  <Col>Total Pending SWTDs</Col>
-                  <Col className="text-end">
-                    {Object.values(userClearanceStatus).reduce(
-                      (totalPending, user) =>
-                        totalPending +
-                        user.swtds?.filter(
-                          (swtd) => swtd.validation_status === "PENDING"
-                        ).length,
-                      0
-                    )}
-                  </Col>
-                </Row>
-
-                <Row className={styles.filterText}>
-                  <Col className={styles.filterText}>
-                    Total SWTDs For Revision
-                  </Col>
-                  <Col className="text-end">
-                    {Object.values(userClearanceStatus).reduce(
-                      (totalPending, user) =>
-                        totalPending +
-                        user.swtds?.filter(
-                          (swtd) => swtd.validation_status === "REJECTED"
-                        ).length,
-                      0
-                    )}
-                  </Col>
-                </Row>
-              </Col>
-            )}
+            <Col className="mb-lg-3 mb-md-3 mb-3">
+              <Row className={styles.swtdStat}>
+                <span>{user?.department?.level}</span>
+              </Row>
+              <Row className={`${styles.swtdContent} mb-1`}>
+                <span>{user?.department?.name}</span>
+              </Row>
+              <hr className="m-0 mb-2" style={{ opacity: "1" }} />
+              <Row className={styles.filterText}>
+                <Col lg={6} md={10} xs={8}>
+                  Total Pending SWTDs
+                </Col>
+                <Col className="text-end">
+                  {Object.values(userClearanceStatus).reduce(
+                    (totalPending, user) =>
+                      totalPending +
+                      user.swtds?.filter(
+                        (swtd) => swtd.validation_status === "PENDING"
+                      ).length,
+                    0
+                  )}
+                </Col>
+              </Row>
+              <Row className={styles.filterText}>
+                <Col lg={6} md={10} xs={8}>
+                  Total SWTDs For Revision
+                </Col>
+                <Col className="text-end">
+                  {Object.values(userClearanceStatus).reduce(
+                    (totalPending, user) =>
+                      totalPending +
+                      user.swtds?.filter(
+                        (swtd) => swtd.validation_status === "REJECTED"
+                      ).length,
+                    0
+                  )}
+                </Col>
+              </Row>
+            </Col>
           </Row>
 
-          <Row className="w-100 mb-3">
-            <Col className="text-start" md={7}>
+          <Row className="w-100">
+            <Col className="mb-lg-3 mb-md-3 mb-2" lg={6} md={6} xs={12}>
               <InputGroup className={`${styles.searchBar}`}>
                 <InputGroup.Text>
                   <i className="fa-solid fa-magnifying-glass"></i>
@@ -433,7 +477,7 @@ const Dashboard = () => {
               </InputGroup>
             </Col>
 
-            <Col md="auto">
+            <Col className="mb-lg-3 mb-md-3 mb-2" lg={3} md={3} xs={12}>
               <InputGroup className={styles.filterOption}>
                 <InputGroup.Text>
                   <i className="fa-solid fa-filter fa-lg"></i>
@@ -455,7 +499,7 @@ const Dashboard = () => {
               </InputGroup>
             </Col>
 
-            <Col className="text-end">
+            <Col className="mb-lg-3 mb-md-3 mb-2 text-end">
               <BtnSecondary
                 onClick={handlePrint}
                 disabled={departmentUsers.length === 0}>
@@ -465,25 +509,27 @@ const Dashboard = () => {
             </Col>
           </Row>
 
-          <Row className="w-100">
-            {currentRecords.length === 0 ? (
-              <span
-                className={`${styles.msg} d-flex justify-content-center align-items-center mt-3 mb-3 w-100`}>
-                No employees found.
-              </span>
-            ) : (
-              <div className="mb-3">
+          {currentRecords.length === 0 ? (
+            <span
+              className={`${styles.msg} d-flex justify-content-center align-items-center mt-3 mb-3 w-100`}>
+              No employees found.
+            </span>
+          ) : (
+            <>
+              {!isMobile && (
                 <ListGroup className="w-100" variant="flush">
                   <ListGroup.Item className={styles.swtdHeader}>
                     <Row>
-                      <Col lg={1} md={1}>
+                      <Col lg={1} md={2}>
                         ID No.
                       </Col>
-                      <Col lg={4}>Name</Col>
-                      <Col className="text-center" lg={2}>
+                      <Col lg={4} md={2}>
+                        Name
+                      </Col>
+                      <Col className="text-center" lg={2} md={2}>
                         Pending SWTDs
                       </Col>
-                      <Col className="text-center" lg={2}>
+                      <Col className="text-center" lg={2} md={3}>
                         SWTDs For Revision
                       </Col>
                       <Col className="text-center" lg={1} md={1}>
@@ -495,69 +541,91 @@ const Dashboard = () => {
                     </Row>
                   </ListGroup.Item>
                 </ListGroup>
-                <ListGroup>
-                  {currentRecords.map((item) => (
-                    <ListGroup.Item
-                      key={item.employee_id}
-                      className={styles.tableBody}
-                      onClick={() => handleEmployeeSWTDClick(item.id)}>
-                      <Row>
-                        <Col lg={1} md={1}>
-                          {item.employee_id}
-                        </Col>
-                        <Col lg={4}>
-                          {item.firstname} {item.lastname}
-                        </Col>
-                        <Col className="text-center" md={2}>
-                          {
-                            item.swtds?.filter(
-                              (swtd) => swtd.validation_status === "PENDING"
-                            ).length
-                          }
-                        </Col>
+              )}
+              <ListGroup className="w-100">
+                {currentRecords.map((item) => (
+                  <ListGroup.Item
+                    key={item.employee_id}
+                    className={`${styles.tableBody} mb-lg-0 mb-md-0 mb-2`}
+                    onClick={() => handleEmployeeSWTDClick(item.id)}>
+                    <Row>
+                      <Col className="mb-lg-0 mb-md-0 mb-1" lg={1} md={2}>
+                        {isMobile && (
+                          <span className={styles.formLabel}>ID: </span>
+                        )}
+                        {item.employee_id}
+                      </Col>
+                      <Col className="mb-lg-0 mb-md-0 mb-1" lg={4} md={2}>
+                        {isMobile && (
+                          <span className={styles.formLabel}>Name: </span>
+                        )}
+                        {item.firstname} {item.lastname}
+                      </Col>
+                      <Col
+                        className="mb-lg-0 mb-md-0 mb-1 text-lg-center text-md-center"
+                        lg={2}
+                        md={2}>
+                        {isMobile && (
+                          <span className={styles.formLabel}>
+                            Pending SWTDs:{" "}
+                          </span>
+                        )}
+                        {
+                          item.swtds?.filter(
+                            (swtd) => swtd.validation_status === "PENDING"
+                          ).length
+                        }
+                      </Col>
+                      <Col
+                        className="mb-lg-0 mb-md-0 mb-1 text-lg-center text-md-center"
+                        lg={2}
+                        md={3}>
+                        {isMobile && (
+                          <span className={styles.formLabel}>
+                            SWTDs for Revision:{" "}
+                          </span>
+                        )}
+                        {
+                          item.swtds?.filter(
+                            (swtd) => swtd.validation_status === "REJECTED"
+                          ).length
+                        }
+                      </Col>
+                      <Col
+                        className="mb-lg-0 mb-md-0 mb-1 text-lg-center text-md-center"
+                        lg={1}
+                        md={1}>
+                        {isMobile && (
+                          <span className={styles.formLabel}>Points: </span>
+                        )}
+                        {item.valid_points}
+                      </Col>
+                      <Col
+                        className={`mb-lg-0 mb-md-0 mb-1 text-${
+                          item.is_cleared ? "success" : "danger"
+                        } ${styles.filterText} text-lg-center text-md-center`}
+                        lg={2}
+                        md={2}>
+                        {item.is_cleared ? "CLEARED" : "NOT CLEARED"}
+                      </Col>
+                    </Row>
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
 
-                        <Col className="text-center" md={2}>
-                          {
-                            item.swtds?.filter(
-                              (swtd) => swtd.validation_status === "REJECTED"
-                            ).length
-                          }
-                        </Col>
-
-                        <Col className="text-center" lg={1} md={1}>
-                          {item.valid_points}
-                        </Col>
-
-                        <Col
-                          className={`text-${
-                            item.is_cleared ? "success" : "danger"
-                          } ${styles.filterText} text-center`}
-                          lg={2}
-                          md={2}>
-                          {item.is_cleared ? "CLEARED" : "NOT CLEARED"}
-                        </Col>
-                      </Row>
-                    </ListGroup.Item>
-                  ))}
-                </ListGroup>
-              </div>
-            )}
-          </Row>
-
-          <Row className="w-100 mb-3">
-            <Col className="d-flex justify-content-center">
-              <PaginationComponent
-                totalPages={totalPages}
-                currentPage={currentPage}
-                handlePageChange={handlePageChange}
-              />
-            </Col>
-          </Row>
+              <Row className="w-100 mt-3 mb-3">
+                <Col className="d-flex justify-content-center">
+                  <PaginationComponent
+                    totalPages={totalPages}
+                    currentPage={currentPage}
+                    handlePageChange={handlePageChange}
+                  />
+                </Col>
+              </Row>
+            </>
+          )}
         </>
-      )}
-
-      {/* APPEAR IF NO USERS */}
-      {noUsers && (
+      ) : (
         <>
           <hr className="w-100" style={{ opacity: "1" }} />
           <span
