@@ -301,12 +301,7 @@ const HRDashboard = () => {
           </BtnPrimary>{" "}
           <BtnSecondary
             onClick={handlePrint}
-            disabled={
-              !selectedDepartment ||
-              !selectedDepartment?.members ||
-              !selectedDepartment?.head ||
-              selectedTerm === 0
-            }>
+            disabled={!selectedDepartment || selectedTerm === 0}>
             <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i> Export
           </BtnSecondary>
         </Col>
