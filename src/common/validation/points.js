@@ -1,9 +1,8 @@
 import categories from "../../data/categories.json";
 
-export const calculateHourPoints = (name, startTime, endTime) => {
-  const totalHours = calculateHours(startTime, endTime);
+export const calculateHourPoints = (name, hours) => {
   const id = getCategoryID(name);
-  const points = calculatePoints(id, totalHours);
+  const points = calculatePoints(id, hours);
   return points;
 };
 
@@ -23,6 +22,12 @@ const calculatePoints = (id, totalHours) => {
     case 5:
     case 6:
       multiplier = 2;
+      break;
+    case 7:
+      return totalHours * 0.5;
+    case 8:
+    case 9:
+      return totalHours * 1;
       break;
     default:
       multiplier = 1;
@@ -52,27 +57,4 @@ const getCategoryID = (name) => {
     (category) => category.name === name
   );
   return category ? category.id : null;
-};
-
-const calculateHours = (start, finish) => {
-  if (!start || !finish) {
-    console.error("Start or finish time is undefined:", { start, finish });
-    return 0;
-  }
-
-  const [startHours, startMinutes] = start.split(":").map(Number);
-  const [endHours, endMinutes] = finish.split(":").map(Number);
-
-  const startTime = new Date(0, 0, 0, startHours, startMinutes);
-  const endTime = new Date(0, 0, 0, endHours, endMinutes);
-
-  let timeDifference = endTime.getTime() - startTime.getTime();
-
-  if (timeDifference < 0) {
-    timeDifference = 24 * 60 * 60 * 1000 + timeDifference;
-  }
-
-  const hours = Math.floor(timeDifference / (60 * 60 * 1000));
-
-  return hours;
 };

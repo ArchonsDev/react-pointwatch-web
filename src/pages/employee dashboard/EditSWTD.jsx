@@ -4,20 +4,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Row, Col, Form, Modal, Spinner, FloatingLabel } from "react-bootstrap";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
-import departmentTypes from "../../data/departmentTypes.json";
 import categories from "../../data/categories.json";
 
-import {
-  formatDate,
-  wordDate,
-  apiDate,
-  monthYearDate,
-} from "../../common/format/date";
+import { formatDate, apiDate, monthYearDate } from "../../common/format/date";
 import { isEmpty, isValidSWTDDate } from "../../common/validation/utils";
 import { calculateHourPoints } from "../../common/validation/points"; /* prettier-ignore */
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
-import { getClearanceStatus } from "../../api/user";
 import { getTerms } from "../../api/admin";
 import { getSWTD, editSWTD } from "../../api/swtd";
 
@@ -45,71 +38,47 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     end: "",
     ongoing: false,
   });
-  const [selectedRole, setSelectedRole] = useState("");
   const [terms, setTerms] = useState([]);
   const [invalidTerm, setInvalidTerm] = useState(false);
-  const [checkbox, setCheckBox] = useState({
-    deliverable: false,
+  const [departmentTypes, setDepartmentTypes] = useState({
+    semester: false,
+    midyear: false,
+    academic: false,
   });
-  const [numDays, setNumDays] = useState(1);
-  const [formDates, setFormDates] = useState([
-    {
-      date: "",
-      time_started: "",
-      time_ended: "",
-    },
-  ]);
+
   const [form, setForm] = useState({
     author_id: id,
     title: "",
     venue: "",
     category: "",
     term_id: 0,
-    role: "Attendee",
-    dates: formDates,
+    start_date: "",
+    end_date: "",
+    total_hours: 0,
     points: 0,
-    proof: "",
     benefits: "",
-    has_deliverables: checkbox.deliverable,
   });
 
-  let swtdPoints = 0;
-
-  const handleBoxChange = (e) => {
-    const { id, checked } = e.target;
-    setCheckBox({
-      ...checkbox,
-      [id]: checked,
-    });
-
-    setForm((prevForm) => ({
-      ...prevForm,
-      has_deliverables:
-        id === "deliverable" ? checked : prevForm.has_deliverables,
-    }));
-  };
-
-  const handleCustomRoleChange = (e) => {
-    const value = e.target.value;
-    setSelectedRole(value);
-    setForm((prevForm) => ({
-      ...prevForm,
-      role: value,
-    }));
-  };
-
   const fetchTerms = () => {
-    const allowedTerm = departmentTypes[user?.department];
     getTerms(
       {
         token: token,
       },
       (response) => {
-        const filteredTerms = response.terms.filter((term) =>
-          allowedTerm.includes(term.type)
-        );
+        let filteredTerms = response.terms;
+        const validTypes = [
+          ...(departmentTypes.semester ? ["SEMESTER"] : []),
+          ...(departmentTypes.midyear ? ["MIDYEAR/SUMMER"] : []),
+          ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
+        ];
+
+        if (validTypes.length > 0) {
+          filteredTerms = filteredTerms.filter((term) =>
+            validTypes.includes(term.type)
+          );
+        }
+
         setTerms(filteredTerms);
-        fetchSWTD();
       },
       (error) => {
         console.log(error.message);
@@ -120,10 +89,16 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
   const setTerm = (term_id) => {
     if (!term_id) return;
     const term = terms.find((term) => term.id === term_id);
+    const status = user?.clearances?.find(
+      (clearance) => clearance.term.id === term_id
+    );
+    if (status) setInvalidTerm(status.is_deleted ? false : true);
+    else setInvalidTerm(false);
 
     const formattedStartDate = formatDate(term?.start_date);
     const formattedEndDate = formatDate(term?.end_date);
     setSelectedTerm({
+      id: term_id,
       start: formattedStartDate,
       end: formattedEndDate,
       ongoing: term?.is_ongoing,
@@ -132,37 +107,25 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
 
   const fetchSWTD = () => {
     getSWTD(
-      {
-        token: token,
-        form_id: swtd_id,
-      },
+      { token: token, form_id: swtd_id },
       (response) => {
-        const data = response.data;
-
-        if (id !== data.author_id) {
+        const data = response.data.swtd_form;
+        if (id !== data.author.id) {
           navigate("/swtd");
           return;
         }
 
-        setCheckBox({
-          ...checkbox,
-          deliverable: data.has_deliverables,
-        });
+        if (terms.length > 0) {
+          setTerm(data.term.id);
+        }
 
-        getClearance(data.term.id);
-        setNumDays(data.dates.length);
-
-        //CHANGE DATE FORMAT FROM MM-DD-YYYY to YYYY-MM-DD
-        const formattedDates = data.dates.map((dateEntry) => ({
-          ...dateEntry,
-          date: formatDate(dateEntry.date),
-        }));
-
-        setFormDates(formattedDates);
         setForm({
           ...data,
           term_id: data.term.id,
+          start_date: formatDate(data.start_date),
+          end_date: formatDate(data.end_date),
         });
+
         setLoading(false);
       },
       (error) => {
@@ -172,113 +135,88 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     );
   };
 
-  const getClearance = (term_id) => {
-    getClearanceStatus(
-      {
-        id: id,
-        term_id: term_id,
-        token: token,
-      },
-      (response) => {
-        setInvalidTerm(response.is_cleared);
-      }
-    );
+  const setMinDate = (category, term) => {
+    if (category.startsWith("Degree")) return undefined;
+    return term?.start;
+  };
+
+  const setMaxDate = (category, term) => {
+    if (category.startsWith("Degree")) return undefined;
+    if (term?.ongoing) return new Date().toISOString().slice(0, 10);
+    return term?.end;
+  };
+
+  const validateDates = (date, category, term) => {
+    if (category.startsWith("Degree")) return isEmpty(date);
+    return isEmpty(date) && isValidSWTDDate(date, term);
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
     const textarea = textareaRef.current;
     textarea.style.height = "auto";
     textarea.style.height = `${textarea.scrollHeight}px`;
 
-    if (name === "category" && value.startsWith("Degree")) {
-      setForm((prevForm) => ({
-        ...prevForm,
-        [name]: value,
-      }));
-    } else if (name === "term_id") {
-      const selectedTermId = parseInt(value, 10);
-      setTerm(selectedTermId);
-      getClearance(selectedTermId);
-      setForm((prevForm) => ({
-        ...prevForm,
-        date: "",
-        [name]: value,
-      }));
+    if (e.target.name === "category" && e.target.value.startsWith("Degree")) {
+      setForm({
+        ...form,
+        [e.target.name]: e.target.value,
+      });
+    } else if (e.target.name === "term_id") {
+      const selectedTermId = parseInt(e.target.value);
+      const term = terms.find((term) => term.id === selectedTermId);
+
+      if (term) {
+        const status = user?.clearances.find(
+          (clearance) => clearance.term.id === selectedTermId
+        );
+        if (status) setInvalidTerm(status?.is_deleted ? false : true);
+        else setInvalidTerm(false);
+
+        const formattedStartDate = formatDate(term.start_date);
+        const formattedEndDate = formatDate(term.end_date);
+
+        setSelectedTerm({
+          id: selectedTermId,
+          start: formattedStartDate,
+          end: formattedEndDate,
+          ongoing: term.is_ongoing,
+        });
+      }
+      setForm({
+        ...form,
+        [e.target.name]: e.target.value,
+        start_date: "",
+        end_date: "",
+      });
     } else {
-      setForm((prevForm) => ({
-        ...prevForm,
-        [name]: value,
-      }));
+      setForm({
+        ...form,
+        [e.target.name]: e.target.value,
+      });
     }
-  };
-
-  const handleFormDatesChange = (index, field, value) => {
-    const updatedFormDates = [...formDates];
-    updatedFormDates[index] = {
-      ...updatedFormDates[index],
-      [field]: value,
-    };
-
-    setFormDates(updatedFormDates);
-
-    setForm((prevForm) => ({
-      ...prevForm,
-      dates: updatedFormDates,
-    }));
-  };
-
-  const handleDaysChange = (e) => {
-    let newNumDays = parseInt(e.target.value, 10);
-    if (newNumDays === 0) {
-      newNumDays = 1;
-    }
-    setNumDays(newNumDays);
-
-    const updatedFormDates = [...formDates];
-    while (updatedFormDates.length < newNumDays) {
-      updatedFormDates.push({ date: "", time_started: "", time_ended: "" });
-    }
-    while (updatedFormDates.length > newNumDays) {
-      updatedFormDates.pop();
-    }
-    setFormDates(updatedFormDates);
-    setForm({
-      ...form,
-      dates: updatedFormDates,
-    });
   };
 
   const invalidFields = () => {
-    const requiredFields = ["title", "venue", "category", "role", "benefits"];
+    const requiredFields = ["title", "venue", "category", "benefits"];
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       form.term_id === 0 ||
       form.points <= 0 ||
+      validateDates(form.start_date, form.category, selectedTerm) ||
+      validateDates(form.end_date, form.category, selectedTerm) ||
       invalidTerm
     );
   };
 
-  const getMinDate = (index, formDates, selectedTerm) => {
-    if (index > 0 && formDates[index - 1]?.date) {
-      const previousDate = new Date(formDates[index - 1].date);
-      previousDate.setDate(previousDate.getDate() + 1);
-      return previousDate.toISOString().split("T")[0];
-    }
-    return selectedTerm ? selectedTerm.start : "";
-  };
-
   const handleSubmit = async () => {
-    const formattedDates = formDates.map((dateEntry) => ({
-      ...dateEntry,
-      date: apiDate(dateEntry.date),
-    }));
-
-    // const datesString = JSON.stringify(formattedDates);
+    //Change date format from YYYY-MM-DD to MM-DD-YYYY
+    const formattedStartDate = apiDate(form.start_date);
+    const formattedEndDate = apiDate(form.end_date);
 
     const updatedForm = {
       ...form,
-      dates: formattedDates,
+      start_date: formattedStartDate,
+      end_date: formattedEndDate,
     };
 
     await editSWTD(
@@ -304,43 +242,23 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     );
   };
 
-  const getHourPoints = (name, start, finish) => {
-    return calculateHourPoints(name, start, finish);
-  };
-
-  const calculateTotalPoints = () => {
-    swtdPoints = 0;
-    formDates.forEach((dateEntry, index) => {
-      const isFormValid =
-        !isEmpty(form.category) &&
-        !form.category.startsWith("Degree") &&
-        !isEmpty(dateEntry.date) &&
-        !isEmpty(dateEntry.time_started) &&
-        !isEmpty(dateEntry.time_ended);
-
-      if (isFormValid) {
-        const points = getHourPoints(
-          form.category,
-          dateEntry.time_started,
-          dateEntry.time_ended
-        );
-        swtdPoints += points;
-      }
-    });
-
-    return swtdPoints;
-  };
+  useEffect(() => {
+    if (user)
+      setDepartmentTypes({
+        ...departmentTypes,
+        semester: user?.department?.use_schoolyear === false ? true : false,
+        midyear: user?.department?.midyear_points > 0 ? true : false,
+        academic: user?.department?.use_schoolyear,
+      });
+  }, [user]);
 
   useEffect(() => {
-    const allEntriesFilled = formDates.every(
-      (dateEntry) =>
-        !isEmpty(dateEntry.date) &&
-        !isEmpty(dateEntry.time_started) &&
-        !isEmpty(dateEntry.time_ended)
-    );
+    if (form.total_hours > 0) {
+      const totalPoints = calculateHourPoints(
+        form?.category,
+        form?.total_hours
+      );
 
-    if (allEntriesFilled) {
-      const totalPoints = calculateTotalPoints();
       setForm((prevForm) => ({
         ...prevForm,
         points: totalPoints,
@@ -350,17 +268,25 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
         ...prevForm,
       }));
     }
-  }, [formDates, form.category]);
+  }, [form.category, form.total_hours]);
 
   useEffect(() => {
-    fetchTerms();
-  }, []);
+    if (departmentTypes) fetchTerms();
+  }, [departmentTypes]);
 
   useEffect(() => {
-    if (terms.length > 0 && form.term_id) {
-      setTerm(form.term_id);
+    if (selectedTerm) {
+      const status = user?.clearances?.find(
+        (clearance) => clearance.term.id === selectedTerm.id
+      );
+      if (status) setInvalidTerm(status?.is_deleted ? false : true);
+      else setInvalidTerm(false);
     }
-  }, [terms, form.term_id]);
+  }, [selectedTerm]);
+
+  useEffect(() => {
+    if (terms.length > 0) fetchSWTD();
+  }, [terms]);
 
   if (loading)
     return (
@@ -386,66 +312,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
         )}
 
         <Form noValidate>
-          {/* POINTS & CHECKBOX */}
-          {/* <Row className="mb-3">
-            <Form.Group as={Row} className="mb-3" controlId="inputPoints">
-              <Form.Label className={`${styles.formLabel}`} column md="auto">
-                Points
-              </Form.Label>
-
-              {form?.category.startsWith("Degree") || checkbox.deliverable ? (
-                <>
-                  <Col md="2">
-                    <Form.Control
-                      type="number"
-                      className={`${styles.pointsBox} text-center`}
-                      name="points"
-                      onChange={handleChange}
-                      value={form.points}
-                      isInvalid={form.points <= 0}
-                      disabled={loading}
-                    />
-                  </Col>
-                  <Col className="d-flex align-items-center">
-                    <Form.Text muted>
-                      Enter the points for this submission.
-                    </Form.Text>
-                  </Col>
-                </>
-              ) : (
-                <>
-                  <Col md="2">
-                    <Form.Control
-                      type="number"
-                      className={`${styles.pointsBox} text-center`}
-                      name="points"
-                      onChange={handleChange}
-                      value={form.points}
-                      readOnly
-                    />
-                  </Col>
-                  <Col className="d-flex align-items-center">
-                    <Form.Text muted>
-                      Points will be calculated automatically.
-                    </Form.Text>
-                  </Col>
-                </>
-              )}
-              <Col className="d-flex align-items-center">
-                <Form.Check
-                  inline
-                  type="checkbox"
-                  id="deliverable"
-                  checked={checkbox.deliverable}
-                  onChange={handleBoxChange}
-                />
-                <Form.Check.Label>
-                  Does the SWTD have deliverables?
-                </Form.Check.Label>
-              </Col>
-            </Form.Group>
-          </Row> */}
-
           {/* GENERAL INFORMATION */}
           <Row className="mb-2">
             <Col className={`p-1 ${styles.categoryLabel}`}>
@@ -505,8 +371,8 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   <option value={0} disabled>
                     Select a term
                   </option>
-                  {terms.map((term, index) => (
-                    <option key={index} value={term.id}>
+                  {terms.map((term) => (
+                    <option key={term.id} value={term.id}>
                       {term.name} ({monthYearDate(term.start_date)} to{" "}
                       {monthYearDate(term.end_date)})
                     </option>
@@ -543,8 +409,89 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                 </Form.Select>
               </FloatingLabel>
             </Col>
+          </Row>
 
-            <Col md="auto">
+          {/* DURATION & POINTS LABEL */}
+          <Row className="mb-2">
+            <Col className={`p-1 ${styles.categoryLabel}`} md="4">
+              <span className="ms-1">DURATION & POINTS</span>
+            </Col>
+          </Row>
+
+          {/* DURATION & POINTS */}
+          <Row className="mb-4">
+            {/* DATE */}
+            <Col md="3">
+              <FloatingLabel
+                controlId={`floatingInputStartDate`}
+                label="Start Date"
+                className="mb-3">
+                <Form.Control
+                  type="date"
+                  name="start_date"
+                  min={setMinDate(form?.category, selectedTerm)}
+                  max={setMaxDate(form?.category, selectedTerm)}
+                  className={styles.formBox}
+                  onChange={handleChange}
+                  value={form.start_date}
+                  isInvalid={validateDates(
+                    form?.start_date,
+                    form?.category,
+                    selectedTerm
+                  )}
+                  disabled={form.term_id === 0 || loading}
+                />
+              </FloatingLabel>
+            </Col>
+
+            <Col md="3">
+              <FloatingLabel
+                controlId={`floatingInputEndDate`}
+                label="End Date"
+                className="mb-3">
+                <Form.Control
+                  type="date"
+                  name="end_date"
+                  min={form?.start_date}
+                  max={setMaxDate(form?.category, selectedTerm)}
+                  className={styles.formBox}
+                  onChange={handleChange}
+                  value={form.end_date}
+                  isInvalid={validateDates(
+                    form?.end_date,
+                    form?.category,
+                    selectedTerm
+                  )}
+                  disabled={form.term_id === 0 || loading}
+                />
+                <Form.Control.Feedback type="invalid">
+                  Date must be valid and within the selected term.
+                </Form.Control.Feedback>
+              </FloatingLabel>
+            </Col>
+
+            {/* HOURS */}
+
+            <Col md="2">
+              <FloatingLabel
+                controlId={`floatingInputTotalHours`}
+                label={
+                  form?.category.startsWith("Degree") ? "Units" : "Total Hours"
+                }
+                className="mb-3">
+                <Form.Control
+                  type="number"
+                  name="total_hours"
+                  className={styles.formBox}
+                  min={0}
+                  onChange={handleChange}
+                  value={form.total_hours}
+                  disabled={loading}
+                />
+              </FloatingLabel>
+            </Col>
+
+            <Col md="2">
               <FloatingLabel
                 controlId="floatingInputPoints"
                 label="Points"
@@ -558,156 +505,11 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   onChange={handleChange}
                   value={form.points}
                   disabled={loading}
-                  readOnly={
-                    !form?.category.startsWith("Degree") &&
-                    !checkbox.deliverable
-                  }
+                  readOnly={!form?.category.startsWith("Degree")}
                 />
-                <Form.Text>
-                  {checkbox.deliverable || form?.category.startsWith("Degree")
-                    ? "Enter points for this SWTD."
-                    : "Points calculated automatically."}
-                </Form.Text>
+                <Form.Text>Calculated automatically.</Form.Text>
               </FloatingLabel>
             </Col>
-
-            <Col className="d-flex p-3">
-              <Form.Check
-                inline
-                type="checkbox"
-                id="deliverable"
-                checked={checkbox.deliverable}
-                onChange={handleBoxChange}
-              />
-              <Form.Check.Label>
-                Does the SWTD have deliverables?
-              </Form.Check.Label>
-            </Col>
-          </Row>
-
-          {/* DATE & TIME */}
-          <Row className="mb-2">
-            <Col className={`p-1 ${styles.categoryLabel}`} md="4">
-              <span className="ms-1">DATE & TIME</span>
-            </Col>
-          </Row>
-
-          {/* ENTER DAYS */}
-          <Row className="mb-2">
-            <Col md="2">
-              <FloatingLabel
-                controlId="floatingInputDays"
-                label="SWTD Duration (Days)"
-                className="mb-3">
-                <Form.Control
-                  type="number"
-                  min="1"
-                  className={styles.formBox}
-                  value={numDays}
-                  onChange={handleDaysChange}
-                  disabled={loading}
-                />
-              </FloatingLabel>
-            </Col>
-          </Row>
-
-          {/* DATE + TIME ROW */}
-          <Row className="mb-4">
-            {formDates.map((dateEntry, index) => (
-              <Row key={index} className="mb-2">
-                {/* DATE */}
-                <Col md="6">
-                  <FloatingLabel
-                    controlId={`floatingInputDate-${index}`}
-                    label="Date"
-                    className="mb-3">
-                    <Form.Control
-                      type="date"
-                      min={getMinDate(index, formDates, selectedTerm)}
-                      max={
-                        selectedTerm?.ongoing
-                          ? new Date().toISOString().slice(0, 10)
-                          : selectedTerm.end
-                      }
-                      className={styles.formBox}
-                      onChange={(e) =>
-                        handleFormDatesChange(index, "date", e.target.value)
-                      }
-                      value={dateEntry.date}
-                      isInvalid={
-                        !isEmpty(dateEntry.date) &&
-                        !isValidSWTDDate(dateEntry.date, selectedTerm)
-                      }
-                      disabled={form.term_id === 0 || loading}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      Date must be valid and within the selected term.
-                    </Form.Control.Feedback>
-                  </FloatingLabel>
-                </Col>
-
-                {/* Start Time */}
-                {!form?.category.startsWith("Degree") && (
-                  <>
-                    <Col md="3">
-                      <FloatingLabel
-                        controlId={`floatingInputStartTime-${index}`}
-                        label="Start Time"
-                        className="mb-3">
-                        <Form.Control
-                          type="time"
-                          className={styles.formBox}
-                          onChange={(e) =>
-                            handleFormDatesChange(
-                              index,
-                              "time_started",
-                              e.target.value
-                            )
-                          }
-                          value={dateEntry.time_started || ""}
-                          isInvalid={
-                            dateEntry.time_started > dateEntry.time_ended
-                          }
-                          disabled={
-                            form?.category.startsWith("Degree") || loading
-                          }
-                        />
-                        <Form.Control.Feedback type="invalid">
-                          Time must be valid.
-                        </Form.Control.Feedback>
-                      </FloatingLabel>
-                    </Col>
-
-                    {/* End Time */}
-                    <Col md="3">
-                      <FloatingLabel
-                        controlId={`floatingInputEndTime-${index}`}
-                        label="End Time"
-                        className="mb-3">
-                        <Form.Control
-                          type="time"
-                          className={styles.formBox}
-                          onChange={(e) =>
-                            handleFormDatesChange(
-                              index,
-                              "time_ended",
-                              e.target.value
-                            )
-                          }
-                          value={dateEntry.time_ended || ""}
-                          isInvalid={
-                            dateEntry.time_started > dateEntry.time_ended
-                          }
-                          disabled={
-                            form?.category.startsWith("Degree") || loading
-                          }
-                        />
-                      </FloatingLabel>
-                    </Col>
-                  </>
-                )}
-              </Row>
-            ))}
           </Row>
 
           {/* DOCUMENTATION */}

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Container, Card, Row, Col, Form, InputGroup, Toast,ToastContainer} from "react-bootstrap"; /* prettier-ignore */
 
-import departments from "../../data/departments.json";
 import { register } from "../../api/auth";
+import { getAllDepartments } from "../../api/user";
 import { isEmpty, isValidLength, isValidEmail, isValidPassword } from "../../common/validation/utils"; /* prettier-ignore */
 
 import styles from "./style.module.css";
@@ -11,11 +11,13 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
 
 const Registration = () => {
-  const [isClicked, setIsClicked] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
-
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [levels, setLevels] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedLevel, setSelectedLevel] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -26,10 +28,25 @@ const Registration = () => {
     employee_id: "",
     firstname: "",
     lastname: "",
-    department: "",
     password: "",
+    department_id: 0,
     confirmPassword: "",
   });
+
+  const fetchDepartments = async () => {
+    getAllDepartments(
+      (response) => {
+        setDepartments(response.departments);
+        const uniqueLevels = [
+          ...new Set(response.departments.map((dept) => dept.level)),
+        ];
+        setLevels(uniqueLevels);
+      },
+      (error) => {
+        console.log(error.message);
+      }
+    );
+  };
 
   const handleChange = (e) => {
     setForm({
@@ -37,6 +54,16 @@ const Registration = () => {
       [e.target.name]: e.target.value,
     });
   };
+
+  const handleLevelChange = (e) => {
+    const level = e.target.value;
+    setSelectedLevel(level);
+    setForm({ ...form, department_id: 0 });
+  };
+
+  const filteredDepartments = selectedLevel
+    ? departments.filter((dept) => dept.level === selectedLevel)
+    : departments;
 
   const passwordsMatch = () => {
     return form.password === form.confirmPassword;
@@ -48,7 +75,6 @@ const Registration = () => {
       "employee_id",
       "firstname",
       "lastname",
-      "department",
       "password",
       "confirmPassword",
     ];
@@ -60,26 +86,30 @@ const Registration = () => {
       !isValidLength(form.lastname, 1) ||
       !isValidPassword(form.password) ||
       !passwordsMatch() ||
-      form.department === ""
+      form.department_id === 0
     );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsClicked(true);
+
+    setIsProcessing(true);
 
     if (invalidFields()) {
       setErrorMessage("Please check the details again.");
-      setIsClicked(false);
+      setIsProcessing(false);
       return;
     }
-
+    const updatedForm = {
+      ...form,
+      department_id: parseInt(form.department_id, 10),
+    };
     await register(
-      form,
+      updatedForm,
       (response) => {
         setTimeout(() => {
           setIsRegistrationComplete(true);
-          setIsClicked(false);
+          setIsProcessing(false);
         });
       },
       (error) => {
@@ -87,15 +117,18 @@ const Registration = () => {
           setErrorMessage(<b>{error.response.data.error}</b>);
           setShowToast(true);
         }
+        setIsProcessing(false);
       }
     );
   };
 
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
   return (
     <div className={styles.background}>
-      {/* Fake Navbar */}
-      <header className={styles.header}>
-        {" "}
+      <header className={`${styles.header} mb-3`}>
         <h3 className="text-white">
           <Link to="/login">
             <i
@@ -130,7 +163,7 @@ const Registration = () => {
 
       {/* Registration Form */}
       <Container className="d-flex justify-content-center align-items-center">
-        <Card className="w-75 p-4">
+        <Card className="w-75 p-lg-4 p-2">
           {!isRegistrationComplete ? (
             <Card.Body>
               <Row className="mb-4">
@@ -147,7 +180,7 @@ const Registration = () => {
               <Form className={styles.form} noValidate>
                 {/* Row 1: Email & ID Number */}
                 <Row>
-                  <Col>
+                  <Col lg={6} md={12} xs={12}>
                     <Form.Group className="mb-3" controlId="inputEmail">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -172,7 +205,7 @@ const Registration = () => {
                       </InputGroup>
                     </Form.Group>
                   </Col>
-                  <Col>
+                  <Col lg={6} md={12} xs={12}>
                     <Form.Group className="mb-3" controlId="inputEmployeeID">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -203,7 +236,7 @@ const Registration = () => {
 
                 {/* Row 2: First name & last name  */}
                 <Row>
-                  <Col>
+                  <Col md={6} xs={12}>
                     <Form.Group className="mb-3" controlId="inputFirstname">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -230,7 +263,7 @@ const Registration = () => {
                       </InputGroup>
                     </Form.Group>
                   </Col>
-                  <Col>
+                  <Col md={6} xs={12}>
                     <Form.Group className="mb-3" controlId="inputLastname">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
@@ -259,35 +292,56 @@ const Registration = () => {
                   </Col>
                 </Row>
 
-                {/* Row 3: Department */}
                 <Row>
-                  <Col>
-                    <Form.Group className="mb-3" controlId="inputDepartment">
+                  <Col md={6} xs={12}>
+                    <Form.Group className="mb-3" controlId="selectLevel">
                       <InputGroup hasValidation>
                         <InputGroup.Text className={styles.iconBox}>
                           <i
                             className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
                         </InputGroup.Text>
                         <Form.Select
-                          aria-label="Example"
-                          value={form.department}
-                          name="department"
-                          onChange={handleChange}
-                          isInvalid={isClicked && form.department === ""}>
+                          name="selected_level"
+                          onChange={handleLevelChange}
+                          value={selectedLevel || ""}>
                           <option value="" disabled>
+                            Select Level
+                          </option>
+                          {levels
+                            .sort((a, b) => a.localeCompare(b))
+                            .map((level) => (
+                              <option key={level} value={level}>
+                                {level}
+                              </option>
+                            ))}
+                        </Form.Select>
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={6} xs={12}>
+                    <Form.Group className="mb-3" controlId="selectDepartment">
+                      <InputGroup hasValidation>
+                        <InputGroup.Text className={styles.iconBox}>
+                          <i
+                            className={`${styles.formIcon} fa-solid fa-book fa-lg`}></i>
+                        </InputGroup.Text>
+                        <Form.Select
+                          name="department_id"
+                          onChange={handleChange}
+                          value={form.department_id}
+                          disabled={!selectedLevel}>
+                          <option value={0} disabled>
                             Departments
                           </option>
-                          {departments.departments.map((department, index) => (
-                            <option key={index} value={department}>
-                              {department}
-                            </option>
-                          ))}
+                          {filteredDepartments
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map((department) => (
+                              <option key={department.id} value={department.id}>
+                                {department.name}
+                              </option>
+                            ))}
                         </Form.Select>
-                        {isClicked && (
-                          <Form.Control.Feedback type="invalid">
-                            Please select a department.
-                          </Form.Control.Feedback>
-                        )}
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -334,6 +388,7 @@ const Registration = () => {
                     </Form.Group>
                   </Col>
                 </Row>
+
                 <Row>
                   <Col>
                     <Form.Group
@@ -377,11 +432,18 @@ const Registration = () => {
                   <Col className="text-center">
                     <BtnPrimary
                       onClick={handleSubmit}
-                      disabled={invalidFields()}
+                      disabled={invalidFields() || isProcessing} // Disable when processing or fields are invalid
                       title={
                         invalidFields() ? "Please check the details again." : ""
                       }>
-                      Register
+                      {isProcessing ? (
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"></span>
+                      ) : (
+                        "Register"
+                      )}
                     </BtnPrimary>
                   </Col>
                 </Row>

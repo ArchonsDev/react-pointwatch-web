@@ -54,7 +54,7 @@ const EditCommentModal = ({ show, onHide, data, editSuccess }) => {
         onHide();
       },
       (error) => {
-        setErrorMessage(error.response.data);
+        setErrorMessage(error.response);
         triggerShowError(3000);
       }
     );

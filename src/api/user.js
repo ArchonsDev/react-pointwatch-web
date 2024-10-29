@@ -47,7 +47,7 @@ export const updateUser = async (data, onSuccess, onFail, onCleanup) => {
         employee_id: data.employee_id,
         firstname: data.firstname,
         lastname: data.lastname,
-        department: data.department,
+        department_id: data.department_id,
       },
       {
         headers: {
@@ -94,15 +94,12 @@ export const updatePassword = async (data, onSuccess, onFail, onCleanup) => {
 
 export const deleteUser = async (data, onSuccess, onFail, onCleanup) => {
   try {
-    const response = await axios.delete(
-      `${apiUrl}/users/${data.id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${data.token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.delete(`${apiUrl}/users/${data.id}`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (response.status === 200) {
       onSuccess && onSuccess(response);
@@ -138,7 +135,7 @@ export const userPoints = async (data, onSuccess, onFail, onCleanup) => {
 export const getClearanceStatus = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.get(
-      `${apiUrl}/users/${data.id}/terms/${data.term_id}`,
+      `${apiUrl}/users/${data.id}/points?term_id=${data.term_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -148,6 +145,52 @@ export const getClearanceStatus = async (data, onSuccess, onFail) => {
 
     if (response.status === 200) {
       onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};
+
+export const getAllDepartments = async (onSuccess, onFail) => {
+  try {
+    const response = await axios.get(`${apiUrl}/departments`);
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};
+
+export const getUserDepartment = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.get(`${apiUrl}/users/${data.id}/department`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+      },
+    });
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+      return response.data;
+    }
+  } catch (error) {
+    onFail && onFail(error);
+  }
+};
+
+export const getUserClearances = async (data, onSuccess, onFail) => {
+  try {
+    const response = await axios.get(`${apiUrl}/users/${data.id}/clearances`, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+      },
+    });
+
+    if (response.status === 200) {
+      onSuccess && onSuccess(response.data);
+      return response.data;
     }
   } catch (error) {
     onFail && onFail(error);

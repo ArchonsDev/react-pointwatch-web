@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, InputGroup, Table, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Form, InputGroup, Table, Spinner, OverlayTrigger, Tooltip, Badge } from "react-bootstrap"; /* prettier-ignore */
 import Cookies from "js-cookie";
 
 import { getAllUsers, updateStaff } from "../../api/admin";
 
 import styles from "./style.module.css";
+import PaginationComponent from "../../components/Paging";
+import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 const StaffPromotion = () => {
   const userID = Cookies.get("userID");
@@ -12,6 +15,7 @@ const StaffPromotion = () => {
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [disable, setDisable] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 20;
 
@@ -21,7 +25,7 @@ const StaffPromotion = () => {
         token: token,
       },
       (response) => {
-        const filter = response.users.filter(
+        const filter = response.users?.filter(
           (user) => user.id !== parseInt(userID, 10)
         );
         setEmployees(filter);
@@ -34,17 +38,20 @@ const StaffPromotion = () => {
   };
 
   const grantRevokeStaff = async (id, val) => {
+    setDisable(true);
     await updateStaff(
       {
         id: id,
         token: token,
-        is_staff: val,
+        access_level: val,
       },
       (response) => {
         fetchAllUsers();
+        setDisable(false);
         setLoading(false);
       },
       (error) => {
+        setDisable(false);
         console.log(error);
       }
     );
@@ -53,7 +60,7 @@ const StaffPromotion = () => {
   const handleSearchFilter = (employeeList, query) => {
     return employeeList.filter((employee) => {
       const match =
-        employee.employee_id.includes(query) ||
+        employee.employee_id?.includes(query) ||
         employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
         employee.lastname.toLowerCase().includes(query.toLowerCase());
       return match;
@@ -64,12 +71,14 @@ const StaffPromotion = () => {
   const filteredEmployees = searchQuery
     ? handleSearchFilter(employees, searchQuery)
     : employees;
-  const totalRecords = filteredEmployees.length;
-  const totalPages = Math.ceil(totalRecords / recordsPerPage);
+  const totalRecords = filteredEmployees?.length;
+  const totalPages = totalRecords
+    ? Math.ceil(totalRecords / recordsPerPage)
+    : 0;
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredEmployees.slice(
+  const currentRecords = filteredEmployees?.slice(
     indexOfFirstRecord,
     indexOfLastRecord
   );
@@ -85,7 +94,8 @@ const StaffPromotion = () => {
     <>
       <Row className={`${styles.table} w-100`}>
         <span className="text-muted mb-3">
-          HR Staff can access the dashboard for employee points.
+          HR Staff can access the dashboard for employee points.{" "}
+          <strong>Employee must be in a department.</strong>
         </span>
       </Row>
       <Row>
@@ -101,66 +111,95 @@ const StaffPromotion = () => {
           />
         </InputGroup>
       </Row>
-      <Row>
-        {loading ? (
-          <Row
-            className={`${styles.loading} d-flex justify-content-center align-items-center w-100 mb-5`}>
-            <Spinner className={`me-2`} animation="border" />
-            Loading human resources staff...
-          </Row>
-        ) : (
-          <>
-            {currentRecords.length === 0 ? (
-              <Row className="d-flex justify-content-center align-items-center mt-3 mb-3 w-100">
-                <span className={`${styles.table} `}>No employees found.</span>
-              </Row>
-            ) : (
+
+      {loading ? (
+        <Row
+          className={`${styles.loading} d-flex justify-content-center align-items-center w-100 mb-5`}>
+          <Spinner className={`me-2`} animation="border" />
+          Loading human resources staff...
+        </Row>
+      ) : (
+        <>
+          {!currentRecords ? (
+            <Row className="d-flex justify-content-center align-items-center mt-3 mb-3 w-100">
+              <span className={`${styles.table} `}>No employees found.</span>
+            </Row>
+          ) : (
+            <>
               <Table className={styles.table} striped bordered hover responsive>
                 <thead>
                   <tr>
-                    <th className="col-2">ID No.</th>
-                    <th>Name</th>
+                    <th className="col-1">ID No.</th>
+                    <th className="col-2">Name</th>
                     <th className="col-2">Department</th>
-                    <th className="col-1 text-center">HR Staff</th>
-                    <th className="col-2 text-center">Action</th>
+                    <th className="col-1 text-center">Role</th>
+                    <th className="col-1 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentRecords
-                    .sort((a, b) =>
-                      b.is_staff - a.is_staff)
+                    .sort((a, b) => b.is_staff - a.is_staff)
                     .map((item) => (
                       <tr key={item.id}>
-                        <td>{item.employee_id}</td>
+                        <td
+                          className={`${
+                            item.employee_id ? "" : "text-danger"
+                          }`}>
+                          {item.employee_id ? item.employee_id : "No ID"}
+                        </td>
                         <td>
                           {item.lastname}, {item.firstname}
                         </td>
-                        <td>{item.department}</td>
-                        <td className="text-center">
-                          {item.is_staff ? (
-                            <i
-                              className={`${styles.icon} fa-solid fa-user-check text-success`}></i>
-                          ) : (
-                            <i
-                              className={`${styles.icon} fa-solid fa-user-xmark text-danger`}></i>
-                          )}
+                        <td className={item.department ? "" : "text-danger"}>
+                          {item.department
+                            ? item.department.name
+                            : "No department set."}
                         </td>
                         <td className="text-center">
                           {item.is_staff ? (
-                            <div
-                              className={styles.icon}
-                              onClick={() => grantRevokeStaff(item.id, false)}>
-                              <i
-                                className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
-                              DEMOTE
-                            </div>
+                            <Badge bg="success">HR Staff</Badge>
                           ) : (
-                            <div
-                              className={styles.icon}
-                              onClick={() => grantRevokeStaff(item.id, true)}>
-                              <i
-                                className={`${styles.icon} fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
-                              PROMOTE
+                            <Badge bg="secondary">Employee</Badge>
+                          )}
+                        </td>
+                        <td className="text-center">
+                          {item.department ? (
+                            <>
+                              {item.is_staff ? (
+                                <BtnSecondary
+                                  disabled={disable}
+                                  onClick={() => {
+                                    const val = item.is_head ? 1 : 0;
+                                    grantRevokeStaff(item.id, val);
+                                  }}>
+                                  <i
+                                    className={`fa-solid fa-circle-arrow-down fa-lg me-2`}></i>
+                                  DEMOTE
+                                </BtnSecondary>
+                              ) : (
+                                <BtnPrimary
+                                  disabled={disable}
+                                  onClick={() => grantRevokeStaff(item.id, 2)}>
+                                  <i
+                                    className={`${styles.icon} fa-solid fa-circle-arrow-up fa-lg me-2`}></i>
+                                  PROMOTE
+                                </BtnPrimary>
+                              )}
+                            </>
+                          ) : (
+                            <div className={styles.icon}>
+                              <OverlayTrigger
+                                placement="right"
+                                overlay={
+                                  <Tooltip
+                                    id="button-tooltip-1"
+                                    className={styles.table}>
+                                    Department is required.
+                                  </Tooltip>
+                                }>
+                                <i
+                                  className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>
+                              </OverlayTrigger>
                             </div>
                           )}
                         </td>
@@ -168,45 +207,19 @@ const StaffPromotion = () => {
                     ))}
                 </tbody>
               </Table>
-            )}
-          </>
-        )}
-      </Row>
-      <Row className="w-100 mb-3">
-        <Col className="d-flex justify-content-center">
-          <Pagination>
-            <Pagination.First
-              className={styles.pageNum}
-              onClick={() => handlePageChange(1)}
-            />
-            <Pagination.Prev
-              className={styles.pageNum}
-              onClick={() => {
-                if (currentPage > 1) handlePageChange(currentPage - 1);
-              }}
-            />
-            {Array.from({ length: totalPages }, (_, index) => (
-              <Pagination.Item
-                key={index + 1}
-                active={index + 1 === currentPage}
-                className={styles.pageNum}
-                onClick={() => handlePageChange(index + 1)}>
-                {index + 1}
-              </Pagination.Item>
-            ))}
-            <Pagination.Next
-              className={styles.pageNum}
-              onClick={() => {
-                if (currentPage < totalPages) handlePageChange(currentPage + 1);
-              }}
-            />
-            <Pagination.Last
-              className={styles.pageNum}
-              onClick={() => handlePageChange(totalPages)}
-            />
-          </Pagination>
-        </Col>
-      </Row>
+              <Row className="w-100 mb-3">
+                <Col className="d-flex justify-content-center">
+                  <PaginationComponent
+                    totalPages={totalPages}
+                    currentPage={currentPage}
+                    handlePageChange={handlePageChange}
+                  />
+                </Col>
+              </Row>
+            </>
+          )}
+        </>
+      )}
     </>
   );
 };

@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { Card, Row, Col, Badge, ListGroup, Form, Button } from "react-bootstrap"; /* prettier-ignore */
 
 import { isEmpty } from "../../common/validation/utils";
+import { formatDateTime } from "../../common/format/time";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
@@ -32,7 +33,7 @@ const Comments = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const hasPermissions = () => {
-    return user?.is_admin || user?.is_staff || user?.is_superuser;
+    return user?.is_head || user?.is_staff || user?.is_superuser;
   };
 
   const fetchComments = () => {
@@ -108,7 +109,7 @@ const Comments = () => {
   return (
     <Card className="mb-3 w-100">
       <Card.Header className={styles.cardHeader}>Comments</Card.Header>
-      {comments.length !== 0 ? (
+      {comments?.length !== 0 ? (
         <Card.Body
           className={`${styles.cardBody} d-flex justify-content-center align-items center p-1`}>
           <Row className="w-100">
@@ -126,27 +127,61 @@ const Comments = () => {
             <ListGroup variant="flush">
               {comments &&
                 comments.map((item) => (
-                  <ListGroup.Item key={item.id} className={styles.commentBox}>
+                  <ListGroup.Item key={item.id}>
                     <Row>
-                      <Col xs={2}>
+                      <Col
+                        className={`${styles.formLabel} order-lg-1 order-md-1 order-1`}
+                        lg={2}
+                        md={6}>
                         {item.author.firstname} {item.author.lastname}
                       </Col>
-                      <Col xs={6}>{item.message}</Col>
-                      <Col xs={2}>{item.date_modified}</Col>
-                      <Col className="text-end" xs={1}>
+                      <Col
+                        className="text-wrap order-lg-2 order-md-4 order-2"
+                        lg={5}
+                        md={12}>
+                        {item.message}
+                      </Col>
+                      {item.is_edited ? (
+                        <Col
+                          className="text-lg-start text-md-end text-start order-lg-3 order-md-2 order-4 mb-lg-0 mb-md-2"
+                          lg={1}
+                          md={2}
+                          xs={12}>
+                          <Badge bg="secondary" pill>
+                            Edited
+                          </Badge>
+                        </Col>
+                      ) : (
+                        <Col
+                          className="order-lg-3 order-md-2"
+                          lg={1}
+                          md={2}
+                          xs={2}></Col>
+                      )}
+                      <Col
+                        className={`${styles.comment} text-lg-start text-md-end text-start text-muted order-lg-4 order-md-3 order-3`}
+                        lg={3}
+                        md={4}
+                        xs={12}>
+                        {formatDateTime(item.date_modified)}
+                      </Col>
+
+                      <Col
+                        className="order-lg-5 order-md-5 order-5 ps-0 text-end"
+                        lg={1}
+                        md={12}>
                         {item.author.id === userID && (
                           <i
-                            className={`${styles.commentEdit} fa-solid fa-pen-to-square`}
+                            className={`${styles.commentEdit} fa-solid fa-pen-to-square fa-lg me-3`}
                             onClick={() => {
                               openCommentModal();
                               setSelectedComment(item);
                             }}></i>
                         )}
-                      </Col>
-                      <Col className="text-end" xs={1}>
+
                         {(item.author.id === userID || hasPermissions()) && (
                           <i
-                            className={`${styles.commentDelete} fa-solid fa-trash-can`}
+                            className={`${styles.commentDelete} fa-solid fa-trash-can fa-lg`}
                             onClick={() => {
                               openModal();
                               setSelectedComment(item);
@@ -154,11 +189,6 @@ const Comments = () => {
                         )}
                       </Col>
                     </Row>
-                    {item.is_edited && (
-                      <Badge bg="secondary" pill>
-                        Edited
-                      </Badge>
-                    )}
                   </ListGroup.Item>
                 ))}
               <EditCommentModal
@@ -173,7 +203,7 @@ const Comments = () => {
                 onHide={closeModal}
                 onConfirm={handleDelete}
                 header={"Delete Comment"}
-                message={"Do you wish to delete this comment?"}
+                message={"This action is irreversible."}
               />
             </ListGroup>
           </Row>
@@ -185,21 +215,21 @@ const Comments = () => {
         </Card.Subtitle>
       )}
 
-      <Card.Footer className="p-3">
+      <Card.Footer className="p-lg-3 p-md-3 p-2">
         <Form noValidate onSubmit={(e) => e.preventDefault()}>
           <Row className="w-100">
-            <Col sm="11">
+            <Col lg={11} md={10} xs={9}>
               <Form.Group>
                 <Form.Control
                   type="text"
-                  className={styles.formBox}
+                  className={`${styles.formBox} ${styles.cardBody}`}
                   name="comment"
                   onChange={handleCommentChange}
                   value={comment}
                 />
               </Form.Group>
             </Col>
-            <Col className="text-end" sm="1">
+            <Col className="text-end" lg={1} md={2} xs={3}>
               <Button className={`${styles.button} w-100`} onClick={handlePost}>
                 <i className="fa-solid fa-paper-plane fa-lg"></i>
               </Button>

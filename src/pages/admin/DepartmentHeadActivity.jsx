@@ -22,7 +22,7 @@ const DepartmentHeadActivity = () => {
         token: token,
       },
       (response) => {
-        const filtered = response.users.filter((user) => user.is_admin);
+        const filtered = response.data.filter((user) => user.is_head);
         setHeads(filtered);
         setLoading(false);
       },
@@ -66,6 +66,10 @@ const DepartmentHeadActivity = () => {
     );
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   const handleSearchFilter = (headList, query) => {
     return headList.filter((head) => {
       const match =
@@ -79,6 +83,11 @@ const DepartmentHeadActivity = () => {
   const filteredHeads = searchQuery
     ? handleSearchFilter(heads, searchQuery)
     : heads;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   const totalRecords = filteredHeads.length;
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
 
@@ -88,10 +97,6 @@ const DepartmentHeadActivity = () => {
     indexOfFirstRecord,
     indexOfLastRecord
   );
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
 
   useEffect(() => {
     fetchAllUsers();
@@ -134,8 +139,9 @@ const DepartmentHeadActivity = () => {
               <Table className={styles.table} striped bordered hover responsive>
                 <thead>
                   <tr>
-                    <th className="col-2">ID No.</th>
-                    <th>Name</th>
+                    <th className="col-1">ID No.</th>
+                    <th className="col-3">Name</th>
+                    <th className="col-2">Department</th>
                     <th className="col-2 text-center">Validation Report</th>
                     <th className="col-2 text-center">Clearance Report</th>
                   </tr>
@@ -143,10 +149,14 @@ const DepartmentHeadActivity = () => {
                 <tbody>
                   {currentRecords.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.employee_id}</td>
+                      <td
+                        className={`${item.employee_id ? "" : "text-danger"}`}>
+                        {item.employee_id ? item.employee_id : "No ID"}
+                      </td>
                       <td>
                         {item.lastname}, {item.firstname}
                       </td>
+                      <td>{item.department.name}</td>
                       <td className="text-center">
                         <BtnPrimary onClick={() => handlePrintValidation(item)}>
                           <i className="fa-solid fa-file-arrow-down me-2"></i>

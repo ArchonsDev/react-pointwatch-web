@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
-import { Row, Col, Container, Card, Form, Button, ListGroup, Badge, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Card, Form, Button, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
 
-import { isEmpty } from "../../common/validation/utils";
 import { useSwitch } from "../../hooks/useSwitch";
 import { useTrigger } from "../../hooks/useTrigger";
 import { validateSWTD } from "../../api/admin";
-import { getSWTD, getSWTDProof, getSWTDValidation } from "../../api/swtd"; /* prettier-ignore */
-import { getComments, postComment, deleteComment } from "../../api/comments"; /* prettier-ignore */
+import { getSWTD, getProof } from "../../api/swtd"; /* prettier-ignore */
 import { wordDate } from "../../common/format/date";
-import { formatTime } from "../../common/format/time";
+import Comments from "../employee dashboard/Comments";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
 import BtnPrimary from "../../common/buttons/BtnPrimary";
-import EditCommentModal from "../../common/modals/EditCommentModal";
 import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import styles from "./style.module.css";
 
@@ -23,35 +20,22 @@ const ViewSWTD = () => {
   const { id, swtd_id } = useParams();
   const navigate = useNavigate();
   const token = Cookies.get("userToken");
-  const userID = parseInt(Cookies.get("userID"), 10);
   const textareaRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
+  const [loadingProof, setLoadingProof] = useState(true);
   const [swtd, setSWTD] = useState(null);
   const [swtdProof, setSWTDProof] = useState(null);
-
   const [validation, setValidation] = useState("");
-  const [swtdStatus, setSWTDStatus] = useState({
-    status: "",
-    validated_on: "",
-    validator: "",
-  });
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const [comment, setComment] = useState("");
-  const [comments, setComments] = useState([]);
-
-  const [selectedComment, setSelectedComment] = useState(null);
-  const [showModal, openModal, closeModal] = useSwitch();
   const [showValidateModal, openValidateModal, closeValidateModal] =
     useSwitch();
-
-  const [showCommentModal, openCommentModal, closeCommentModal] = useSwitch();
   const [showProofModal, openProofModal, closeProofModal] = useSwitch();
-
   const [showSuccess, triggerShowSuccess] = useTrigger(false);
   const [showError, triggerShowError] = useTrigger(false);
-  const [showCommentError, triggerShowCommentError] = useTrigger(false);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [currentProofIndex, setCurrentProofIndex] = useState(0);
 
   const handleBack = () => {
     const previousUrl = `/dashboard/${id}`;
@@ -65,7 +49,8 @@ const ViewSWTD = () => {
         form_id: swtd_id,
       },
       (response) => {
-        setSWTD(response.data);
+        setSWTD(response.data.swtd_form);
+        setLoading(false);
       },
       (error) => {
         console.log("Error fetching SWTD data: ", error);
@@ -80,10 +65,11 @@ const ViewSWTD = () => {
     return title;
   };
 
-  const fetchSWTDProof = () => {
-    getSWTDProof(
+  const fetchSWTDProof = (id) => {
+    getProof(
       {
         form_id: swtd_id,
+        proof_id: id,
         token: token,
       },
       (response) => {
@@ -97,121 +83,60 @@ const ViewSWTD = () => {
           src: blobURL,
           type: contentType,
         });
+
+        setLoadingProof(false);
       },
       (error) => {
         console.log("Error fetching SWTD data: ", error);
-      }
-    );
-  };
-
-  const fetchSWTDValidation = () => {
-    getSWTDValidation(
-      {
-        form_id: swtd_id,
-        token: token,
-      },
-      (response) => {
-        setSWTDStatus(response.data);
-        setLoading(false);
-      },
-      (error) => {
-        console.log("Error fetching SWTD data: ", error);
-      }
-    );
-  };
-
-  const handleCommentChange = (e) => {
-    setComment(e.target.value);
-  };
-
-  const handlePost = async (e) => {
-    e.preventDefault();
-
-    if (isEmpty(comment)) {
-      setErrorMessage("Comment cannot be empty.");
-      setComment("");
-      triggerShowCommentError(3000);
-      return;
-    }
-
-    postComment(
-      {
-        id: swtd_id,
-        token: token,
-        message: comment,
-      },
-      (response) => {
-        fetchComments();
-        setComment("");
-      },
-      (error) => {
-        console.log("Error: ", error);
-      }
-    );
-  };
-
-  const fetchComments = () => {
-    getComments(
-      {
-        id: swtd_id,
-        token: token,
-      },
-      (response) => {
-        setComments(response.data.comments);
-      },
-      (error) => {
-        console.log("Error: ", error);
-      }
-    );
-  };
-
-  const editSuccess = async () => {
-    await fetchComments();
-  };
-
-  const handleDelete = async () => {
-    await deleteComment(
-      {
-        swtd_id: swtd_id,
-        comment_id: selectedComment.id,
-        token: token,
-      },
-      (response) => {
-        fetchComments();
-      },
-      (error) => {
-        console.log("Error: ", error);
       }
     );
   };
 
   const handleValidate = async () => {
+    setIsProcessing(true);
     await validateSWTD(
       {
         id: swtd_id,
-        response: validation,
+        validator_id: user?.id,
+        validation_status: validation,
         token: token,
       },
       (response) => {
-        fetchSWTDValidation();
+        setIsProcessing(false);
         triggerShowSuccess(3000);
+        fetchSWTD();
       },
       (error) => {
+        setIsProcessing(false);
         setErrorMessage(error.response);
         triggerShowError(3000);
       }
     );
+    setIsProcessing(false);
+  };
+
+  const handleCloseProofModal = () => {
+    setCurrentProofIndex(0);
+    closeProofModal();
+  };
+
+  const handleProofNavigation = (direction) => {
+    const newIndex = currentProofIndex + direction;
+
+    if (newIndex >= 0 && newIndex < swtd.proof.length) {
+      setLoadingProof(true);
+      setCurrentProofIndex(newIndex);
+      fetchSWTDProof(swtd.proof[newIndex].id);
+    }
   };
 
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      if (!user?.is_admin && !user?.is_staff && !user?.is_superuser)
+      if (!user?.is_head && !user?.is_staff && !user?.is_superuser)
         navigate("/swtd");
       else {
         fetchSWTD();
-        fetchSWTDValidation();
-        fetchComments();
       }
     }
   }, [user, navigate]);
@@ -227,46 +152,98 @@ const ViewSWTD = () => {
   if (loading)
     return (
       <Row
-        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
-        <Spinner className={`me-2`} animation="border" />
-        Loading data...
+        className={`${styles.msg} d-flex flex-column justify-content-center align-items-center w-100`}
+        style={{ height: "100vh" }}>
+        <Col></Col>
+        <Col className="text-center">
+          <div>
+            <Spinner animation="border" />
+          </div>
+          Loading data...
+        </Col>
+        <Col></Col>
       </Row>
     );
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
       {/* Proof Display */}
-      <Modal show={showProofModal} onHide={closeProofModal} size="lg" centered>
+      <Modal
+        show={showProofModal}
+        onHide={handleCloseProofModal}
+        size="xl"
+        centered>
+        <Modal.Header closeButton></Modal.Header>
         <Modal.Body className="d-flex justify-content-center align-items-center">
-          <Row className="w-100">
-            {!swtdProof ? (
+          {!swtdProof ? (
+            <Row className="w-100">
               <div
                 className={`${styles.msg} d-flex justify-content-center align-items-center`}>
                 <Spinner className={`me-2`} animation="border" />
                 Loading proof...
               </div>
-            ) : (
-              <>
-                {swtdProof?.type.startsWith("image") && (
-                  <img
-                    src={swtdProof?.src}
-                    title="SWTD Proof"
-                    className={styles.imgProof}
-                    alt="SWTD Proof"
-                  />
-                )}
-                {swtdProof?.type === "application/pdf" && (
-                  <iframe
-                    src={swtdProof?.src}
-                    type="application/pdf"
-                    width="100%"
-                    height="650px"
-                    title="SWTD Proof PDF"
-                    aria-label="SWTD Proof PDF"></iframe>
-                )}
-              </>
-            )}
-          </Row>
+            </Row>
+          ) : (
+            <Container>
+              <Row className="d-flex justify-content-center flex-row w-100 mb-3">
+                <Col></Col>
+                <Col lg="auto" md="auto">
+                  <i
+                    className={`${styles.points} ${styles.triangle} fa-solid fa-square-caret-left fa-2xl`}
+                    onClick={() => {
+                      handleProofNavigation(-1);
+                    }}></i>
+                </Col>
+                <Col className={styles.formLabel} lg="auto" md="auto">
+                  {currentProofIndex + 1} / {swtd.proof?.length}
+                </Col>
+                <Col lg="auto" md="auto">
+                  <i
+                    className={`${styles.points} ${styles.triangle} fa-solid fa-square-caret-right fa-2xl`}
+                    onClick={() => {
+                      handleProofNavigation(1);
+                    }}></i>
+                </Col>
+                <Col className="text-end"></Col>
+              </Row>
+
+              <Row className="d-flex justify-content-center align-items-center w-100 mb-3">
+                <Col className="text-center">
+                  {loadingProof ? (
+                    <>
+                      <Row className="w-100">
+                        <div
+                          className={`${styles.msg} d-flex justify-content-center align-items-center`}>
+                          <Spinner className={`me-2`} animation="border" />
+                          Loading proof...
+                        </div>
+                      </Row>
+                    </>
+                  ) : (
+                    <>
+                      {swtdProof?.type.startsWith("image") && (
+                        <img
+                          src={swtdProof?.src}
+                          title="SWTD Proof"
+                          className={styles.imgProof}
+                          alt="SWTD Proof"
+                        />
+                      )}
+                      {swtdProof?.type === "application/pdf" && (
+                        <iframe
+                          src={swtdProof?.src}
+                          type="application/pdf"
+                          width="100%"
+                          height="600px"
+                          title="SWTD Proof PDF"
+                          aria-label="SWTD Proof PDF"></iframe>
+                      )}
+                    </>
+                  )}
+                </Col>
+              </Row>
+            </Container>
+          )}
         </Modal.Body>
       </Modal>
 
@@ -282,12 +259,17 @@ const ViewSWTD = () => {
       </Row>
 
       {showError && (
-        <div className="alert alert-danger mb-3 w-100" role="alert">
+        <div
+          className={`${styles.filterOption} alert alert-danger mb-3 w-100`}
+          role="alert">
           {errorMessage}
         </div>
       )}
+
       {showSuccess && (
-        <div className="alert alert-success mb-3 w-100" role="alert">
+        <div
+          className={`${styles.filterOption} alert alert-success mb-3 w-100`}
+          role="alert">
           SWTD Submission validated.
         </div>
       )}
@@ -296,24 +278,24 @@ const ViewSWTD = () => {
       <Card className="mb-3 w-100">
         <Card.Header className={styles.cardHeader}>
           <Row>
-            <Col>
+            <Col lg={6} md={6} xs={7}>
               Status:{" "}
               <span
                 className={
-                  swtdStatus?.status === "PENDING"
+                  swtd?.validation_status === "PENDING"
                     ? "text-muted"
-                    : swtdStatus?.status === "APPROVED"
+                    : swtd?.validation_status === "APPROVED"
                     ? "text-success"
-                    : swtdStatus?.status === "REJECTED"
+                    : swtd?.validation_status === "REJECTED"
                     ? "text-danger"
                     : ""
                 }>
-                {swtdStatus?.status === "REJECTED"
+                {swtd?.validation_status === "REJECTED"
                   ? "FOR REVISION"
-                  : swtdStatus.status}
+                  : swtd?.validation_status}
               </span>
             </Col>
-            <Col className={`text-end`}>
+            <Col className={`text-end`} lg={6} md={6} xs={5}>
               <span
                 className={
                   styles.pointsDisplay
@@ -322,76 +304,92 @@ const ViewSWTD = () => {
           </Row>
         </Card.Header>
         <Card.Body className={`${styles.cardBody} p-4`}>
-          <Row className="mb-4">
-            <Col className={styles.formLabel} md="2">
+          <Row className="mb-lg-3 mb-2">
+            <Col className={styles.formLabel} lg={2} md={2} xs={4}>
               Title
             </Col>
-            <Col>{truncateTitle(swtd?.title)}</Col>
+            <Col lg={4} md={10} xs={8}>
+              {truncateTitle(swtd?.title)}
+            </Col>
           </Row>
 
-          <Row className="mb-4">
-            <Col className={styles.formLabel} md="2">
+          <Row>
+            <Col
+              className={`${styles.formLabel} mb-lg-3 mb-2`}
+              lg={2}
+              md={2}
+              xs={4}>
               Venue
             </Col>
-            <Col md="4">{swtd?.venue}</Col>
-            <Col md="2">
-              <span className={styles.formLabel}>Term</span>
+            <Col lg={4} md={10} xs={8}>
+              {swtd?.venue}
             </Col>
-            <Col>{swtd?.term.name}</Col>
+
+            <Col
+              className={`${styles.formLabel} mb-lg-3 mb-2`}
+              lg={2}
+              md={2}
+              xs={4}>
+              Term
+            </Col>
+            <Col className="mb-lg-3 mb-2" lg={4} md={10} xs={8}>
+              {swtd?.term.name}
+            </Col>
           </Row>
 
-          <Row className="mb-4">
-            <Col className={styles.formLabel} md="2">
+          <Row>
+            <Col
+              className={`${styles.formLabel} mb-lg-3 mb-2`}
+              lg={2}
+              md={2}
+              xs={4}>
               Category
             </Col>
-            <Col md="4">{swtd?.category}</Col>
-            <Col className={styles.formLabel} md="2">
-              Has deliverables
+            <Col className="mb-lg-3 mb-2" lg={4} md={10} xs={8}>
+              {swtd?.category}
             </Col>
-            <Col md="4">
-              {swtd?.has_deliverables === true ? (
-                <>
-                  <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
-                  Yes
-                </>
+
+            <Col
+              className={`${styles.formLabel} mb-lg-3 mb-2`}
+              lg={2}
+              md={2}
+              xs={4}>
+              Duration
+            </Col>
+            <Col className="mb-lg-3 mb-2" lg={4} md={10} xs={8}>
+              {swtd?.start_date === swtd?.end_date ? (
+                wordDate(swtd?.start_date)
               ) : (
                 <>
-                  <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
-                  No
+                  {wordDate(swtd?.start_date)} to {wordDate(swtd?.end_date)}
                 </>
+              )}
+              {!swtd?.category.startsWith("Degree") && (
+                <> ({swtd?.total_hours} hours)</>
               )}
             </Col>
           </Row>
 
-          <Row className="mb-4">
-            <Col className={styles.formLabel} md="2">
-              Date & Time
-            </Col>
-            <Col md="4">
-              {swtd?.dates?.map((entry, index) => (
-                <div key={index}>
-                  {wordDate(entry.date)}
-                  {!swtd?.category?.startsWith("Degree") && (
-                    <>
-                      {" "}
-                      ({formatTime(entry.time_started)} to{" "}
-                      {formatTime(entry.time_ended)})
-                    </>
-                  )}
-                </div>
-              ))}
-            </Col>
-            <Col className={styles.formLabel} md="2">
+          <Row>
+            <Col
+              className={`${styles.formLabel} mb-lg-3 mb-2`}
+              lg={2}
+              md={2}
+              xs={4}>
               Proof
             </Col>
-            <Col md="4">
-              <BtnPrimary
-                onClick={() => {
-                  fetchSWTDProof();
-                  openProofModal();
-                }}>
-                View
-              </BtnPrimary>{" "}
+            <Col className="mb-lg-3 mb-2" lg={4} md={4} xs={8}>
+              {swtd?.proof && swtd?.proof.length > 0 ? (
+                <BtnPrimary
+                  onClick={() => {
+                    fetchSWTDProof(swtd.proof[0].id);
+                    openProofModal();
+                  }}>
+                  View
+                </BtnPrimary>
+              ) : (
+                <span className="text-danger me-3">No file(s) attached.</span>
+              )}
             </Col>
           </Row>
 
@@ -411,31 +409,58 @@ const ViewSWTD = () => {
             </Form.Group>
           </Form>
           {/* Validation Buttons */}
-          {swtdStatus?.status === "PENDING" && (
-            <Row className="w-100">
-              <Col className="p-0 text-end">
+          {swtd?.validation_status === "PENDING" && (
+            <Row>
+              <Col className="text-lg-end text-md-end text-center">
                 <Button
-                  className="me-3"
+                  className={`me-lg-3 me-md-3 me-2 mb-1 ${
+                    isProcessing ? "disabled-approve-btn" : ""
+                  }`}
                   variant="success"
                   onClick={() => {
                     setValidation("APPROVED");
                     openValidateModal();
-                  }}>
-                  <i className="fa-solid fa-check"></i> APPROVE
+                  }}
+                  disabled={isProcessing}>
+                  {isProcessing ? (
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"></span>
+                  ) : (
+                    <i className="fa-solid fa-check me-2"></i>
+                  )}
+                  APPROVE
                 </Button>
                 <Button
+                  className={
+                    isProcessing ? "disabled-revision-btn mb-1" : "mb-1"
+                  }
                   variant="danger"
                   onClick={() => {
                     setValidation("REJECTED");
                     openValidateModal();
-                  }}>
-                  <i className="fa-solid fa-xmark"></i> NEEDS REVISION
+                  }}
+                  disabled={isProcessing}>
+                  {isProcessing ? (
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"></span>
+                  ) : (
+                    <i className="fa-solid fa-xmark me-2"></i>
+                  )}
+                  NEEDS REVISION
                 </Button>
               </Col>
               <ConfirmationModal
                 show={showValidateModal}
-                onHide={closeValidateModal}
-                onConfirm={handleValidate}
+                onHide={() => {
+                  closeValidateModal();
+                }}
+                onConfirm={() => {
+                  handleValidate();
+                }}
                 header={"Validate SWTD"}
                 message={
                   validation === "APPROVED"
@@ -449,104 +474,7 @@ const ViewSWTD = () => {
           )}
         </Card.Body>
       </Card>
-
-      {/* Comments */}
-      <Card className="mb-3 w-100">
-        <Card.Header className={styles.cardHeader}>Comments</Card.Header>
-        {comments.length !== 0 ? (
-          <Card.Body
-            className={`${styles.cardBody} d-flex justify-content-center align-items center p-1`}>
-            {showCommentError && (
-              <div className="alert alert-danger mb-3" role="alert">
-                {errorMessage}
-              </div>
-            )}
-
-            <Row className="w-100">
-              <ListGroup variant="flush">
-                {comments &&
-                  comments.map((item) => (
-                    <ListGroup.Item key={item.id} className={styles.commentBox}>
-                      <Row>
-                        <Col xs={2}>
-                          {item.author.firstname} {item.author.lastname}
-                        </Col>
-                        <Col xs={6}>{item.message}</Col>
-                        <Col xs={2}>{item.date_modified}</Col>
-                        <Col className="text-end" xs={1}>
-                          {item.author.id === userID && (
-                            <i
-                              className={`${styles.commentEdit} fa-solid fa-pen-to-square`}
-                              onClick={() => {
-                                openCommentModal();
-                                setSelectedComment(item);
-                              }}></i>
-                          )}
-                        </Col>
-                        <Col className="text-end" xs={1}>
-                          <i
-                            className={`${styles.commentDelete} fa-solid fa-trash-can`}
-                            onClick={() => {
-                              openModal();
-                              setSelectedComment(item);
-                            }}></i>
-                        </Col>
-                      </Row>
-                      {item.is_edited && (
-                        <Badge bg="secondary" pill>
-                          Edited
-                        </Badge>
-                      )}
-                    </ListGroup.Item>
-                  ))}
-                <EditCommentModal
-                  show={showCommentModal}
-                  onHide={closeCommentModal}
-                  data={selectedComment}
-                  editSuccess={editSuccess}
-                />
-                <ConfirmationModal
-                  show={showModal}
-                  onHide={closeModal}
-                  onConfirm={handleDelete}
-                  header={"Delete Comment"}
-                  message={"Do you wish to delete this comment?"}
-                />
-              </ListGroup>
-            </Row>
-          </Card.Body>
-        ) : (
-          <Card.Subtitle
-            className={`${styles.comment} d-flex justify-content-center align-items center p-4 text-muted`}>
-            No comments yet.
-          </Card.Subtitle>
-        )}
-
-        <Card.Footer className="p-3">
-          <Form noValidate onSubmit={(e) => e.preventDefault()}>
-            <Row className="w-100">
-              <Col sm="11">
-                <Form.Group>
-                  <Form.Control
-                    type="text"
-                    className={styles.formBox}
-                    name="comment"
-                    onChange={handleCommentChange}
-                    value={comment}
-                  />
-                </Form.Group>
-              </Col>
-              <Col className="text-end" sm="1">
-                <Button
-                  className={`${styles.button} w-100`}
-                  onClick={handlePost}>
-                  <i className="fa-solid fa-paper-plane fa-lg"></i>
-                </Button>
-              </Col>
-            </Row>
-          </Form>
-        </Card.Footer>
-      </Card>
+      <Comments />
     </Container>
   );
 };

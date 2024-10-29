@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useState, useContext } from "react";
 import Cookies from "js-cookie";
 import { Nav, Navbar, Offcanvas, Row, Col, Container } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router";
@@ -15,7 +15,11 @@ const Drawer = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [show, setShow] = useState(false);
   const [showModal, openModal, closeModal] = useSwitch();
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
 
   const handleLogout = () => {
     Cookies.remove("userToken");
@@ -28,6 +32,7 @@ const Drawer = () => {
       <Navbar expand={false} className={`${styles.navbar} mb-5`}>
         <Container fluid>
           <Navbar.Toggle
+            onClick={handleShow}
             className={`${styles.toggle} me-3`}
             aria-controls={`offcanvasNavbar-expand`}>
             <i className="fa-solid fa-bars fa-xl"></i>
@@ -66,6 +71,8 @@ const Drawer = () => {
 
           {/* Drawer pop-up */}
           <Navbar.Offcanvas
+            show={show}
+            onHide={handleClose}
             id={`offcanvasNavbar-expand`}
             aria-labelledby={`offcanvasNavbarLabel-expand`}
             className={styles.sidebar}
@@ -95,14 +102,17 @@ const Drawer = () => {
               <div className="flex-grow-1">
                 <Nav>
                   {/* Dashboard */}
-                  {(user?.is_admin || user?.is_superuser) && (
+                  {user?.is_head && !user?.is_staff && (
                     <Nav.Link
                       className={`mx-3 my-1 p-3 ${
                         location.pathname === "/dashboard"
                           ? styles.active
                           : styles.navItem
                       }`}
-                      onClick={(e) => navigate("/dashboard")}>
+                      onClick={(e) => {
+                        navigate("/dashboard");
+                        handleClose();
+                      }}>
                       <i
                         className={`fa-solid fa-square-poll-vertical fa-lg ${styles.drawerIcon}`}></i>
                       <span className="px-2">Dashboard</span>
@@ -116,7 +126,10 @@ const Drawer = () => {
                           ? styles.active
                           : styles.navItem
                       }`}
-                      onClick={(e) => navigate("/hr")}>
+                      onClick={(e) => {
+                        navigate("/hr");
+                        handleClose();
+                      }}>
                       <i
                         className={`fa-solid fa-list-check fa-lg ${styles.drawerIcon}`}></i>
                       <span className="px-2">Points Overview</span>
@@ -130,7 +143,10 @@ const Drawer = () => {
                         ? styles.active
                         : styles.navItem
                     }`}
-                    onClick={(e) => navigate("/swtd")}>
+                    onClick={(e) => {
+                      navigate("/swtd");
+                      handleClose();
+                    }}>
                     <i
                       className={`fa-solid fa-table-list fa-lg ${styles.drawerIcon}`}></i>
                     <span className="px-2">SWTDs</span>
@@ -144,7 +160,10 @@ const Drawer = () => {
                           ? styles.active
                           : styles.navItem
                       }`}
-                      onClick={(e) => navigate("/admin")}>
+                      onClick={(e) => {
+                        navigate("/admin");
+                        handleClose();
+                      }}>
                       <i
                         className={`fa-solid fa-user-tie fa-lg ${styles.drawerIcon}`}></i>
                       <span className="px-2">System Management</span>
@@ -158,19 +177,25 @@ const Drawer = () => {
                         ? styles.active
                         : styles.navItem
                     }`}
-                    onClick={(e) => navigate("/settings")}>
+                    onClick={(e) => {
+                      navigate("/settings");
+                      handleClose();
+                    }}>
                     <i
                       className={`fa-solid fa-gear fa-lg ${styles.drawerIcon}`}></i>
                     <span className="px-2">Settings</span>
                   </Nav.Link>
                 </Nav>
               </div>
-              <Row className="w-100 p-4 flex-column">
+              <Row className="w-100 p-3 flex-column">
                 <Col className={`${styles.name}`}>
                   {user?.firstname} {user?.lastname}
                 </Col>
-                <Col className={`${styles.detail}`}>{user?.employee_id}</Col>
-                <Col className={`${styles.detail}`}>{user?.department}</Col>
+                <Col className={`${styles.detail}`}>
+                  {user?.department
+                    ? user?.department?.name
+                    : "No department set."}
+                </Col>
               </Row>
               {/* Logout */}
               <Nav.Item className={styles.logout}>

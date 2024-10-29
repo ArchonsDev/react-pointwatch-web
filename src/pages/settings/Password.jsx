@@ -69,6 +69,7 @@ const Password = () => {
           ...user,
           password: form.newPassword,
         });
+
         triggerShowSuccess(4500);
       },
       (error) => {
@@ -134,6 +135,7 @@ const Password = () => {
                   className={styles.formPasswordBox}
                   value={form.currentPassword}
                   onChange={handleChange}
+                  disabled={user?.is_ms_linked}
                 />
                 <InputGroup.Text className={styles.iconEye}>
                   <i
@@ -165,6 +167,7 @@ const Password = () => {
                   value={form.newPassword}
                   onChange={handleChange}
                   isInvalid={isPasswordValid()}
+                  disabled={user?.is_ms_linked}
                 />
                 <InputGroup.Text className={styles.iconEye}>
                   <i
@@ -207,6 +210,7 @@ const Password = () => {
                   value={form.confirmPassword}
                   onChange={handleChange}
                   isInvalid={!passwordsMatch()}
+                  disabled={user?.is_ms_linked}
                 />
                 <InputGroup.Text className={styles.iconEye}>
                   <i

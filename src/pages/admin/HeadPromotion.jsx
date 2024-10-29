@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, InputGroup, Table, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Form, InputGroup, Table, Spinner, OverlayTrigger, Tooltip, Badge } from "react-bootstrap"; /* prettier-ignore */
 import Cookies from "js-cookie";
 
-import { getAllUsers, updateHead } from "../../api/admin";
+import { getAllUsers, addHead, removeHead } from "../../api/admin";
 
+import PaginationComponent from "../../components/Paging";
 import styles from "./style.module.css";
+import BtnPrimary from "../../common/buttons/BtnPrimary";
+import BtnSecondary from "../../common/buttons/BtnSecondary";
 
 const HeadPromotion = () => {
   const userID = Cookies.get("userID");
@@ -12,6 +15,7 @@ const HeadPromotion = () => {
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [disable, setDisable] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 20;
 
@@ -21,7 +25,7 @@ const HeadPromotion = () => {
         token: token,
       },
       (response) => {
-        const filter = response.users.filter(
+        const filter = response.users?.filter(
           (user) => user.id !== parseInt(userID, 10)
         );
         setEmployees(filter);
@@ -33,18 +37,40 @@ const HeadPromotion = () => {
     );
   };
 
-  const grantRevokeHead = async (id, val) => {
-    await updateHead(
+  const grantHead = async (id, val) => {
+    setDisable(true);
+    await addHead(
       {
         id: id,
+        head_id: val,
         token: token,
-        is_admin: val,
       },
       (response) => {
         fetchAllUsers();
+        setDisable(false);
         setLoading(false);
       },
       (error) => {
+        setDisable(false);
+        console.log(error);
+      }
+    );
+  };
+
+  const revokeHead = async (id) => {
+    setDisable(true);
+    await removeHead(
+      {
+        id: id,
+        token: token,
+      },
+      (response) => {
+        fetchAllUsers();
+        setDisable(false);
+        setLoading(false);
+      },
+      (error) => {
+        setDisable(false);
         console.log(error);
       }
     );
@@ -53,7 +79,7 @@ const HeadPromotion = () => {
   const handleSearchFilter = (employeeList, query) => {
     return employeeList.filter((employee) => {
       const match =
-        employee.employee_id.includes(query) ||
+        employee.employee_id?.includes(query) ||
         employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
         employee.lastname.toLowerCase().includes(query.toLowerCase());
       return match;
@@ -64,12 +90,14 @@ const HeadPromotion = () => {
   const filteredEmployees = searchQuery
     ? handleSearchFilter(employees, searchQuery)
     : employees;
-  const totalRecords = filteredEmployees.length;
-  const totalPages = Math.ceil(totalRecords / recordsPerPage);
+  const totalRecords = filteredEmployees?.length;
+  const totalPages = totalRecords
+    ? Math.ceil(totalRecords / recordsPerPage)
+    : 0;
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredEmployees.slice(
+  const currentRecords = filteredEmployees?.slice(
     indexOfFirstRecord,
     indexOfLastRecord
   );
@@ -85,22 +113,25 @@ const HeadPromotion = () => {
     <>
       <Row className={`${styles.table} w-100`}>
         <span className="text-muted mb-3">
-          Department Heads can access the dashboard to validate SWTD submissions
-          and grant clearance to employees in their department.
+          Department Heads/Chairs can access the dashboard to validate SWTD
+          submissions and grant clearance to employees in their department.{" "}
+          <strong>Employee must be in a department.</strong>
         </span>
       </Row>
       <Row>
-        <InputGroup className={`${styles.searchBar} mb-3`}>
-          <InputGroup.Text>
-            <i className="fa-solid fa-magnifying-glass"></i>
-          </InputGroup.Text>
-          <Form.Control
-            type="search"
-            placeholder="Search by ID number, firstname, or lastname"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </InputGroup>
+        <Col className="mb-1">
+          <InputGroup className={`${styles.searchBar} mb-3`}>
+            <InputGroup.Text>
+              <i className="fa-solid fa-magnifying-glass"></i>
+            </InputGroup.Text>
+            <Form.Control
+              type="search"
+              placeholder="Search by ID number, firstname, or lastname"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </InputGroup>
+        </Col>
       </Row>
       <Row>
         {loading ? (
@@ -111,102 +142,112 @@ const HeadPromotion = () => {
           </Row>
         ) : (
           <>
-            {currentRecords.length === 0 ? (
+            {!currentRecords ? (
               <Row className="d-flex justify-content-center align-items-center mt-3 mb-3 w-100">
                 <span className={`${styles.table} `}>No employees found.</span>
               </Row>
             ) : (
-              <Table className={styles.table} striped bordered hover responsive>
-                <thead>
-                  <tr>
-                    <th className="col-2">ID No.</th>
-                    <th>Name</th>
-                    <th className="col-2">Department</th>
-                    <th className="col-2 text-center">Department Head</th>
-                    <th className="col-2 text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentRecords
-                    .sort((a, b) =>
-                     b.is_admin - a.is_admin)
-                    .map((item) => (
-                      <tr key={item.id}>
-                        <td>{item.employee_id}</td>
-                        <td>
-                          {item.lastname}, {item.firstname}
-                        </td>
-                        <td>{item.department}</td>
-                        <td className="text-center">
-                          {item.is_admin ? (
-                            <i
-                              className={`${styles.icon} fa-solid fa-user-check text-success`}></i>
-                          ) : (
-                            <i
-                              className={`${styles.icon} fa-solid fa-user-xmark text-danger`}></i>
-                          )}
-                        </td>
-                        <td className="text-center">
-                          {item.is_admin ? (
-                            <div
-                              className={styles.icon}
-                              onClick={() => grantRevokeHead(item.id, false)}>
-                              <i
-                                className={`fa-solid fa-circle-arrow-down fa-xl text-danger me-2`}></i>
-                              DEMOTE
-                            </div>
-                          ) : (
-                            <div
-                              className={styles.icon}
-                              onClick={() => grantRevokeHead(item.id, true)}>
-                              <i
-                                className={`fa-solid fa-circle-arrow-up fa-xl text-success me-2`}></i>
-                              PROMOTE
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </Table>
+              <>
+                <Table
+                  className={styles.table}
+                  striped
+                  bordered
+                  hover
+                  responsive>
+                  <thead>
+                    <tr>
+                      <th className="col-1">ID No.</th>
+                      <th className="col-2">Name</th>
+                      <th className="col-2">Department</th>
+                      <th className="col-1 text-center">Role</th>
+                      <th className="col-1 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentRecords
+                      ?.sort((a, b) => b.is_head - a.is_head)
+                      ?.map((item) => (
+                        <tr key={item.id}>
+                          <td
+                            className={`${
+                              item.employee_id ? "" : "text-danger"
+                            }`}>
+                            {item.employee_id ? item.employee_id : "No ID"}
+                          </td>
+                          <td>
+                            {item.lastname}, {item.firstname}
+                          </td>
+                          <td className={item.department ? "" : "text-danger"}>
+                            {item.department
+                              ? item.department.name
+                              : "No department set."}
+                          </td>
+                          <td className="text-center">
+                            {item.is_head ? (
+                              <Badge bg="success">Head/Chair</Badge>
+                            ) : (
+                              <Badge bg="secondary">Employee</Badge>
+                            )}
+                          </td>
+                          <td className="text-center">
+                            {item.department ? (
+                              <>
+                                {item.is_head ? (
+                                  <BtnSecondary
+                                    disabled={disable}
+                                    onClick={() =>
+                                      revokeHead(item.department.id)
+                                    }>
+                                    <i
+                                      className={`fa-solid fa-circle-arrow-down fa-lg me-2`}></i>
+                                    DEMOTE
+                                  </BtnSecondary>
+                                ) : (
+                                  <BtnPrimary
+                                    disabled={disable}
+                                    onClick={() =>
+                                      grantHead(item.department.id, item.id)
+                                    }>
+                                    <i
+                                      className={`fa-solid fa-circle-arrow-up fa-lg me-2`}></i>
+                                    PROMOTE
+                                  </BtnPrimary>
+                                )}
+                              </>
+                            ) : (
+                              <div className={styles.icon}>
+                                <OverlayTrigger
+                                  placement="right"
+                                  overlay={
+                                    <Tooltip
+                                      id="button-tooltip-1"
+                                      className={styles.table}>
+                                      Department is required.
+                                    </Tooltip>
+                                  }>
+                                  <i
+                                    className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>
+                                </OverlayTrigger>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </Table>
+                <Row className="w-100 mb-3">
+                  <Col className="d-flex justify-content-center">
+                    <PaginationComponent
+                      totalPages={totalPages}
+                      currentPage={currentPage}
+                      handlePageChange={handlePageChange}
+                    />
+                  </Col>
+                </Row>
+              </>
             )}
           </>
         )}
-      </Row>
-      <Row className="w-100 mb-3">
-        <Col className="d-flex justify-content-center">
-          <Pagination>
-            <Pagination.First
-              className={styles.pageNum}
-              onClick={() => handlePageChange(1)}
-            />
-            <Pagination.Prev
-              className={styles.pageNum}
-              onClick={() => {
-                if (currentPage > 1) handlePageChange(currentPage - 1);
-              }}
-            />
-            {Array.from({ length: totalPages }, (_, index) => (
-              <Pagination.Item
-                key={index + 1}
-                active={index + 1 === currentPage}
-                className={styles.pageNum}
-                onClick={() => handlePageChange(index + 1)}>
-                {index + 1}
-              </Pagination.Item>
-            ))}
-            <Pagination.Next
-              className={styles.pageNum}
-              onClick={() => {
-                if (currentPage < totalPages) handlePageChange(currentPage + 1);
-              }}
-            />
-            <Pagination.Last
-              className={styles.pageNum}
-              onClick={() => handlePageChange(totalPages)}
-            />
-          </Pagination>
-        </Col>
       </Row>
     </>
   );

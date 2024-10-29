@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner } from "react-bootstrap"; /* prettier-ignore */
 
-import departments from "../../data/departments.json";
-import departmentTypes from "../../data/departmentTypes.json";
-import { getAllUsers, getTerms } from "../../api/admin";
+import { getAllUsers, getTerms, getAllDepartments } from "../../api/admin"; /* prettier-ignore */
 import { getClearanceStatus } from "../../api/user";
+import { exportPointsOverview } from "../../api/export";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
+import PaginationComponent from "../../components/Paging";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
@@ -18,13 +18,20 @@ const HRDashboard = () => {
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
-  const [departmentUsers, setDepartmentUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [levels, setLevels] = useState([]);
   const [terms, setTerms] = useState([]);
+  const [departmentUsers, setDepartmentUsers] = useState([]);
   const [departmentTerms, setDepartmentTerms] = useState([]);
-  const [selectedTerm, setSelectedTerm] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [departmentTypes, setDepartmentTypes] = useState({
+    semester: false,
+    midyear: false,
+    academic: false,
+  });
+  const [selectedTerm, setSelectedTerm] = useState(0);
+  const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [userClearanceStatus, setUserClearanceStatus] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,7 +43,7 @@ const HRDashboard = () => {
         token: token,
       },
       (response) => {
-        const employees = response.users.filter(
+        const employees = response.users?.filter(
           (us) => us.id !== user.id && !us.is_superuser
         );
         setDepartmentUsers(employees);
@@ -44,6 +51,25 @@ const HRDashboard = () => {
       },
       (error) => {
         console.log(error);
+      }
+    );
+  };
+
+  const fetchDepartments = async () => {
+    getAllDepartments(
+      {
+        token: token,
+      },
+      (response) => {
+        setDepartments(response.departments);
+        const uniqueLevels = [
+          ...new Set(response.departments.map((dept) => dept.level)),
+        ];
+        setLevels(uniqueLevels);
+        setLoading(false);
+      },
+      (error) => {
+        console.log(error.message);
       }
     );
   };
@@ -63,6 +89,13 @@ const HRDashboard = () => {
   };
 
   const fetchClearanceStatus = (employee, term) => {
+    const termStatus = employee?.clearances?.find(
+      (clearance) => clearance?.term?.id === term && !clearance.is_deleted
+    );
+
+    let isCleared = false;
+    if (termStatus) isCleared = true;
+
     getClearanceStatus(
       {
         id: employee.id,
@@ -73,11 +106,12 @@ const HRDashboard = () => {
         setUserClearanceStatus((prevStatus) => ({
           ...prevStatus,
           [employee.id]: {
-            ...clearanceResponse,
+            ...clearanceResponse.points,
             id: employee.id,
             employee_id: employee.employee_id,
             firstname: employee.firstname,
             lastname: employee.lastname,
+            is_cleared: isCleared,
             department: employee.department,
           },
         }));
@@ -101,15 +135,44 @@ const HRDashboard = () => {
     navigate(`/dashboard/${id}`);
   };
 
+  const handleLevelChange = (e) => {
+    const lev = e.target.value;
+    setSelectedLevel(lev);
+    setSelectedDepartment(null);
+    setSelectedTerm(0);
+  };
+
+  const handlePrint = () => {
+    exportPointsOverview(
+      {
+        id: selectedDepartment.id,
+        term_id: selectedTerm,
+        token: token,
+      },
+      (response) => {
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const blobURL = URL.createObjectURL(blob);
+        window.open(blobURL, "_blank");
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  };
+
+  const filteredDepartments = selectedLevel
+    ? departments.filter((dept) => dept.level === selectedLevel)
+    : departments;
+
   //Pagination
   const handleFilter = (employeeList, query, dept) => {
     return Object.values(employeeList).filter((employee) => {
       const matchesQuery =
-        employee.employee_id.includes(query) ||
+        employee.employee_id?.includes(query) ||
         employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
         employee.lastname.toLowerCase().includes(query.toLowerCase());
 
-      const matchesDept = dept ? employee.department === dept : true;
+      const matchesDept = dept ? employee.department?.id === dept.id : true;
 
       return matchesQuery && matchesDept;
     });
@@ -147,6 +210,7 @@ const HRDashboard = () => {
       else {
         setLoading(true);
         const fetchData = async () => {
+          fetchDepartments();
           fetchTerms();
           await fetchAllUsers();
         };
@@ -156,12 +220,38 @@ const HRDashboard = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    const allowedTerm = departmentTypes[selectedDepartment];
-    const filteredTerms = terms?.filter((term) =>
-      allowedTerm?.includes(term.type)
-    );
-    setDepartmentTerms(filteredTerms);
+    if (selectedDepartment) {
+      setDepartmentTypes({
+        ...departmentTypes,
+        semester: selectedDepartment?.use_schoolyear === false ? true : false,
+        midyear: selectedDepartment?.midyear_points > 0 ? true : false,
+        academic: selectedDepartment?.use_schoolyear,
+      });
+    }
   }, [selectedDepartment]);
+
+  useEffect(() => {
+    if (selectedDepartment && departmentTypes) {
+      let filteredTerms = terms;
+
+      const validTypes = [
+        ...(departmentTypes.semester ? ["SEMESTER"] : []),
+        ...(departmentTypes.midyear ? ["MIDYEAR/SUMMER"] : []),
+        ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
+      ];
+
+      if (validTypes.length > 0)
+        filteredTerms = filteredTerms.filter((term) =>
+          validTypes.includes(term.type)
+        );
+
+      const ongoingTerm = filteredTerms.find(
+        (term) => term.is_ongoing === true
+      );
+      setSelectedTerm(ongoingTerm?.id);
+      setDepartmentTerms(filteredTerms);
+    }
+  }, [departmentTypes, terms, selectedDepartment]);
 
   useEffect(() => {
     if (selectedTerm) {
@@ -172,82 +262,111 @@ const HRDashboard = () => {
   if (loading)
     return (
       <Row
-        className={`${styles.msg} d-flex justify-content-center align-items-center w-100`}>
-        <Spinner className={`me-2`} animation="border" />
-        Loading data...
+        className={`${styles.msg} d-flex flex-column justify-content-center align-items-center w-100`}
+        style={{ height: "100vh" }}>
+        <Col></Col>
+        <Col className="text-center">
+          <div>
+            <Spinner animation="border" />
+          </div>
+          Loading data...
+        </Col>
+        <Col></Col>
       </Row>
     );
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
       <Row className="w-100">
         <Col>
-          <h3 className={styles.pageTitle}>Departmental Points Overview</h3>
+          <h3 className={styles.pageTitle}>Points Overview</h3>
         </Col>
       </Row>
 
-      <Row className="w-100 mb-3">
-        <Col md="6">
+      <Row className="w-100">
+        <Col className="mb-3" lg={6} md={6}>
           <span className={`${styles.deptDropdown} text-muted`}>
-            Select a department and term below to see the records of employees.
+            Select a department below to see the records of employees.
           </span>
         </Col>
-        <Col className="text-end">
+        <Col className="text-end mb-2">
           <BtnPrimary
             onClick={() => {
-              setSelectedDepartment("");
-              setSelectedTerm("");
+              setSearchQuery("");
+              setSelectedLevel("");
+              setSelectedDepartment(null);
+              setSelectedTerm(0);
             }}>
             <i className="fa-solid fa-trash-can me-2"></i>Reset
           </BtnPrimary>{" "}
-          <BtnSecondary disabled={!selectedDepartment || !selectedTerm}>
+          <BtnSecondary
+            onClick={handlePrint}
+            disabled={!selectedDepartment || selectedTerm === 0}>
             <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i> Export
           </BtnSecondary>
         </Col>
       </Row>
 
       <Row className="w-100">
-        {/* SEARCH BAR */}
-        <Col className="text-start" md="5">
-          <InputGroup className={`${styles.searchBar} mb-3`}>
-            <InputGroup.Text>
-              <i className="fa-solid fa-magnifying-glass"></i>
-            </InputGroup.Text>
-            <Form.Control
-              type="search"
-              name="searchQuery"
-              placeholder="Search by ID number, firstname, or lastname."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </InputGroup>
-        </Col>
-
-        {/* DEPARTMENTS */}
-        <Col>
-          <InputGroup className={`${styles.searchBar} mb-3`}>
+        <Col lg={5} className="mb-2">
+          <InputGroup>
             <InputGroup.Text>
               <i className="fa-solid fa-landmark fa-lg"></i>
             </InputGroup.Text>
             <Form.Select
-              value={selectedDepartment}
+              name="selected_level"
               className={styles.deptDropdown}
-              onChange={(e) => setSelectedDepartment(e.target.value)}>
+              onChange={handleLevelChange}
+              value={selectedLevel || ""}>
               <option value="" disabled>
-                Select department
+                Select Level
               </option>
-              {departments.departments.map((department, idx) => (
-                <option key={idx} value={department}>
-                  {department}
-                </option>
-              ))}
+              {levels
+                .sort((a, b) => a.localeCompare(b))
+                .map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+            </Form.Select>
+          </InputGroup>
+        </Col>
+
+        {/* DEPARTMENTS */}
+        <Col lg={4} className="mb-2">
+          <InputGroup className={`${styles.searchBar}`}>
+            <InputGroup.Text>
+              <i className="fa-solid fa-book fa-lg"></i>
+            </InputGroup.Text>
+            <Form.Select
+              value={selectedDepartment?.id || ""}
+              className={styles.deptDropdown}
+              disabled={!selectedLevel}
+              onChange={(e) => {
+                const selectedId = e.target.value;
+
+                const department = filteredDepartments.find(
+                  (dept) => dept.id === parseInt(selectedId, 10)
+                );
+                setSelectedDepartment(department);
+              }}>
+              <option value="" disabled>
+                Select Department
+              </option>
+              {filteredDepartments
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((department) => (
+                  <option key={department.id} value={department.id}>
+                    {department.name}
+                  </option>
+                ))}
             </Form.Select>
           </InputGroup>
         </Col>
 
         {/* TERMS */}
-        <Col>
-          <InputGroup className={`${styles.searchBar} mb-3`}>
+        <Col lg={3} className="mb-2">
+          <InputGroup className={`${styles.searchBar}`}>
             <InputGroup.Text>
               <i className="fa-regular fa-calendar fa-lg"></i>
             </InputGroup.Text>
@@ -255,11 +374,11 @@ const HRDashboard = () => {
               value={selectedTerm}
               className={styles.deptDropdown}
               onChange={(e) => {
-                setSelectedTerm(e.target.value);
+                setSelectedTerm(e.target.value.id);
               }}
               disabled={!selectedDepartment}>
-              <option value="" disabled>
-                Select term
+              <option value="0" disabled>
+                Select Term
               </option>
               {departmentTerms.map((term) => (
                 <option key={term.id} value={term.id}>
@@ -275,8 +394,54 @@ const HRDashboard = () => {
         <hr className="w-100" style={{ opacity: "1" }} />
       )}
 
-      {selectedDepartment && selectedTerm && (
+      {selectedDepartment && selectedTerm !== 0 && (
         <>
+          <Row className="w-100">
+            <Col className="text-start mb-2" lg={8}>
+              <InputGroup className={`${styles.searchBar}`}>
+                <InputGroup.Text>
+                  <i className="fa-solid fa-magnifying-glass"></i>
+                </InputGroup.Text>
+                <Form.Control
+                  type="search"
+                  name="searchQuery"
+                  placeholder="Search by ID number, firstname, or lastname."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </InputGroup>
+            </Col>
+          </Row>
+
+          {/* <Row className="w-100">
+            <Col
+              className={`${styles.semibold} d-flex align-items-center`}
+              lg="auto">
+              <i className="fa-solid fa-users fa-lg me-2"></i>Total Employees:{" "}
+              {filteredEmployees?.length}
+            </Col>
+            <Col
+              className={`${styles.semibold} d-flex align-items-center`}
+              lg="auto">
+              <i className="fa-solid fa-user-check fa-lg text-success me-2"></i>
+              Cleared Employees:{" "}
+              {
+                filteredEmployees?.filter((item) => item.is_cleared === true)
+                  .length
+              }
+            </Col>
+            <Col
+              className={`${styles.semibold} d-flex align-items-center`}
+              lg="auto">
+              <i className="fa-solid fa-user-xmark fa-lg text-danger me-2"></i>
+              Non-cleared Employees:{" "}
+              {
+                filteredEmployees?.filter((item) => item.is_cleared === false)
+                  .length
+              }
+            </Col>
+          </Row> */}
+
           <Row className="w-100">
             {currentRecords.length === 0 ? (
               <span
@@ -288,14 +453,18 @@ const HRDashboard = () => {
                 <ListGroup className="w-100" variant="flush">
                   <ListGroup.Item className={styles.tableHeader}>
                     <Row>
-                      <Col md={2}>ID No.</Col>
-                      <Col>Name</Col>
-                      <Col md={2}>Department</Col>
-                      {selectedDepartment && (
-                        <Col className="text-center" md={2}>
-                          Points
-                        </Col>
-                      )}
+                      <Col lg={1} md={1} xs={2}>
+                        ID
+                      </Col>
+                      <Col lg={8} md={8} xs={5}>
+                        Name
+                      </Col>
+                      <Col className="text-center" lg={1} md={1} xs={2}>
+                        Points
+                      </Col>
+                      <Col className="text-center" lg={2} md={2} xs={3}>
+                        Status
+                      </Col>
                     </Row>
                   </ListGroup.Item>
                 </ListGroup>
@@ -306,16 +475,24 @@ const HRDashboard = () => {
                       className={styles.tableBody}
                       onClick={() => handleEmployeeSWTDClick(item.id)}>
                       <Row>
-                        <Col md={2}>{item.employee_id}</Col>
-                        <Col>
+                        <Col lg={1} md={1} xs={2}>
+                          {item.employee_id}
+                        </Col>
+                        <Col lg={8} md={8} xs={5}>
                           {item.firstname} {item.lastname}
                         </Col>
-                        <Col md={2}>{item.department}</Col>
-                        {selectedDepartment && (
-                          <Col className="text-center" md={2}>
-                            {item.points.valid_points}
-                          </Col>
-                        )}
+                        <Col className="text-center" lg={1} md={1} xs={2}>
+                          {item.valid_points}
+                        </Col>
+                        <Col
+                          className={`text-${
+                            item.is_cleared ? "success" : "danger"
+                          } ${styles.userStatus} text-center`}
+                          lg={2}
+                          md={2}
+                          xs={3}>
+                          {item.is_cleared ? "CLEARED" : "NOT CLEARED"}
+                        </Col>
                       </Row>
                     </ListGroup.Item>
                   ))}
@@ -328,38 +505,11 @@ const HRDashboard = () => {
           {currentRecords.length !== 0 && (
             <Row className="w-100 mb-3">
               <Col className="d-flex justify-content-center">
-                <Pagination>
-                  <Pagination.First
-                    className={styles.pageNum}
-                    onClick={() => handlePageChange(1)}
-                  />
-                  <Pagination.Prev
-                    className={styles.pageNum}
-                    onClick={() => {
-                      if (currentPage > 1) handlePageChange(currentPage - 1);
-                    }}
-                  />
-                  {Array.from({ length: totalPages }, (_, index) => (
-                    <Pagination.Item
-                      key={index + 1}
-                      active={index + 1 === currentPage}
-                      className={styles.pageNum}
-                      onClick={() => handlePageChange(index + 1)}>
-                      {index + 1}
-                    </Pagination.Item>
-                  ))}
-                  <Pagination.Next
-                    className={styles.pageNum}
-                    onClick={() => {
-                      if (currentPage < totalPages)
-                        handlePageChange(currentPage + 1);
-                    }}
-                  />
-                  <Pagination.Last
-                    className={styles.pageNum}
-                    onClick={() => handlePageChange(totalPages)}
-                  />
-                </Pagination>
+                <PaginationComponent
+                  totalPages={totalPages}
+                  currentPage={currentPage}
+                  handlePageChange={handlePageChange}
+                />
               </Col>
             </Row>
           )}

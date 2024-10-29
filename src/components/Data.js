@@ -1,77 +1,66 @@
-import { formatDate } from "../common/format/date";
-import months from "../data/months.json";
+import categories from "../data/categories.json";
 
-export const defaultLineData = (swtd) => {
-  const monthsArr = months.months;
-  const monthCount = monthsArr.reduce((acc, month) => {
-    acc[month] = 0;
-    return acc;
-  }, {});
-
-  const swtdDates = swtd?.map((event) => event.dates);
-  const flattenedDates = swtdDates.flatMap((eventArray) => eventArray);
-
-  flattenedDates?.forEach((item) => {
-    const formattedDates = formatDate(item.date);
-    const date = new Date(formattedDates);
-    const month = date.toLocaleString("default", { month: "long" });
-
-    if (monthCount.hasOwnProperty(month)) {
-      monthCount[month] += 1;
-    }
+export const createBarData = (swtd, term) => {
+  const categoriesArr = categories.categories;
+  const filteredSWTDs = swtd?.filter((item) => item.term?.id === term?.id);
+  const data = categoriesArr.map((category) => {
+    return filteredSWTDs.filter((item) => item.category === category.name)
+      .length;
   });
-  const labels = monthsArr;
-  const data = months.months.map((month) => monthCount[month]);
+
+  const labels = categoriesArr.map((category) => category.id);
   return {
     labels,
     datasets: [
       {
-        label: "Overall SWTDs attended",
+        label: `SWTDs submitted per category`,
         data,
-        borderColor: "#9d084a",
-        backgroundColor: "#9d084a",
+        borderColor: "#180018",
+        borderWidth: 1,
+        backgroundColor: [
+          "#9D084A",
+          "#A8235E",
+          "#B33F72",
+          "#BE5A86",
+          "#C9769A",
+          "#D391AF",
+          "#DEADC3",
+          "#E9C8D7",
+          "#F4E4EB",
+        ],
       },
     ],
   };
 };
 
-export const createLineData = (swtd, term) => {
-  const monthsArr = months.months;
-  const monthCount = monthsArr.reduce((acc, month) => {
-    acc[month] = 0;
-    return acc;
-  }, {});
-
-  const termSWTDs = swtd?.filter((item) => item.term.id === term?.id);
-  const swtdDates = termSWTDs?.map((event) => event.dates);
-  const flattenedDates = swtdDates.flatMap((eventArray) => eventArray);
-
-  flattenedDates?.forEach((item) => {
-    const formattedDate = formatDate(item.date);
-    const date = new Date(formattedDate);
-    const month = date.toLocaleString("default", { month: "long" });
-
-    if (monthCount.hasOwnProperty(month)) {
-      monthCount[month] += 1;
-    }
+export const createPieData = (swtd, term) => {
+  const categoriesArr = categories.categories;
+  const filteredSWTDs = swtd?.filter((item) => item.term.id === term?.id);
+  const data = categoriesArr.map((category) => {
+    return filteredSWTDs.filter((item) => item.category === category.name)
+      .length;
   });
 
-  const labels = monthsArr;
-  const data = months.months.map((month) => monthCount[month]);
-
+  const labels = categoriesArr.map((category) => category.id);
   return {
     labels,
     datasets: [
       {
-        label: `${term.name} SWTDs attended per month`,
+        label: `SWTDs submitted`,
         data,
-        borderColor: "#9d084a",
-        backgroundColor: "#9d084a",
+        backgroundColor: [
+          "#9D084A",
+          "#A92761",
+          "#B64677",
+          "#C2658E",
+          "#CE84A5",
+          "#DAA2BB",
+          "#E7C1D2",
+          "#F3E0E8",
+          "#FFFFFF",
+        ],
+        hoverOffset: 4,
       },
     ],
   };
 };
-
-export const defaultPieData = () => {};
-
-export const createPieData = () => {};

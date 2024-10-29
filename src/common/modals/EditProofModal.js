@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
 import Cookies from "js-cookie";
 import { useParams } from "react-router-dom";
-import { Modal, Row, Col, Form } from "react-bootstrap";
+import { Modal, Row, Col, Form, FloatingLabel } from "react-bootstrap";
 
-import { editProof } from "../../api/swtd";
+import { addProof } from "../../api/swtd";
 import { useSwitch } from "../../hooks/useSwitch";
 
 import ConfirmationModal from "./ConfirmationModal";
@@ -14,20 +14,24 @@ const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
   const { swtd_id } = useParams();
   const inputFile = useRef(null);
   const token = Cookies.get("userToken");
-  const [proof, setProof] = useState(null);
+  const [files, setFiles] = useState(null);
   const [showModal, openModal, closeModal] = useSwitch();
   const [isProofInvalid, setIsProofInvalid] = useState(false);
 
   const handleProof = (e) => {
-    const file = e.target.files[0];
+    const selectedFiles = Array.from(e.target.files);
     const allowedTypes = [
       "application/pdf",
       "image/png",
       "image/jpeg",
       "image/jpg",
     ];
-    if (file && allowedTypes.includes(file.type)) {
-      setProof(file);
+
+    const validFiles = selectedFiles.filter((file) =>
+      allowedTypes.includes(file.type)
+    );
+    if (validFiles.length > 0) {
+      setFiles(validFiles);
       setIsProofInvalid(false);
     } else {
       inputFile.current.value = null;
@@ -36,11 +40,11 @@ const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
   };
 
   const updateProof = async () => {
-    await editProof(
+    await addProof(
       {
-        id: swtd_id,
+        form_id: swtd_id,
+        files: files,
         token: token,
-        proof: proof,
       },
       (response) => {
         closeModal();
@@ -48,8 +52,9 @@ const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
         editSuccess();
       },
       (error) => {
-        console.log(error.response.data.msg);
-        editError(error.response.data.msg);
+        console.log(error.response);
+        editError(error.response);
+        onHide();
       }
     );
   };
@@ -58,20 +63,25 @@ const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
     <>
       <Modal size="md" show={show} onHide={onHide} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Change Proof</Modal.Title>
+          <Modal.Title className={styles.header}>Add Proof</Modal.Title>
         </Modal.Header>
         <Modal.Body className={styles.comment}>
           <Form noValidate onSubmit={(e) => e.preventDefault()}>
-            <Form.Group controlId="inputProof">
+            <FloatingLabel
+              controlId="floatingInputProof"
+              label="Proof"
+              className="mb-3">
               <Form.Control
                 type="file"
-                name="proof"
+                className={styles.formBox}
+                name="files"
                 onChange={handleProof}
                 ref={inputFile}
                 isInvalid={isProofInvalid}
+                multiple
               />
-              <Form.Text muted>Only upload PDFs, PNG, JPG/JPEG.</Form.Text>
-            </Form.Group>
+              <Form.Text muted>PDFs, PNG, JPG/JPEG only (Max: 5MB).</Form.Text>
+            </FloatingLabel>
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -82,7 +92,7 @@ const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
                   openModal();
                   onHide();
                 }}
-                disabled={isProofInvalid || !proof}>
+                disabled={isProofInvalid || !files}>
                 Save
               </BtnPrimary>
             </Col>
