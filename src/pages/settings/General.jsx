@@ -91,6 +91,9 @@ const General = () => {
       (response) => {
         setUser({
           ...user,
+          employee_id: response.data.user.employee_id,
+          firstname: response.data.user.firstname,
+          lastname: response.data.user.lastname,
           department: response.data.user.department,
         });
         cancelEditing();
