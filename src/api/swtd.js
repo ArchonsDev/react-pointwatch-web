@@ -5,7 +5,7 @@ const apiUrl = process.env.REACT_APP_API_URL;
 export const getAllSWTDs = async (data, onSuccess, onFail) => {
   try {
     const response = await axios.get(
-      `${apiUrl}/swtds/?author_id=${data.author_id}`,
+      `${apiUrl}/swtds?author_id=${data.author_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -15,6 +15,7 @@ export const getAllSWTDs = async (data, onSuccess, onFail) => {
 
     if (response.status === 200) {
       onSuccess && onSuccess(response.data);
+      return response.data;
     }
   } catch (error) {
     onFail && onFail(error);
@@ -34,7 +35,7 @@ export const addSWTD = async (data, onSuccess, onFail, onCleanup) => {
       });
     }
 
-    const response = await axios.post(`${apiUrl}/swtds/`, formData, {
+    const response = await axios.post(`${apiUrl}/swtds`, formData, {
       headers: {
         Authorization: `Bearer ${data.token}`,
         "Content-Type": "multipart/form-data",
@@ -106,7 +107,6 @@ export const editSWTD = async (data, onSuccess, onFail, onCleanup) => {
         total_hours: data.total_hours,
         points: data.points,
         benefits: data.benefits,
-        has_deliverables: data.has_deliverables,
       },
       {
         headers: {
@@ -147,7 +147,7 @@ export const deleteSWTD = async (data, onSuccess, onFail, onCleanup) => {
 export const getProof = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.get(
-      `${apiUrl}/swtds/${data.form_id}/proof?id=${data.proof_id}`,
+      `${apiUrl}/swtds/${data.form_id}/proof/${data.proof_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,
@@ -197,7 +197,7 @@ export const addProof = async (data, onSuccess, onFail, onCleanup) => {
 export const deleteProof = async (data, onSuccess, onFail, onCleanup) => {
   try {
     const response = await axios.delete(
-      `${apiUrl}/swtds/${data.form_id}/proof?id=${data.proof_id}`,
+      `${apiUrl}/swtds/${data.form_id}/proof/${data.proof_id}`,
       {
         headers: {
           Authorization: `Bearer ${data.token}`,

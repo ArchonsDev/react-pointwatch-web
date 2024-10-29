@@ -2,7 +2,7 @@ import categories from "../data/categories.json";
 
 export const createBarData = (swtd, term) => {
   const categoriesArr = categories.categories;
-  const filteredSWTDs = swtd?.filter((item) => item.term.id === term?.id);
+  const filteredSWTDs = swtd?.filter((item) => item.term?.id === term?.id);
   const data = categoriesArr.map((category) => {
     return filteredSWTDs.filter((item) => item.category === category.name)
       .length;

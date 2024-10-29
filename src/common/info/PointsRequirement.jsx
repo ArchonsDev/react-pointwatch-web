@@ -3,7 +3,7 @@ import { Table } from "react-bootstrap";
 
 import styles from "./style.module.css";
 
-const SWTDInfo = () => {
+const PointsRequirement = () => {
   return (
     <>
       <Table striped bordered hover responsive className={styles.cardBody}>
@@ -17,22 +17,36 @@ const SWTDInfo = () => {
         <tbody>
           <tr>
             <td>College</td>
-            <td>6 pts./semester<br/>3 pts./mid-year</td>
+            <td>
+              6 pts./semester
+              <br />3 pts./mid-year
+            </td>
             <td>Part of Clearance - End of every semester</td>
           </tr>
           <tr>
             <td>Senior High School</td>
-            <td>6 pts./semester<br/>3 pts./mid-year</td>
+            <td>
+              6 pts./semester
+              <br />3 pts./mid-year
+            </td>
             <td>Part of Clearance - End of every semester</td>
           </tr>
           <tr>
             <td>Junior High School</td>
-            <td>12 pts./school year<br/>3pts./mid-year</td>
+            <td>
+              12 pts./school year
+              <br />
+              3pts./mid-year
+            </td>
             <td>Part of Clearance - End of the school year</td>
           </tr>
           <tr>
             <td>Elementary</td>
-            <td>12 pts./school year<br/>3pts./mid-year</td>
+            <td>
+              12 pts./school year
+              <br />
+              3pts./mid-year
+            </td>
             <td>Part of Clearance - End of the school year</td>
           </tr>
           <tr>
@@ -46,4 +60,4 @@ const SWTDInfo = () => {
   );
 };
 
-export default SWTDInfo;
+export default PointsRequirement;

@@ -49,7 +49,7 @@ const ViewSWTD = () => {
         form_id: swtd_id,
       },
       (response) => {
-        setSWTD(response.data.data);
+        setSWTD(response.data.swtd_form);
         setLoading(false);
       },
       (error) => {
@@ -166,7 +166,7 @@ const ViewSWTD = () => {
     );
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
       {/* Proof Display */}
       <Modal
         show={showProofModal}
@@ -278,7 +278,7 @@ const ViewSWTD = () => {
       <Card className="mb-3 w-100">
         <Card.Header className={styles.cardHeader}>
           <Row>
-            <Col>
+            <Col lg={6} md={6} xs={7}>
               Status:{" "}
               <span
                 className={
@@ -295,7 +295,7 @@ const ViewSWTD = () => {
                   : swtd?.validation_status}
               </span>
             </Col>
-            <Col className={`text-end`}>
+            <Col className={`text-end`} lg={6} md={6} xs={5}>
               <span
                 className={
                   styles.pointsDisplay
@@ -304,52 +304,59 @@ const ViewSWTD = () => {
           </Row>
         </Card.Header>
         <Card.Body className={`${styles.cardBody} p-4`}>
-          <Row className="mb-4">
-            <Col className={styles.formLabel} md="2">
+          <Row className="mb-lg-3 mb-2">
+            <Col className={styles.formLabel} lg={2} md={2} xs={4}>
               Title
             </Col>
-            <Col>{truncateTitle(swtd?.title)}</Col>
+            <Col lg={4} md={10} xs={8}>
+              {truncateTitle(swtd?.title)}
+            </Col>
           </Row>
 
-          <Row className="mb-4">
-            <Col className={styles.formLabel} md="2">
+          <Row>
+            <Col
+              className={`${styles.formLabel} mb-lg-3 mb-2`}
+              lg={2}
+              md={2}
+              xs={4}>
               Venue
             </Col>
-            <Col md="4">{swtd?.venue}</Col>
-            <Col md="2">
-              <span className={styles.formLabel}>Term</span>
+            <Col lg={4} md={10} xs={8}>
+              {swtd?.venue}
             </Col>
-            <Col>{swtd?.term.name}</Col>
+
+            <Col
+              className={`${styles.formLabel} mb-lg-3 mb-2`}
+              lg={2}
+              md={2}
+              xs={4}>
+              Term
+            </Col>
+            <Col className="mb-lg-3 mb-2" lg={4} md={10} xs={8}>
+              {swtd?.term.name}
+            </Col>
           </Row>
 
-          <Row className="mb-4">
-            <Col className={styles.formLabel} md="2">
+          <Row>
+            <Col
+              className={`${styles.formLabel} mb-lg-3 mb-2`}
+              lg={2}
+              md={2}
+              xs={4}>
               Category
             </Col>
-            <Col md="4">{swtd?.category}</Col>
-            <Col className={styles.formLabel} md="2">
-              Has deliverables
+            <Col className="mb-lg-3 mb-2" lg={4} md={10} xs={8}>
+              {swtd?.category}
             </Col>
-            <Col md="4">
-              {swtd?.has_deliverables === true ? (
-                <>
-                  <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
-                  Yes
-                </>
-              ) : (
-                <>
-                  <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
-                  No
-                </>
-              )}
-            </Col>
-          </Row>
 
-          <Row className="mb-4">
-            <Col className={styles.formLabel} md="2">
+            <Col
+              className={`${styles.formLabel} mb-lg-3 mb-2`}
+              lg={2}
+              md={2}
+              xs={4}>
               Duration
             </Col>
-            <Col md="4">
+            <Col className="mb-lg-3 mb-2" lg={4} md={10} xs={8}>
               {swtd?.start_date === swtd?.end_date ? (
                 wordDate(swtd?.start_date)
               ) : (
@@ -357,15 +364,21 @@ const ViewSWTD = () => {
                   {wordDate(swtd?.start_date)} to {wordDate(swtd?.end_date)}
                 </>
               )}
-
               {!swtd?.category.startsWith("Degree") && (
                 <> ({swtd?.total_hours} hours)</>
               )}
             </Col>
-            <Col className={styles.formLabel} md="2">
+          </Row>
+
+          <Row>
+            <Col
+              className={`${styles.formLabel} mb-lg-3 mb-2`}
+              lg={2}
+              md={2}
+              xs={4}>
               Proof
             </Col>
-            <Col md="4">
+            <Col className="mb-lg-3 mb-2" lg={4} md={4} xs={8}>
               {swtd?.proof && swtd?.proof.length > 0 ? (
                 <BtnPrimary
                   onClick={() => {
@@ -397,10 +410,10 @@ const ViewSWTD = () => {
           </Form>
           {/* Validation Buttons */}
           {swtd?.validation_status === "PENDING" && (
-            <Row className="w-100">
-              <Col className="p-0 text-end">
+            <Row>
+              <Col className="text-lg-end text-md-end text-center">
                 <Button
-                  className={`me-3 ${
+                  className={`me-lg-3 me-md-3 me-2 mb-1 ${
                     isProcessing ? "disabled-approve-btn" : ""
                   }`}
                   variant="success"
@@ -420,7 +433,9 @@ const ViewSWTD = () => {
                   APPROVE
                 </Button>
                 <Button
-                  className={isProcessing ? "disabled-revision-btn" : ""}
+                  className={
+                    isProcessing ? "disabled-revision-btn mb-1" : "mb-1"
+                  }
                   variant="danger"
                   onClick={() => {
                     setValidation("REJECTED");

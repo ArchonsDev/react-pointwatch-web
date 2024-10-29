@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button, Container, Row, Col, Form, InputGroup, Modal, ToastContainer, Toast, Spinner } from "react-bootstrap"; /* prettier-ignore */
 import styles from "./style.module.css";
@@ -16,8 +16,7 @@ import { useMsal } from "@azure/msal-react";
 
 const Login = () => {
   const { instance } = useMsal();
-  const { user, setUser, oauthLogin, setOauthLogin } =
-    useContext(SessionUserContext);
+  const { setUser } = useContext(SessionUserContext);
   const navigate = useNavigate();
 
   const [errorMessage, setErrorMessage] = useState(null);
@@ -77,17 +76,21 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     setIsClicked(true);
+
     await login(
       form,
-      (response) => {
-        setUser(response.data.data);
+      async (response) => {
+        const userData = response.data.user;
+        setUser(userData);
+
         const roles = {
           1: "/dashboard",
           2: "/hr",
           3: "/admin",
         };
-        const userAccessLevel = response.data.data.access_level;
+        const userAccessLevel = userData.access_level;
         navigate(roles[userAccessLevel] || "/swtd");
+
         setIsLoading(false);
         clearForm();
       },
@@ -280,7 +283,7 @@ const Login = () => {
       );
     }
 
-    if (isLoginSuccess) navigate("/dashboard");
+    if (isLoginSuccess) navigate("/swtd");
 
     if (error?.response) {
       let errorMessage = <b>{error.response.data.error}</b>;
@@ -414,7 +417,7 @@ const Login = () => {
             </Modal>
           )}
 
-          {/* Login Page */}
+          {/* Logo */}
           <Row>
             <Col>
               <img
@@ -431,8 +434,8 @@ const Login = () => {
             <span className={styles.line2}>welcome!</span>
           </Row>
 
-          <Row>
-            <Form>
+          <Form>
+            <Row>
               <Form.Group className="mb-3" controlId="inputEmail">
                 <InputGroup hasValidation>
                   <InputGroup.Text className={styles.iconBox}>
@@ -452,7 +455,9 @@ const Login = () => {
                   />
                 </InputGroup>
               </Form.Group>
+            </Row>
 
+            <Row>
               <Form.Group className="mb-3" controlId="inputPassword">
                 <InputGroup>
                   <InputGroup.Text className={styles.iconBox}>
@@ -480,69 +485,68 @@ const Login = () => {
                   </InputGroup.Text>
                 </InputGroup>
               </Form.Group>
+            </Row>
 
-              {isLoading ? (
-                <Row className="mt-3">
-                  <Col
-                    className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}>
-                    <Spinner className={styles.spinner} animation="border" />{" "}
-                    Signing in...
+            {isLoading ? (
+              <Row className="mt-3">
+                <Col
+                  className={`${styles.spinner} text-center d-flex justify-content-center align-items-center`}>
+                  <Spinner className={styles.spinner} animation="border" />{" "}
+                  Signing in...
+                </Col>
+              </Row>
+            ) : (
+              <>
+                <Row className="mb-3">
+                  <Col className="text-end">
+                    <span className={styles.password} onClick={handleOpen}>
+                      Forgot password?
+                    </span>
                   </Col>
                 </Row>
-              ) : (
-                <>
-                  <Row className="mb-4">
-                    <Col className="text-end">
-                      <span className={styles.password} onClick={handleOpen}>
-                        Forgot password?
-                      </span>
-                    </Col>
-                  </Row>
 
-                  <Row>
-                    <Col className="mb-2" md={6} xs={12}>
-                      <Row className="ps-lg-0 pe-lg-0 ps-md-3 pe-md-3 ps-3 pe-3">
-                        <BtnPrimary
-                          type="submit"
-                          onClick={handleSubmit}
-                          disabled={
-                            isEmpty(form.email) || isEmpty(form.password)
-                          }>
-                          Login
-                        </BtnPrimary>
-                      </Row>
-                    </Col>
+                <Row className="g-lg-5">
+                  <Col className="mb-2" md={6} xs={12}>
+                    <Row className="ps-lg-0 pe-lg-0 ps-md-3 pe-md-3 ps-3 pe-3">
+                      <BtnPrimary
+                        type="submit"
+                        onClick={handleSubmit}
+                        disabled={
+                          isEmpty(form.email) || isEmpty(form.password)
+                        }>
+                        Login
+                      </BtnPrimary>
+                    </Row>
+                  </Col>
 
-                    <Col className="mb-2" md={6} xs={12}>
-                      <Row className="ps-lg-0 pe-lg-0 ps-md-3 pe-md-3 ps-3 pe-3">
-                        <BtnSecondary onClick={() => navigate("/register")}>
-                          Register
-                        </BtnSecondary>
-                      </Row>
-                    </Col>
-                  </Row>
+                  <Col className="mb-2" md={6} xs={12}>
+                    <Row className="ps-lg-0 pe-lg-0 ps-md-3 pe-md-3 ps-3 pe-3">
+                      <BtnSecondary onClick={() => navigate("/register")}>
+                        Register
+                      </BtnSecondary>
+                    </Row>
+                  </Col>
+                </Row>
 
-                  <Row className="mt-1 mb-3 text-center">
-                    <Col>
-                      <span className={styles.orText}>or</span>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col>
-                      <Row className="ps-lg-0 pe-lg-0 ps-md-3 pe-md-3 ps-3 pe-3">
-                        <Button
-                          className={`${styles.msButton} w-100`}
-                          onClick={handleMSLogin}>
-                          Sign in with{" "}
-                          <i className="fa-brands fa-microsoft"></i>
-                        </Button>
-                      </Row>
-                    </Col>
-                  </Row>
-                </>
-              )}
-            </Form>
-          </Row>
+                <Row className="mt-1 mb-3 text-center">
+                  <Col>
+                    <span className={styles.orText}>or</span>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Row className="ps-lg-0 pe-lg-0 ps-md-3 pe-md-3 ps-3 pe-3">
+                      <Button
+                        className={`${styles.msButton} w-100`}
+                        onClick={handleMSLogin}>
+                        Sign in with <i className="fa-brands fa-microsoft"></i>
+                      </Button>
+                    </Row>
+                  </Col>
+                </Row>
+              </>
+            )}
+          </Form>
         </Container>
       </div>
     </div>

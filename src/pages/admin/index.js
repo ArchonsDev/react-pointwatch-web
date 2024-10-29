@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Nav, Card, Spinner, Dropdown } from "react-bootstrap";
+import Cookies from "js-cookie";
 
 import Term from "./Term";
 import Department from "./Department";
@@ -12,6 +13,7 @@ import SessionUserContext from "../../contexts/SessionUserContext";
 import styles from "./style.module.css";
 const Admin = () => {
   const { user } = useContext(SessionUserContext);
+  const token = Cookies.get("userToken");
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -102,12 +104,11 @@ const Admin = () => {
                 {/* <Dropdown.Item onClick={() => setActiveTab("activity")}>
                   Validation & Clearance Reports
                 </Dropdown.Item> */}
-
                 <Dropdown.Item onClick={() => setActiveTab("head")}>
-                  Department Chairs/Heads
+                  Head/Chair Promotion
                 </Dropdown.Item>
                 <Dropdown.Item onClick={() => setActiveTab("staff")}>
-                  HR Staff
+                  HR Staff Promotion
                 </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
@@ -131,7 +132,7 @@ const Admin = () => {
                   className={`${styles.navHeader} ${
                     activeTab === "head" ? styles.activeTab : styles.inactiveTab
                   }`}>
-                  Department Chairs/Heads
+                  Head/Chair Promotion
                 </Nav.Link>
               </Nav.Item>
               <Nav.Item>
@@ -142,7 +143,7 @@ const Admin = () => {
                       ? styles.activeTab
                       : styles.inactiveTab
                   }`}>
-                  HR Staff
+                  HR Staff Promotion
                 </Nav.Link>
               </Nav.Item>
             </>

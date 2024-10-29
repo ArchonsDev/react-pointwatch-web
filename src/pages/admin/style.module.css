@@ -55,7 +55,7 @@
 }
 
 .formSection {
-  font-family: "Poppins-SemiBold";
+  font-family: "Poppins-SemiBold" !important;
 }
 
 .pageNum {

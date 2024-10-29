@@ -48,8 +48,8 @@ const SWTDDetails = () => {
         token: token,
       },
       (response) => {
-        const data = response.data.data;
-        const status = user?.clearances.find(
+        const data = response.data.swtd_form;
+        const status = user?.clearances?.find(
           (clearance) => clearance.term.id === data.term.id
         );
         if (status) setTermClearance(status?.is_deleted ? false : true);
@@ -131,6 +131,7 @@ const SWTDDetails = () => {
         token: token,
       },
       (response) => {
+        setCurrentProofIndex(0);
         triggerShowSuccess(3000);
         handleCloseProofModal();
         fetchSWTD();
@@ -152,6 +153,7 @@ const SWTDDetails = () => {
   };
 
   const updateProofSuccess = async () => {
+    setCurrentProofIndex(0);
     triggerShowSuccess(3000);
     fetchSWTD();
   };
@@ -193,7 +195,7 @@ const SWTDDetails = () => {
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center">
       <Row className="w-100 mb-2">
-        <Col>
+        <Col xl={9} lg={6} md={6} xs={12}>
           <h3 className={styles.label}>
             <i
               className={`${styles.triangle} fa-solid fa-caret-left fa-xl`}
@@ -203,7 +205,7 @@ const SWTDDetails = () => {
         </Col>
 
         {/* Edit/Delete & Cancel Buttons */}
-        <Col lg="auto" md="auto" xs={12}>
+        <Col className="text-end" xl={3} lg={6} md={6} xs={12}>
           {isEditing ? (
             <BtnSecondary
               onClick={() => {
@@ -233,8 +235,8 @@ const SWTDDetails = () => {
           show={showDeleteModal}
           onHide={closeDeleteModal}
           onConfirm={handleDeleteRecord}
-          header={"Delete SWTD"}
-          message={"Do you wish to delete this submission?"}
+          header={"Delete SWTD?"}
+          message={"This action is irreversible."}
         />
       </Row>
 
@@ -242,7 +244,7 @@ const SWTDDetails = () => {
         <Card.Header className={styles.cardHeader}>
           <Row>
             {/* SWTD Status */}
-            <Col>
+            <Col lg={6} md={6} xs={7}>
               Status:{" "}
               <span
                 className={
@@ -261,14 +263,12 @@ const SWTDDetails = () => {
             </Col>
 
             {!isEditing && (
-              <>
-                <Col className={`text-end`}>
-                  <span
-                    className={
-                      styles.pointsDisplay
-                    }>{`${swtd?.points} POINTS`}</span>
-                </Col>
-              </>
+              <Col className={`text-end`} lg={6} md={6} xs={5}>
+                <span
+                  className={
+                    styles.pointsDisplay
+                  }>{`${swtd?.points} POINTS`}</span>
+              </Col>
             )}
           </Row>
         </Card.Header>
@@ -317,9 +317,9 @@ const SWTDDetails = () => {
                   lg={2}
                   md={2}
                   xs={4}>
-                  <span className={styles.formLabel}>Term</span>
+                  Term
                 </Col>
-                <Col>{swtd?.term.name}</Col>
+                <Col className="mb-lg-3 mb-2">{swtd?.term.name}</Col>
               </Row>
 
               <Row>
@@ -330,32 +330,10 @@ const SWTDDetails = () => {
                   xs={4}>
                   Category
                 </Col>
-                <Col lg={4} md={4} xs={8}>
+                <Col className="mb-lg-3 mb-2" lg={4} md={4} xs={8}>
                   {swtd?.category}
                 </Col>
-                <Col
-                  className={`${styles.formLabel} mb-lg-3 mb-2`}
-                  lg={2}
-                  md={2}
-                  xs={4}>
-                  Has deliverables
-                </Col>
-                <Col>
-                  {swtd?.has_deliverables === true ? (
-                    <>
-                      <i className="fa-solid fa-circle-check text-success fa-lg me-2"></i>
-                      Yes
-                    </>
-                  ) : (
-                    <>
-                      <i className="fa-solid fa-circle-xmark text-danger fa-lg me-2"></i>
-                      No
-                    </>
-                  )}
-                </Col>
-              </Row>
 
-              <Row className="mb-lg-3 mb-2">
                 <Col
                   className={`${styles.formLabel} mb-lg-3 mb-2`}
                   lg={2}
@@ -363,7 +341,7 @@ const SWTDDetails = () => {
                   xs={4}>
                   Duration
                 </Col>
-                <Col md="4">
+                <Col className="mb-lg-3 mb-2" lg={4} md={4} xs={8}>
                   {swtd?.start_date === swtd?.end_date ? (
                     wordDate(swtd?.start_date)
                   ) : (
@@ -376,10 +354,17 @@ const SWTDDetails = () => {
                     <> ({swtd?.total_hours} hours)</>
                   )}
                 </Col>
-                <Col className={styles.formLabel} md="2">
+              </Row>
+
+              <Row>
+                <Col
+                  className={`${styles.formLabel} mb-lg-3 mb-2`}
+                  lg={2}
+                  md={2}
+                  xs={4}>
                   Proof
                 </Col>
-                <Col md="4">
+                <Col className="mb-lg-3 mb-2" lg={4} md={4} xs={8}>
                   {swtd?.proof && swtd?.proof.length > 0 ? (
                     <BtnPrimary
                       onClick={() => {

@@ -320,9 +320,8 @@ const Term = () => {
             <Table striped bordered hover responsive>
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th className="col-1">Type</th>
+                  <th>Term Name</th>
+                  <th className="col-1">Term Type</th>
                   <th className="col-2">Start Date</th>
                   <th className="col-2">End Date</th>
                   <th className="text-center">Actions</th>
@@ -332,7 +331,6 @@ const Term = () => {
                 {terms &&
                   [...terms].reverse().map((term) => (
                     <tr key={term.id}>
-                      <td>{term.id}</td>
                       <td>{term.name}</td>
                       <td>{term.type}</td>
                       <td>{monthYearDate(term.start_date)}</td>
@@ -364,9 +362,9 @@ const Term = () => {
                 show={showDeleteModal}
                 onHide={closeDeleteModal}
                 onConfirm={handleDelete}
-                header={"Delete Term"}
+                header={"Delete Term?"}
                 message={
-                  "Are you sure about deleting this term? It must not have any SWTD submissions linked to it."
+                  "This action is irreversible. Ensure there are no SWTD submissions linked to this term."
                 }
               />
             </Table>

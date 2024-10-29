@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate, useParams } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, DropdownButton, Dropdown, Modal, Spinner } from "react-bootstrap"; /* prettier-ignore */
 
 import status from "../../data/status.json";
 import { getTerms, clearEmployee, revokeEmployee } from "../../api/admin";
@@ -11,7 +11,8 @@ import { exportSWTDList } from "../../api/export";
 import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
-import SWTDInfo from "../employee dashboard/SWTDInfo";
+import PaginationComponent from "../../components/Paging";
+import PointsRequirement from "../../common/info/PointsRequirement";
 import ConfirmationModal from "../../common/modals/ConfirmationModal";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
@@ -22,6 +23,7 @@ const EmployeeSWTD = () => {
   const { id } = useParams();
   const token = Cookies.get("userToken");
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const [loading, setLoading] = useState(true);
   const [userSWTDs, setUserSWTDs] = useState([]);
@@ -42,8 +44,11 @@ const EmployeeSWTD = () => {
 
   const [showModal, openModal, closeModal] = useSwitch();
   const [showRevokeModal, openRevokeModal, closeRevokeModal] = useSwitch();
-  const [showPointsModal, openPointsModal, closePointsModal] = useSwitch();
   const recordsPerPage = 15;
+
+  const handleResize = () => {
+    setIsMobile(window.innerWidth <= 762);
+  };
 
   const fetchUser = async () => {
     await getUser(
@@ -52,12 +57,12 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        const emp = response.data.data;
+        const emp = response.data.user;
         setEmployee(emp);
         setDepartmentTypes({
           ...departmentTypes,
-          semester: emp?.department?.use_schoolyear === false ? true : false,
-          midyear: emp?.department?.midyear_points > 0 ? true : false,
+          semester: emp?.department?.use_schoolyear === false,
+          midyear: emp?.department?.midyear_points > 0,
           academic: emp?.department?.use_schoolyear,
         });
         fetchAllSWTDs();
@@ -75,7 +80,7 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        setUserSWTDs(response.data);
+        setUserSWTDs(response.swtd_forms);
         setLoading(false);
       },
       (error) => {
@@ -126,7 +131,7 @@ const EmployeeSWTD = () => {
         token: token,
       },
       (response) => {
-        setTermPoints(response);
+        setTermPoints(response.points);
       }
     );
   };
@@ -154,10 +159,14 @@ const EmployeeSWTD = () => {
 
   const handleRevoke = async (term) => {
     setIsProcessing(true);
+    const clearance = employee.clearances.find(
+      (clear) => clear.term.id === term.id && !clear.is_deleted
+    );
     await revokeEmployee(
       {
         id: id,
         term_id: term.id,
+        clear_id: clearance.id,
         token: token,
       },
       async (response) => {
@@ -170,8 +179,9 @@ const EmployeeSWTD = () => {
   };
 
   const truncateTitle = (title) => {
-    if (title.length > 40) {
-      return title.substring(0, 40) + "...";
+    const len = isMobile ? 12 : 30;
+    if (title.length > len) {
+      return title.substring(0, len) + "...";
     }
     return title;
   };
@@ -241,6 +251,8 @@ const EmployeeSWTD = () => {
       else {
         fetchUser();
       }
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
     }
   }, [user, navigate]);
 
@@ -251,21 +263,14 @@ const EmployeeSWTD = () => {
   }, [departmentTypes]);
 
   useEffect(() => {
-    if (selectedTerm) fetchTermPoints(selectedTerm);
-    const termStatus = employee?.clearances?.find(
-      (clearance) => clearance.term.id === selectedTerm.id
-    );
-    if (termStatus) setTermClearance(termStatus.is_deleted ? false : true);
-    else setTermClearance(false);
-  }, [selectedTerm]);
-
-  useEffect(() => {
     if (selectedTerm && employee) {
       fetchTermPoints(selectedTerm);
       const termStatus = employee?.clearances?.find(
-        (clearance) => clearance.term.id === selectedTerm.id
+        (clearance) =>
+          clearance.term.id === selectedTerm.id && !clearance.is_deleted
       );
-      if (termStatus) setTermClearance(termStatus.is_deleted ? false : true);
+
+      if (termStatus) setTermClearance(true);
       else setTermClearance(false);
     }
   }, [selectedTerm, employee]);
@@ -287,7 +292,7 @@ const EmployeeSWTD = () => {
     );
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
       <Row className="w-100 mb-2">
         <Col>
           <h3 className={styles.label}>
@@ -298,9 +303,6 @@ const EmployeeSWTD = () => {
                 else navigate("/dashboard");
               }}></i>{" "}
             {pageTitle}
-            <i
-              className={`${styles.commentEdit} fa-solid fa-circle-info fa-xs ms-2`}
-              onClick={openPointsModal}></i>
           </h3>
         </Col>
 
@@ -332,25 +334,10 @@ const EmployeeSWTD = () => {
             </DropdownButton>
           )}
         </Col>
-
-        <Modal
-          show={showPointsModal}
-          onHide={closePointsModal}
-          size="lg"
-          centered>
-          <Modal.Header closeButton>
-            <Modal.Title className={styles.formLabel}>
-              Required Points & Compliance Schedule
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <SWTDInfo />
-          </Modal.Body>
-        </Modal>
       </Row>
 
       <Row className={`w-100 mb-4`}>
-        <Col className={styles.employeeDetails} lg={4}>
+        <Col className={`${styles.employeeDetails} mb-3`} xl={4} lg={5} md={6}>
           <div className={`${styles.userStat} mb-1`}>SWTD Statistics</div>
           <div>
             <i className="fa-solid fa-spinner fa-lg me-2"></i>Total Pending
@@ -375,15 +362,34 @@ const EmployeeSWTD = () => {
               SWTDs
             </span>
           </div>
+          <div>
+            <i className="fa-solid fa-circle-check fa-lg me-2"></i>Total SWTDs
+            Approved:{" "}
+            <span className={styles.userStat}>
+              {
+                termSWTDs.filter(
+                  (swtd) => swtd.validation_status === "APPROVED"
+                ).length
+              }{" "}
+              SWTDs
+            </span>
+          </div>
         </Col>
 
-        <Col className={styles.employeeDetails} lg={4}>
+        <Col className={`${styles.employeeDetails} mb-3`} xl={4} lg={3} md={6}>
           <div className={`${styles.userStat} mb-1`}>User Points</div>
           <div>
             <i className="fa-solid fa-circle-check fa-lg me-2"></i>Current
             Points:{" "}
             <span className={styles.userStat}>
               {termPoints?.valid_points} pts
+            </span>
+          </div>
+          <div>
+            <i className="fa-solid fa-circle-exclamation fa-lg me-2"></i>
+            Required Points:{" "}
+            <span className={styles.userStat}>
+              {termPoints?.required_points} pts
             </span>
           </div>
           <div>
@@ -394,8 +400,8 @@ const EmployeeSWTD = () => {
           </div>
         </Col>
 
-        <Col className="text-end">
-          <div className={`${styles.employeeDetails}`}>
+        <Col className="d-flex flex-column justify-content-center text-lg-end text-md-start">
+          <div className={`${styles.userStat} mb-3`}>
             <i className="fa-solid fa-user-check fa-lg me-1"></i>Status:{" "}
             <span
               className={`ms-1 text-${termClearance ? "success" : "danger"} ${
@@ -404,12 +410,7 @@ const EmployeeSWTD = () => {
               {termClearance ? "CLEARED" : "PENDING CLEARANCE"}
             </span>
           </div>
-          <div className={`${styles.employeeDetails} mb-1`}>
-            Required Points:{" "}
-            <span className={styles.userStat}>
-              {termPoints?.required_points} pts
-            </span>
-          </div>
+
           <div className="mb-1">
             {(user?.is_head || user?.is_staff || user?.is_superuser) &&
               selectedTerm !== null &&
@@ -417,8 +418,7 @@ const EmployeeSWTD = () => {
                 <>
                   <BtnSecondary
                     onClick={openRevokeModal}
-                    disabled={isProcessing} // Disable when processing
-                  >
+                    disabled={isProcessing}>
                     <i className="fa-solid fa-xmark me-2"></i>Revoke
                   </BtnSecondary>{" "}
                 </>
@@ -427,7 +427,7 @@ const EmployeeSWTD = () => {
                   <BtnPrimary
                     onClick={openModal}
                     disabled={
-                      isProcessing || // Disable when processing
+                      isProcessing ||
                       termPoints?.valid_points + employee?.point_balance <
                         termPoints?.required_points
                     }>
@@ -447,16 +447,10 @@ const EmployeeSWTD = () => {
         </Col>
       </Row>
 
-      {/* <Row className="w-100">
-        <Col className="p-0">
-          <hr className="mt-0" style={{ opacity: 1 }} />
-        </Col>
-      </Row> */}
-
       <Row className="w-100">
         {/* SEARCH BAR */}
-        <Col className="text-start p-0 me-2" md={5}>
-          <InputGroup className={`${styles.searchBar} mb-3`}>
+        <Col className="text-start p-0 me-2 mb-3" lg={6} md={6} xs={12}>
+          <InputGroup className={`${styles.searchBar}`}>
             <InputGroup.Text>
               <i className="fa-solid fa-magnifying-glass"></i>
             </InputGroup.Text>
@@ -470,7 +464,11 @@ const EmployeeSWTD = () => {
         </Col>
 
         {/* STATUS FILTER */}
-        <Col className={styles.filterOption} md="auto">
+        <Col
+          className={`${styles.filterOption} p-0 mb-3`}
+          lg={3}
+          md={5}
+          xs={12}>
           <InputGroup>
             <InputGroup.Text>
               <i className="fa-solid fa-tags fa-lg"></i>
@@ -511,62 +509,61 @@ const EmployeeSWTD = () => {
 
       {currentRecords.length !== 0 ? (
         <>
-          <Row className="w-100 mb-3">
-            <ListGroup className="w-100" variant="flush">
-              <ListGroup.Item className={styles.swtdHeader}>
+          <ListGroup className="w-100" variant="flush">
+            <ListGroup.Item className={styles.swtdHeader}>
+              <Row>
+                <Col lg={5} md={4} xs={7}>
+                  Title
+                </Col>
+                {!isMobile && (
+                  <Col lg={4} md={4}>
+                    Category
+                  </Col>
+                )}
+                <Col lg={2} md={2} xs={3}>
+                  Status
+                </Col>
+                <Col className="text-center" lg={1} md={2} xs={2}>
+                  Points
+                </Col>
+              </Row>
+            </ListGroup.Item>
+          </ListGroup>
+          <ListGroup className="w-100">
+            {currentRecords.reverse().map((item) => (
+              <ListGroup.Item
+                key={item.id}
+                className={styles.tableBody}
+                onClick={() => handleViewSWTD(item.id)}>
                 <Row>
-                  <Col md={5}>Title</Col>
-                  <Col md={4}>Category</Col>
-                  <Col md={2}>Status</Col>
-                  <Col md={1}>Points</Col>
+                  <Col lg={5} md={4} xs={7}>
+                    {truncateTitle(item.title)}
+                  </Col>
+                  {!isMobile && (
+                    <Col lg={4} md={4}>
+                      {truncateTitle(item.category)}
+                    </Col>
+                  )}
+                  <Col lg={2} md={2} xs={3}>
+                    {item.validation_status === "REJECTED"
+                      ? "FOR REVISION"
+                      : item.validation_status}
+                  </Col>
+                  <Col className="text-center" lg={1} md={2} xs={2}>
+                    {item.points}
+                  </Col>
                 </Row>
               </ListGroup.Item>
-            </ListGroup>
-            <ListGroup>
-              {currentRecords.reverse().map((item) => (
-                <ListGroup.Item
-                  key={item.id}
-                  className={styles.tableBody}
-                  onClick={() => handleViewSWTD(item.id)}>
-                  <Row>
-                    <Col md={5}>{truncateTitle(item.title)}</Col>
-                    <Col md={4}>{truncateTitle(item.category)}</Col>
-                    <Col md={2}>
-                      {item.validation_status === "REJECTED"
-                        ? "FOR REVISION"
-                        : item.validation_status}
-                    </Col>
-                    <Col md={1}>{item.points}</Col>
-                  </Row>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Row>
-          <Row className="w-100 mb-3">
+            ))}
+          </ListGroup>
+
+          <Row className="w-100 mt-3 mb-3">
             <Col className="d-flex justify-content-center">
-              <Pagination className={styles.pageNum}>
-                <Pagination.First onClick={() => handlePageChange(1)} />
-                <Pagination.Prev
-                  onClick={() => {
-                    if (currentPage > 1) handlePageChange(currentPage - 1);
-                  }}
-                />
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <Pagination.Item
-                    key={index + 1}
-                    active={index + 1 === currentPage}
-                    onClick={() => handlePageChange(index + 1)}>
-                    {index + 1}
-                  </Pagination.Item>
-                ))}
-                <Pagination.Next
-                  onClick={() => {
-                    if (currentPage < totalPages)
-                      handlePageChange(currentPage + 1);
-                  }}
-                />
-                <Pagination.Last onClick={() => handlePageChange(totalPages)} />
-              </Pagination>
+              <PaginationComponent
+                totalPages={totalPages}
+                currentPage={currentPage}
+                handlePageChange={handlePageChange}
+              />
             </Col>
           </Row>
         </>

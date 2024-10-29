@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, Form, InputGroup, ListGroup, Spinner, Pagination, Dropdown, DropdownButton, Modal } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, Form, InputGroup, ListGroup, Spinner, Dropdown, DropdownButton, Modal } from "react-bootstrap"; /* prettier-ignore */
 
 import status from "../../data/status.json";
 import { getAllSWTDs } from "../../api/swtd";
@@ -10,6 +10,7 @@ import { exportSWTDList } from "../../api/export";
 import { useSwitch } from "../../hooks/useSwitch";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
+import PaginationComponent from "../../components/Paging";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
@@ -47,7 +48,7 @@ const SWTDDashboard = () => {
         token: token,
       },
       (response) => {
-        setUserSWTDs(response.data);
+        setUserSWTDs(response.swtd_forms);
         setLoading(false);
       },
       (error) => {
@@ -175,7 +176,7 @@ const SWTDDashboard = () => {
   }, [user]);
 
   useEffect(() => {
-    fetchTerms();
+    if (departmentTypes) fetchTerms();
   }, [departmentTypes]);
 
   if (loading)
@@ -336,7 +337,7 @@ const SWTDDashboard = () => {
                   <Col lg={2} md={2} xs={isMobile ? 4 : 2}>
                     Status
                   </Col>
-                  <Col lg={1} md={1} xs={2}>
+                  <Col className="text-center" lg={1} md={1} xs={2}>
                     Points
                   </Col>
                 </Row>
@@ -362,7 +363,7 @@ const SWTDDashboard = () => {
                         ? "FOR REVISION"
                         : item.validation_status}
                     </Col>
-                    <Col lg={1} md={1} xs={2}>
+                    <Col className="text-center" lg={1} md={1} xs={2}>
                       {item.points}
                     </Col>
                   </Row>
@@ -372,29 +373,11 @@ const SWTDDashboard = () => {
           </Row>
           <Row className="w-100 mb-3">
             <Col className="d-flex justify-content-center">
-              <Pagination className={styles.pageNum}>
-                <Pagination.First onClick={() => handlePageChange(1)} />
-                <Pagination.Prev
-                  onClick={() => {
-                    if (currentPage > 1) handlePageChange(currentPage - 1);
-                  }}
-                />
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <Pagination.Item
-                    key={index + 1}
-                    active={index + 1 === currentPage}
-                    onClick={() => handlePageChange(index + 1)}>
-                    {index + 1}
-                  </Pagination.Item>
-                ))}
-                <Pagination.Next
-                  onClick={() => {
-                    if (currentPage < totalPages)
-                      handlePageChange(currentPage + 1);
-                  }}
-                />
-                <Pagination.Last onClick={() => handlePageChange(totalPages)} />
-              </Pagination>
+              <PaginationComponent
+                totalPages={totalPages}
+                currentPage={currentPage}
+                handlePageChange={handlePageChange}
+              />
             </Col>
           </Row>
         </>

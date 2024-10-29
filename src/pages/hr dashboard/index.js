@@ -1,13 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner, Pagination } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Form, ListGroup, Spinner } from "react-bootstrap"; /* prettier-ignore */
 
-import { getAllUsers, getTerms, getAllDepartments, getDepartment } from "../../api/admin"; /* prettier-ignore */
+import { getAllUsers, getTerms, getAllDepartments } from "../../api/admin"; /* prettier-ignore */
 import { getClearanceStatus } from "../../api/user";
 import { exportPointsOverview } from "../../api/export";
 import SessionUserContext from "../../contexts/SessionUserContext";
 
+import PaginationComponent from "../../components/Paging";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
@@ -42,7 +43,7 @@ const HRDashboard = () => {
         token: token,
       },
       (response) => {
-        const employees = response.data?.filter(
+        const employees = response.users?.filter(
           (us) => us.id !== user.id && !us.is_superuser
         );
         setDepartmentUsers(employees);
@@ -50,21 +51,6 @@ const HRDashboard = () => {
       },
       (error) => {
         console.log(error);
-      }
-    );
-  };
-
-  const fetchDepartment = async (id) => {
-    getDepartment(
-      {
-        department_id: id,
-        token: token,
-      },
-      (response) => {
-        setSelectedDepartment(response.data);
-      },
-      (error) => {
-        console.log(error.message);
       }
     );
   };
@@ -103,13 +89,12 @@ const HRDashboard = () => {
   };
 
   const fetchClearanceStatus = (employee, term) => {
-    const termStatus = employee?.clearances.find(
-      (clearance) => clearance.term.id === term
+    const termStatus = employee?.clearances?.find(
+      (clearance) => clearance?.term?.id === term && !clearance.is_deleted
     );
 
     let isCleared = false;
-    if (termStatus) isCleared = termStatus?.is_deleted ? false : true;
-    else isCleared = false;
+    if (termStatus) isCleared = true;
 
     getClearanceStatus(
       {
@@ -121,7 +106,7 @@ const HRDashboard = () => {
         setUserClearanceStatus((prevStatus) => ({
           ...prevStatus,
           [employee.id]: {
-            ...clearanceResponse,
+            ...clearanceResponse.points,
             id: employee.id,
             employee_id: employee.employee_id,
             firstname: employee.firstname,
@@ -246,7 +231,7 @@ const HRDashboard = () => {
   }, [selectedDepartment]);
 
   useEffect(() => {
-    if (selectedDepartment) {
+    if (selectedDepartment && departmentTypes) {
       let filteredTerms = terms;
 
       const validTypes = [
@@ -255,11 +240,10 @@ const HRDashboard = () => {
         ...(departmentTypes.academic ? ["ACADEMIC YEAR"] : []),
       ];
 
-      if (validTypes.length > 0) {
+      if (validTypes.length > 0)
         filteredTerms = filteredTerms.filter((term) =>
           validTypes.includes(term.type)
         );
-      }
 
       const ongoingTerm = filteredTerms.find(
         (term) => term.is_ongoing === true
@@ -292,21 +276,20 @@ const HRDashboard = () => {
     );
 
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-start">
+    <Container className="d-flex flex-column justify-content-center align-items-center">
       <Row className="w-100">
         <Col>
           <h3 className={styles.pageTitle}>Points Overview</h3>
         </Col>
       </Row>
 
-      <Row className="w-100 mb-3">
-        <Col md="6">
+      <Row className="w-100">
+        <Col className="mb-3" lg={6} md={6}>
           <span className={`${styles.deptDropdown} text-muted`}>
             Select a department below to see the records of employees.
           </span>
         </Col>
-
-        <Col className="text-end">
+        <Col className="text-end mb-2">
           <BtnPrimary
             onClick={() => {
               setSearchQuery("");
@@ -318,19 +301,14 @@ const HRDashboard = () => {
           </BtnPrimary>{" "}
           <BtnSecondary
             onClick={handlePrint}
-            disabled={
-              !selectedDepartment ||
-              !selectedDepartment?.members ||
-              !selectedDepartment?.head ||
-              selectedTerm === 0
-            }>
+            disabled={!selectedDepartment || selectedTerm === 0}>
             <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i> Export
           </BtnSecondary>
         </Col>
       </Row>
 
       <Row className="w-100">
-        <Col>
+        <Col lg={5} className="mb-2">
           <InputGroup>
             <InputGroup.Text>
               <i className="fa-solid fa-landmark fa-lg"></i>
@@ -355,8 +333,8 @@ const HRDashboard = () => {
         </Col>
 
         {/* DEPARTMENTS */}
-        <Col>
-          <InputGroup className={`${styles.searchBar} mb-3`}>
+        <Col lg={4} className="mb-2">
+          <InputGroup className={`${styles.searchBar}`}>
             <InputGroup.Text>
               <i className="fa-solid fa-book fa-lg"></i>
             </InputGroup.Text>
@@ -364,7 +342,14 @@ const HRDashboard = () => {
               value={selectedDepartment?.id || ""}
               className={styles.deptDropdown}
               disabled={!selectedLevel}
-              onChange={(e) => fetchDepartment(e.target.value)}>
+              onChange={(e) => {
+                const selectedId = e.target.value;
+
+                const department = filteredDepartments.find(
+                  (dept) => dept.id === parseInt(selectedId, 10)
+                );
+                setSelectedDepartment(department);
+              }}>
               <option value="" disabled>
                 Select Department
               </option>
@@ -380,8 +365,8 @@ const HRDashboard = () => {
         </Col>
 
         {/* TERMS */}
-        <Col>
-          <InputGroup className={`${styles.searchBar} mb-3`}>
+        <Col lg={3} className="mb-2">
+          <InputGroup className={`${styles.searchBar}`}>
             <InputGroup.Text>
               <i className="fa-regular fa-calendar fa-lg"></i>
             </InputGroup.Text>
@@ -411,8 +396,8 @@ const HRDashboard = () => {
 
       {selectedDepartment && selectedTerm !== 0 && (
         <>
-          <Row className="w-100 mb-3">
-            <Col className="text-start" lg={6}>
+          <Row className="w-100">
+            <Col className="text-start mb-2" lg={8}>
               <InputGroup className={`${styles.searchBar}`}>
                 <InputGroup.Text>
                   <i className="fa-solid fa-magnifying-glass"></i>
@@ -426,13 +411,14 @@ const HRDashboard = () => {
                 />
               </InputGroup>
             </Col>
-            {/* Temporarily removed for demo */}
-            {/* <Col
+          </Row>
+
+          {/* <Row className="w-100">
+            <Col
               className={`${styles.semibold} d-flex align-items-center`}
               lg="auto">
               <i className="fa-solid fa-users fa-lg me-2"></i>Total Employees:{" "}
-              {console.log(userClearanceStatus)}
-              {Object.keys(userClearanceStatus)?.length}
+              {filteredEmployees?.length}
             </Col>
             <Col
               className={`${styles.semibold} d-flex align-items-center`}
@@ -440,9 +426,8 @@ const HRDashboard = () => {
               <i className="fa-solid fa-user-check fa-lg text-success me-2"></i>
               Cleared Employees:{" "}
               {
-                Object.keys(userClearanceStatus)?.filter(
-                  (item) => item.is_cleared === true
-                ).length
+                filteredEmployees?.filter((item) => item.is_cleared === true)
+                  .length
               }
             </Col>
             <Col
@@ -451,15 +436,12 @@ const HRDashboard = () => {
               <i className="fa-solid fa-user-xmark fa-lg text-danger me-2"></i>
               Non-cleared Employees:{" "}
               {
-                Object.keys(userClearanceStatus)?.filter(
-                  (item) => item.is_cleared === false
-                ).length
+                filteredEmployees?.filter((item) => item.is_cleared === false)
+                  .length
               }
-            </Col> */}
-          </Row>
-          {/* <Row className="w-100">
-            <hr style={{ opacity: 1 }} />
+            </Col>
           </Row> */}
+
           <Row className="w-100">
             {currentRecords.length === 0 ? (
               <span
@@ -471,10 +453,18 @@ const HRDashboard = () => {
                 <ListGroup className="w-100" variant="flush">
                   <ListGroup.Item className={styles.tableHeader}>
                     <Row>
-                      <Col md={2}>ID No.</Col>
-                      <Col md={7}>Name</Col>
-                      <Col md={1}>Points</Col>
-                      <Col>Status</Col>
+                      <Col lg={1} md={1} xs={2}>
+                        ID
+                      </Col>
+                      <Col lg={8} md={8} xs={5}>
+                        Name
+                      </Col>
+                      <Col className="text-center" lg={1} md={1} xs={2}>
+                        Points
+                      </Col>
+                      <Col className="text-center" lg={2} md={2} xs={3}>
+                        Status
+                      </Col>
                     </Row>
                   </ListGroup.Item>
                 </ListGroup>
@@ -485,15 +475,22 @@ const HRDashboard = () => {
                       className={styles.tableBody}
                       onClick={() => handleEmployeeSWTDClick(item.id)}>
                       <Row>
-                        <Col md={2}>{item.employee_id}</Col>
-                        <Col md={7}>
+                        <Col lg={1} md={1} xs={2}>
+                          {item.employee_id}
+                        </Col>
+                        <Col lg={8} md={8} xs={5}>
                           {item.firstname} {item.lastname}
                         </Col>
-                        <Col md={1}>{item.valid_points}</Col>
+                        <Col className="text-center" lg={1} md={1} xs={2}>
+                          {item.valid_points}
+                        </Col>
                         <Col
                           className={`text-${
                             item.is_cleared ? "success" : "danger"
-                          } ${styles.userStatus}`}>
+                          } ${styles.userStatus} text-center`}
+                          lg={2}
+                          md={2}
+                          xs={3}>
                           {item.is_cleared ? "CLEARED" : "NOT CLEARED"}
                         </Col>
                       </Row>
@@ -508,38 +505,11 @@ const HRDashboard = () => {
           {currentRecords.length !== 0 && (
             <Row className="w-100 mb-3">
               <Col className="d-flex justify-content-center">
-                <Pagination>
-                  <Pagination.First
-                    className={styles.pageNum}
-                    onClick={() => handlePageChange(1)}
-                  />
-                  <Pagination.Prev
-                    className={styles.pageNum}
-                    onClick={() => {
-                      if (currentPage > 1) handlePageChange(currentPage - 1);
-                    }}
-                  />
-                  {Array.from({ length: totalPages }, (_, index) => (
-                    <Pagination.Item
-                      key={index + 1}
-                      active={index + 1 === currentPage}
-                      className={styles.pageNum}
-                      onClick={() => handlePageChange(index + 1)}>
-                      {index + 1}
-                    </Pagination.Item>
-                  ))}
-                  <Pagination.Next
-                    className={styles.pageNum}
-                    onClick={() => {
-                      if (currentPage < totalPages)
-                        handlePageChange(currentPage + 1);
-                    }}
-                  />
-                  <Pagination.Last
-                    className={styles.pageNum}
-                    onClick={() => handlePageChange(totalPages)}
-                  />
-                </Pagination>
+                <PaginationComponent
+                  totalPages={totalPages}
+                  currentPage={currentPage}
+                  handlePageChange={handlePageChange}
+                />
               </Col>
             </Row>
           )}
