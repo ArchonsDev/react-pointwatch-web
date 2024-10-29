@@ -11,7 +11,6 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
 
 const Registration = () => {
-  const [isClicked, setIsClicked] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [isRegistrationComplete, setIsRegistrationComplete] = useState(false);
@@ -93,12 +92,11 @@ const Registration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsClicked(true);
+
     setIsProcessing(true);
 
     if (invalidFields()) {
       setErrorMessage("Please check the details again.");
-      setIsClicked(false);
       setIsProcessing(false);
       return;
     }
@@ -111,7 +109,6 @@ const Registration = () => {
       (response) => {
         setTimeout(() => {
           setIsRegistrationComplete(true);
-          setIsClicked(false);
           setIsProcessing(false);
         });
       },
@@ -439,7 +436,7 @@ const Registration = () => {
                       title={
                         invalidFields() ? "Please check the details again." : ""
                       }>
-                      {isProcessing ? ( // Show spinner when processing
+                      {isProcessing ? (
                         <span
                           className="spinner-border spinner-border-sm"
                           role="status"

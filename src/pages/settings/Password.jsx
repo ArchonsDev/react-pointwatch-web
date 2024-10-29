@@ -69,6 +69,7 @@ const Password = () => {
           ...user,
           password: form.newPassword,
         });
+
         triggerShowSuccess(4500);
       },
       (error) => {

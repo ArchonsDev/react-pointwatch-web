@@ -586,8 +586,8 @@ const Department = () => {
                     show={showDeleteModal}
                     onHide={closeDeleteModal}
                     onConfirm={handleDelete}
-                    header={"Delete Department"}
-                    message={"Are you sure about deleting this department?"}
+                    header={"Delete Department?"}
+                    message={"This action is irreversible."}
                   />
                 </Table>
                 <Row className="w-100 mb-3">

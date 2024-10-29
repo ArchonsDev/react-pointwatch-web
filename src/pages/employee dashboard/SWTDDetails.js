@@ -235,8 +235,8 @@ const SWTDDetails = () => {
           show={showDeleteModal}
           onHide={closeDeleteModal}
           onConfirm={handleDeleteRecord}
-          header={"Delete SWTD"}
-          message={"Do you wish to delete this submission?"}
+          header={"Delete SWTD?"}
+          message={"This action is irreversible."}
         />
       </Row>
 

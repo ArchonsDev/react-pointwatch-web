@@ -203,7 +203,7 @@ const Comments = () => {
                 onHide={closeModal}
                 onConfirm={handleDelete}
                 header={"Delete Comment"}
-                message={"Do you wish to delete this comment?"}
+                message={"This action is irreversible."}
               />
             </ListGroup>
           </Row>

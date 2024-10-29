@@ -26,6 +26,7 @@ const General = () => {
   const [levels, setLevels] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [selectedLevel, setSelectedLevel] = useState(null);
+  const [disable, setDisable] = useState(false);
   const [form, setForm] = useState({
     employee_id: "",
     firstname: "",
@@ -82,6 +83,7 @@ const General = () => {
   };
 
   const handleSubmit = async () => {
+    setDisable(true);
     await updateUser(
       {
         id: user.id,
@@ -96,10 +98,12 @@ const General = () => {
           lastname: response.data.user.lastname,
           department: response.data.user.department,
         });
+        setDisable(false);
         cancelEditing();
         triggerShowSuccess(4500);
       },
       (error) => {
+        setDisable(false);
         setErrorMessage(error.message);
         triggerShowError(4500);
       }
@@ -305,7 +309,9 @@ const General = () => {
             </BtnSecondary>
           ) : (
             <>
-              <BtnPrimary onClick={openModal} disabled={invalidFields()}>
+              <BtnPrimary
+                onClick={openModal}
+                disabled={invalidFields() || disable}>
                 Save Changes
               </BtnPrimary>{" "}
               <BtnSecondary onClick={handleCancel}>Cancel</BtnSecondary>

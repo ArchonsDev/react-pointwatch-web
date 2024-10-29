@@ -15,6 +15,7 @@ const HeadPromotion = () => {
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [disable, setDisable] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 20;
 
@@ -37,6 +38,7 @@ const HeadPromotion = () => {
   };
 
   const grantHead = async (id, val) => {
+    setDisable(true);
     await addHead(
       {
         id: id,
@@ -45,15 +47,18 @@ const HeadPromotion = () => {
       },
       (response) => {
         fetchAllUsers();
+        setDisable(false);
         setLoading(false);
       },
       (error) => {
+        setDisable(false);
         console.log(error);
       }
     );
   };
 
   const revokeHead = async (id) => {
+    setDisable(true);
     await removeHead(
       {
         id: id,
@@ -61,9 +66,11 @@ const HeadPromotion = () => {
       },
       (response) => {
         fetchAllUsers();
+        setDisable(false);
         setLoading(false);
       },
       (error) => {
+        setDisable(false);
         console.log(error);
       }
     );
@@ -187,6 +194,7 @@ const HeadPromotion = () => {
                               <>
                                 {item.is_head ? (
                                   <BtnSecondary
+                                    disabled={disable}
                                     onClick={() =>
                                       revokeHead(item.department.id)
                                     }>
@@ -196,6 +204,7 @@ const HeadPromotion = () => {
                                   </BtnSecondary>
                                 ) : (
                                   <BtnPrimary
+                                    disabled={disable}
                                     onClick={() =>
                                       grantHead(item.department.id, item.id)
                                     }>

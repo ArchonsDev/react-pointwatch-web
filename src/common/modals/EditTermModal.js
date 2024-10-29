@@ -263,7 +263,7 @@ const EditTermModal = ({ show, onHide, data, editSuccess }) => {
         onConfirm={handleSubmit}
         header={"Update Term"}
         message={
-          "Do you wish to save these changes? This will affect SWTD point calculations for this term."
+          "Do you wish to save these changes? This may affect SWTD point calculations for this term."
         }
       />
     </>

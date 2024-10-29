@@ -15,6 +15,7 @@ const StaffPromotion = () => {
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [disable, setDisable] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 20;
 
@@ -37,6 +38,7 @@ const StaffPromotion = () => {
   };
 
   const grantRevokeStaff = async (id, val) => {
+    setDisable(true);
     await updateStaff(
       {
         id: id,
@@ -45,9 +47,11 @@ const StaffPromotion = () => {
       },
       (response) => {
         fetchAllUsers();
+        setDisable(false);
         setLoading(false);
       },
       (error) => {
+        setDisable(false);
         console.log(error);
       }
     );
@@ -163,6 +167,7 @@ const StaffPromotion = () => {
                             <>
                               {item.is_staff ? (
                                 <BtnSecondary
+                                  disabled={disable}
                                   onClick={() => {
                                     const val = item.is_head ? 1 : 0;
                                     grantRevokeStaff(item.id, val);
@@ -173,6 +178,7 @@ const StaffPromotion = () => {
                                 </BtnSecondary>
                               ) : (
                                 <BtnPrimary
+                                  disabled={disable}
                                   onClick={() => grantRevokeStaff(item.id, 2)}>
                                   <i
                                     className={`${styles.icon} fa-solid fa-circle-arrow-up fa-lg me-2`}></i>

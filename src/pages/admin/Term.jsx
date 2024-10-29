@@ -362,9 +362,9 @@ const Term = () => {
                 show={showDeleteModal}
                 onHide={closeDeleteModal}
                 onConfirm={handleDelete}
-                header={"Delete Term"}
+                header={"Delete Term?"}
                 message={
-                  "Are you sure about deleting this term? It must not have any SWTD submissions linked to it."
+                  "This action is irreversible. Ensure there are no SWTD submissions linked to this term."
                 }
               />
             </Table>
