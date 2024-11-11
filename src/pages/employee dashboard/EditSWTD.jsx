@@ -156,20 +156,17 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     textarea.style.height = "auto";
     textarea.style.height = `${textarea.scrollHeight}px`;
 
-    if (e.target.name === "category" && e.target.value.startsWith("Degree")) {
-      setForm({
-        ...form,
-        [e.target.name]: e.target.value,
-      });
-    } else if (e.target.name === "term_id") {
-      const selectedTermId = parseInt(e.target.value);
+    if (e.target.name === "term_id") {
+      const selectedTermId = parseInt(e.target.value, 10);
       const term = terms.find((term) => term.id === selectedTermId);
 
       if (term) {
         const status = user?.clearances.find(
-          (clearance) => clearance.term.id === selectedTermId
+          (clearance) =>
+            clearance.term.id === selectedTermId && !clearance.is_deleted
         );
-        if (status) setInvalidTerm(status?.is_deleted ? false : true);
+
+        if (status) setInvalidTerm(true);
         else setInvalidTerm(false);
 
         const formattedStartDate = formatDate(term.start_date);
@@ -197,11 +194,18 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
   };
 
   const invalidFields = () => {
-    const requiredFields = ["title", "venue", "category", "benefits"];
+    const requiredFields = [
+      "title",
+      "venue",
+      "category",
+      "benefits",
+      "start_date",
+      "end_date",
+    ];
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       form.term_id === 0 ||
-      form.points <= 0 ||
+      form.total_hours <= 0 ||
       validateDates(form.start_date, form.category, selectedTerm) ||
       validateDates(form.end_date, form.category, selectedTerm) ||
       invalidTerm
@@ -277,9 +281,10 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
   useEffect(() => {
     if (selectedTerm) {
       const status = user?.clearances?.find(
-        (clearance) => clearance.term.id === selectedTerm.id
+        (clearance) =>
+          clearance.term.id === selectedTerm.id && !clearance.is_deleted
       );
-      if (status) setInvalidTerm(status?.is_deleted ? false : true);
+      if (status) setInvalidTerm(true);
       else setInvalidTerm(false);
     }
   }, [selectedTerm]);
@@ -487,6 +492,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   onChange={handleChange}
                   value={form.total_hours}
                   disabled={loading}
+                  isInvalid={form?.total_hours == 0}
                 />
               </FloatingLabel>
             </Col>

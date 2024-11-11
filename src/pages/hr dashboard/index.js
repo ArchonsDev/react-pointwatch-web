@@ -90,7 +90,8 @@ const HRDashboard = () => {
 
   const fetchClearanceStatus = (employee, term) => {
     const termStatus = employee?.clearances?.find(
-      (clearance) => clearance?.term?.id === term && !clearance.is_deleted
+      (clearance) =>
+        clearance?.term?.id === parseInt(term, 10) && !clearance.is_deleted
     );
 
     let isCleared = false;
@@ -374,7 +375,7 @@ const HRDashboard = () => {
               value={selectedTerm}
               className={styles.deptDropdown}
               onChange={(e) => {
-                setSelectedTerm(e.target.value.id);
+                setSelectedTerm(e.target.value);
               }}
               disabled={!selectedDepartment}>
               <option value="0" disabled>
