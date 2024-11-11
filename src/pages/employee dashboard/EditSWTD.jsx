@@ -492,7 +492,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   onChange={handleChange}
                   value={form.total_hours}
                   disabled={loading}
-                  isInvalid={form?.total_hours == 0}
+                  isInvalid={form?.total_hours === 0}
                 />
               </FloatingLabel>
             </Col>

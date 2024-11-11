@@ -535,8 +535,12 @@ const AddSWTD = () => {
                     min={0}
                     onChange={handleChange}
                     value={form.total_hours}
-                    disabled={loading}
-                    isInvalid={form?.total_hours == 0}
+                    disabled={
+                      loading ||
+                      isEmpty(form.start_date) ||
+                      isEmpty(form.end_date)
+                    }
+                    isInvalid={form?.total_hours === 0}
                   />
                 </FloatingLabel>
               </Col>
