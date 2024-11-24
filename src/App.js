@@ -15,7 +15,7 @@ import Dashboard from "./pages/dashboard";
 import EmployeeSWTD from "./pages/dashboard/EmployeeSWTD";
 import ViewSWTD from "./pages/dashboard/ViewSWTD";
 import DisplaySWTD from "./pages/employee dashboard/DisplaySWTD";
-import HRDashboard from "./pages/hr dashboard/HRdashboard";
+import HRDashboard from "./pages/hr dashboard/dashboard";
 import PointsOverviewDashboard from "./pages/hr dashboard";
 import Admin from "./pages/admin";
 import Settings from "./pages/settings";
@@ -23,8 +23,7 @@ import Drawer from "./common/drawer";
 
 import HRContextProvider from "./contexts/HRContext";
 import SessionUserContext from "./contexts/SessionUserContext";
-import { getUser, getUserDepartment, getUserClearances } from "./api/user";
-import { getAllSWTDs } from "./api/swtd";
+import { getUser } from "./api/user";
 import styles from "./styles/App.module.css";
 
 import { MsalProvider } from "@azure/msal-react";
@@ -81,7 +80,7 @@ const App = () => {
     "/swtd/all": "SWTD Submissions",
     "/admin": "System Management",
     "/hr": "Points Overview",
-    "/hr-dashboard": "HR Dashboard",
+    "/hr-dashboard": "Dashboard",
   };
 
   document.title = tabNames[location.pathname] || "PointWatch";

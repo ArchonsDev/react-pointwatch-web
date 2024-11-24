@@ -206,7 +206,7 @@ const PointsOverviewDashboard = () => {
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      if (user?.is_admin) navigate("/dashboard");
+      if (user?.is_head) navigate("/dashboard");
       else if (!user?.is_staff && !user?.is_superuser) navigate("/swtd");
       else {
         setLoading(true);

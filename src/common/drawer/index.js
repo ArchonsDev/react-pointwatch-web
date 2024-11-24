@@ -148,7 +148,7 @@ const Drawer = () => {
                         handleClose();
                       }}>
                       <i
-                        className={`fa-solid fa-list-check fa-lg ${styles.drawerIcon}`}></i>
+                        className={`fa-solid fa-square-poll-vertical fa-lg ${styles.drawerIcon}`}></i>
                       <span className="px-2">Dashboard</span>
                     </Nav.Link>
                   )}

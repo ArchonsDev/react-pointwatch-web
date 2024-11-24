@@ -4,22 +4,19 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export const PieChart = ({ swtd, term }) => {
-  // Generate pie data dynamically
   const pieData = {
-    labels: swtd.map((item) => item.label), // Extract labels ("Admin", "Support")
+    labels: swtd.map((item) => item.label),
     datasets: [
       {
         label: `Distribution for ${term?.name || "Term"}`,
-        data: swtd.map((item) => item.value), // Extract values for each department
-        backgroundColor: ["#FF6384", "#36A2EB"], // Example colors for "Admin" and "Support"
+        data: swtd.map((item) => item.value),
+        backgroundColor: ["#FF6384", "#36A2EB"],
         hoverBackgroundColor: ["#FF6384", "#36A2EB"],
       },
     ],
   };
 
   const options = {
-    responsive: true,
-    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: "top",
@@ -34,7 +31,7 @@ export const PieChart = ({ swtd, term }) => {
     },
   };
 
-  return <Pie data={pieData} options={options} width={400} height={400} />;
+  return <Pie data={pieData} options={options} />;
 };
 
 {
