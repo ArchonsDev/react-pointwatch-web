@@ -13,7 +13,7 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
 
-const HRDashboard = () => {
+const PointsOverviewDashboard = () => {
   const token = Cookies.get("userToken");
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
@@ -520,4 +520,4 @@ const HRDashboard = () => {
   );
 };
 
-export default HRDashboard;
+export default PointsOverviewDashboard;

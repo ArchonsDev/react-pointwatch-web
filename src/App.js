@@ -15,7 +15,8 @@ import Dashboard from "./pages/dashboard";
 import EmployeeSWTD from "./pages/dashboard/EmployeeSWTD";
 import ViewSWTD from "./pages/dashboard/ViewSWTD";
 import DisplaySWTD from "./pages/employee dashboard/DisplaySWTD";
-import HRDashboard from "./pages/hr dashboard";
+import HRDashboard from "./pages/hr dashboard/HRdashboard";
+import PointsOverviewDashboard from "./pages/hr dashboard";
 import Admin from "./pages/admin";
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
@@ -80,6 +81,7 @@ const App = () => {
     "/swtd/all": "SWTD Submissions",
     "/admin": "System Management",
     "/hr": "Points Overview",
+    "/hr-dashboard": "HR Dashboard",
   };
 
   document.title = tabNames[location.pathname] || "PointWatch";
@@ -164,6 +166,19 @@ const App = () => {
             />
             <Route
               path="/hr"
+              element={
+                token ? (
+                  <HRContextProvider>
+                    <PointsOverviewDashboard />
+                  </HRContextProvider>
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+
+            <Route
+              path="/hr-dashboard"
               element={
                 token ? (
                   <HRContextProvider>

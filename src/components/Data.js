@@ -1,4 +1,5 @@
 import categories from "../data/categories.json";
+import Department from "../pages/admin/Department";
 
 export const createBarData = (swtd, term) => {
   const categoriesArr = categories.categories;
@@ -33,33 +34,49 @@ export const createBarData = (swtd, term) => {
   };
 };
 
-export const createPieData = (swtd, term) => {
-  const categoriesArr = categories.categories;
-  const filteredSWTDs = swtd?.filter((item) => item.term.id === term?.id);
-  const data = categoriesArr.map((category) => {
-    return filteredSWTDs.filter((item) => item.category === category.name)
-      .length;
+export const createStackedBarData = (employees, departments, term) => {
+  if (!employees || !departments || departments.length === 0 || !term) {
+    return { labels: [], datasets: [] };
+  }
+
+  const clearedData = [];
+  const notClearedData = [];
+
+  departments.forEach((department) => {
+    const filteredEmployees = employees.filter(
+      (employee) =>
+        employee.department?.id === department.id &&
+        employee.terms?.some((t) => t.id === term.id)
+    );
+
+    const clearedCount = filteredEmployees.filter(
+      (employee) => employee.cleared
+    ).length;
+
+    const notClearedCount = filteredEmployees.filter(
+      (employee) => !employee.cleared
+    ).length;
+
+    clearedData.push(clearedCount);
+    notClearedData.push(notClearedCount);
   });
 
-  const labels = categoriesArr.map((category) => category.id);
   return {
-    labels,
+    labels: departments.map((dept) => dept.name),
     datasets: [
       {
-        label: `SWTDs submitted`,
-        data,
-        backgroundColor: [
-          "#9D084A",
-          "#A92761",
-          "#B64677",
-          "#C2658E",
-          "#CE84A5",
-          "#DAA2BB",
-          "#E7C1D2",
-          "#F3E0E8",
-          "#FFFFFF",
-        ],
-        hoverOffset: 4,
+        label: "Cleared Employees",
+        data: clearedData,
+        backgroundColor: "hsl(120, 70%, 50%)",
+        borderColor: "#000000",
+        borderWidth: 1,
+      },
+      {
+        label: "Not Cleared Employees",
+        data: notClearedData,
+        backgroundColor: "hsl(0, 70%, 50%)",
+        borderColor: "#000000",
+        borderWidth: 1,
       },
     ],
   };

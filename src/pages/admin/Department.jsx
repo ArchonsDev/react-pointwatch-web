@@ -72,6 +72,7 @@ const Department = () => {
         token: token,
       },
       (response) => {
+        console.log(response.departments);
         setDepartments(response.departments);
         const uniqueLevels = [
           ...new Set(response.departments.map((dept) => dept.level)),

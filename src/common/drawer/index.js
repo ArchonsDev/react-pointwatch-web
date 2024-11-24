@@ -136,6 +136,23 @@ const Drawer = () => {
                     </Nav.Link>
                   )}
 
+                  {(user?.is_staff || user?.is_superuser) && (
+                    <Nav.Link
+                      className={`mx-3 my-1 p-3 ${
+                        location.pathname === "hr-dashboard"
+                          ? styles.active
+                          : styles.navItem
+                      }`}
+                      onClick={(e) => {
+                        navigate("hr-dashboard");
+                        handleClose();
+                      }}>
+                      <i
+                        className={`fa-solid fa-list-check fa-lg ${styles.drawerIcon}`}></i>
+                      <span className="px-2">Dashboard</span>
+                    </Nav.Link>
+                  )}
+
                   {/* SWTDs */}
                   <Nav.Link
                     className={`mx-3 my-1 p-3 ${
