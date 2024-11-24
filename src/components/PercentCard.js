@@ -21,7 +21,7 @@ const PercentCard = ({ departments, level, term, title }) => {
       <Card.Body>
         <Card.Title>{title}</Card.Title>
         <Card.Text>
-          {term.name}
+          {term?.name}
           <br />({percentage}%) Cleared Employees
         </Card.Text>
       </Card.Body>

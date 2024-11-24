@@ -1,11 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, DropdownButton, Dropdown, Spinner} from "react-bootstrap"; /* prettier-ignore */
-
+import { Row, Col, Container, DropdownButton, Dropdown, Spinner } from "react-bootstrap"; /* prettier-ignore */
 import { getTerms, getAllDepartments } from "../../api/admin"; /* prettier-ignore */
-import { getAllMembers } from "../../api/department";
-
 import PercentCard from "../../components/PercentCard";
 import { Histogram } from "../../components/Histogram";
 import { PieChart } from "../../components/Pie";
@@ -22,19 +19,27 @@ const HRDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [departments, setDepartments] = useState([]);
   const [levels, setLevels] = useState([]);
+  const [selectedLevel, setSelectedLevel] = useState(null); // State for selected level
+  const [histogramData, setHistogramData] = useState([]); // Data for histogram
   const [adminSupportData] = useState([
     { label: "Admin", value: 30 },
     { label: "Support", value: 70 },
   ]);
 
-  // Takes the first on going term for each type
-  // Have some conditional whatever if it's semester or midyear for
-  // the different academic departments.
+  // New states for pie chart dropdown and clearance data
+  const [selectedAdminDept, setSelectedAdminDept] = useState(null); // Selected department for pie chart
+  const [clearanceData, setClearanceData] = useState([]); // Data for clearance status (granted or not)
+
+  const excludedLevels = [
+    "ELEMENTARY DEPARTMENT",
+    "JUNIOR HIGH SCHOOL DEPARTMENT",
+    "SENIOR HIGH SCHOOL DEPARTMENT",
+    "ADMIN & ACADEMIC SUPPORT OFFICES",
+  ];
+
   const fetchTerms = () => {
     getTerms(
-      {
-        token: token,
-      },
+      { token },
       (response) => {
         const terms = response.terms;
         const currentTerms = {
@@ -64,11 +69,21 @@ const HRDashboard = () => {
       { token },
       (response) => {
         setDepartments(response.departments);
-        // I don't know if this matters or not lol
         const uniqueLevels = [
-          ...new Set(response.departments.map((dept) => dept.level)),
+          ...new Set(
+            response.departments
+              .map((dept) => dept.level)
+              .filter((level) => !excludedLevels.includes(level))
+          ),
         ];
         setLevels(uniqueLevels);
+
+        // Filter departments for ADMIN & ACADEMIC SUPPORT OFFICES
+        const adminDept = response.departments.filter(
+          (dept) => dept.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
+        );
+        // Set the first department as the default selected department for the pie chart
+        if (adminDept.length > 0) setSelectedAdminDept(adminDept[0]);
       },
       (error) => {
         console.error(error.message);
@@ -76,25 +91,44 @@ const HRDashboard = () => {
     );
   };
 
-  const fetchMembers = (dept) => {
-    getAllMembers(
-      {
-        id: dept.id,
-        token: token,
-      },
-      (response) => {
-        if (response.data.members?.length > 0) {
-          dept.members = dept.members
-            ? [...dept.members, ...response.data.members]
-            : [...response.data.members];
-        } else {
-          dept.members = [];
-        }
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
+  // Handle the change in department selection for the pie chart
+  const handleAdminDeptSelect = (dept) => {
+    setSelectedAdminDept(dept);
+
+    if (dept.employees && Array.isArray(dept.employees)) {
+      // Fetch the clearance data for the selected department (assuming clearance data is available)
+      const clearance = dept.employees.reduce(
+        (acc, employee) => {
+          if (employee.clearanceGranted) {
+            acc.granted++;
+          } else {
+            acc.notGranted++;
+          }
+          return acc;
+        },
+        { granted: 0, notGranted: 0 }
+      );
+
+      // Calculate percentages
+      const totalEmployees = clearance.granted + clearance.notGranted;
+      const grantedPercent = (
+        (clearance.granted / totalEmployees) *
+        100
+      ).toFixed(2);
+      const notGrantedPercent = (
+        (clearance.notGranted / totalEmployees) *
+        100
+      ).toFixed(2);
+
+      setClearanceData([
+        { label: "Granted", value: grantedPercent },
+        { label: "Not Granted", value: notGrantedPercent },
+      ]);
+    } else {
+      // Handle the case where employees data is missing
+      console.error("Employees data is missing for the selected department.");
+      setClearanceData([]); // Clear any previous data
+    }
   };
 
   useEffect(() => {
@@ -105,7 +139,7 @@ const HRDashboard = () => {
       else {
         setLoading(true);
         const fetchData = async () => {
-          fetchDepartments();
+          await fetchDepartments();
           fetchTerms();
         };
         fetchData();
@@ -113,12 +147,27 @@ const HRDashboard = () => {
     }
   }, [user, navigate]);
 
+  // New useEffect to set the default selected level
   useEffect(() => {
-    if (departments)
-      departments?.forEach((dept) => {
-        fetchMembers(dept);
-      });
-  }, [departments]);
+    if (levels.length > 0 && !selectedLevel) {
+      // Set default selected level as the first item in the levels array
+      setSelectedLevel(levels[0]);
+      handleLevelSelect(levels[0]); // Populate histogram for the default level
+    }
+  }, [levels]); // Run whenever levels change
+
+  const handleLevelSelect = (level) => {
+    setSelectedLevel(level);
+
+    const filteredDepartments = departments
+      .filter((dept) => dept.level === level)
+      .map((dept) => ({
+        label: dept.name,
+        value: dept.value || 0,
+      }));
+
+    setHistogramData(filteredDepartments);
+  };
 
   if (loading)
     return (
@@ -147,8 +196,6 @@ const HRDashboard = () => {
       </Row>
 
       <Row className="w-100">
-        {/* Elementary Cleared Card */}
-        {/* UNSURE!!!!! I THINK SCHOOL/ACAD YEAR MIGHT OVERLAP W MIDYEAR */}
         <Col lg={4}>
           <PercentCard
             departments={departments}
@@ -158,8 +205,6 @@ const HRDashboard = () => {
           />
         </Col>
 
-        {/* Junior High Employees Cleared Card */}
-        {/* UNSURE!!!!! I THINK SCHOOL/ACAD YEAR MIGHT OVERLAP W MIDYEAR */}
         <Col lg={4}>
           <PercentCard
             departments={departments}
@@ -169,7 +214,6 @@ const HRDashboard = () => {
           />
         </Col>
 
-        {/* Senior High Employees Cleared Card */}
         <Col lg={4}>
           <PercentCard
             departments={departments}
@@ -180,16 +224,62 @@ const HRDashboard = () => {
         </Col>
       </Row>
 
+      {/* Histogram Section */}
+      <Row className="w-100 mb-3">
+        <Col>
+          <DropdownButton
+            title={selectedLevel || levels[0] || "Loading..."}
+            onSelect={handleLevelSelect}>
+            {levels.map((level) => (
+              <Dropdown.Item key={level} eventKey={level}>
+                {level}
+              </Dropdown.Item>
+            ))}
+          </DropdownButton>
+        </Col>
+      </Row>
+
       <Row className="w-100">
         <Col md={8}>
-          <Histogram
-            data={[5, 10, 8, 3, 7]}
-            labels={["0-10", "11-20", "21-30", "31-40", "41-50"]}
-          />
+          {histogramData.length > 0 ? (
+            <Histogram
+              data={histogramData.map((item) => item.value)}
+              labels={histogramData.map((item) => item.label)}
+            />
+          ) : (
+            <p>No data available for the selected level.</p>
+          )}
         </Col>
 
+        {/* Pie Section */}
         <Col md={4}>
-          <PieChart swtd={adminSupportData} term={schoolTerm} />
+          {/* Admin & Academic Support Offices Department Dropdown */}
+          <DropdownButton
+            title={
+              selectedAdminDept ? selectedAdminDept.name : "Select Department"
+            }
+            onSelect={(deptName) =>
+              handleAdminDeptSelect(
+                departments.find((dept) => dept.name === deptName)
+              )
+            }>
+            {departments
+              .filter(
+                (dept) => dept.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
+              )
+              .map((dept) => (
+                <Dropdown.Item key={dept.name} eventKey={dept.name}>
+                  {dept.name}
+                </Dropdown.Item>
+              ))}
+          </DropdownButton>
+
+          {/* Pie Chart for Clearance Data */}
+          {clearanceData.length > 0 ? (
+            <PieChart swtd={clearanceData} term={schoolTerm} />
+          ) : (
+            <p>No clearance data available for the selected department.</p>
+          )}
         </Col>
       </Row>
     </Container>
