@@ -63,3 +63,13 @@
 .iconEye {
   background-color: white !important;
 }
+
+.boldText {
+  font-family: "Poppins-Bold";
+  text-decoration: underline;
+}
+
+.boldText:hover {
+  color: #9d084a;
+  cursor: pointer;
+}

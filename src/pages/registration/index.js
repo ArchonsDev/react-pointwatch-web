@@ -5,7 +5,9 @@ import { Container, Card, Row, Col, Form, InputGroup, Toast,ToastContainer} from
 import { register } from "../../api/auth";
 import { getAllDepartments } from "../../api/user";
 import { isEmpty, isValidLength, isValidEmail, isValidPassword } from "../../common/validation/utils"; /* prettier-ignore */
+import { useSwitch } from "../../hooks/useSwitch";
 
+import DataPrivacyModal from "../../common/modals/DataPrivacyModal";
 import styles from "./style.module.css";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 import logo from "../../images/logo1.png";
@@ -20,6 +22,7 @@ const Registration = () => {
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showModal, openModal, closeModal] = useSwitch();
 
   const toggleShow = () => setShowToast(!showToast);
 
@@ -31,6 +34,7 @@ const Registration = () => {
     password: "",
     department_id: 0,
     confirmPassword: "",
+    checkbox: false,
   });
 
   const fetchDepartments = async () => {
@@ -49,9 +53,10 @@ const Registration = () => {
   };
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
@@ -86,7 +91,8 @@ const Registration = () => {
       !isValidLength(form.lastname, 1) ||
       !isValidPassword(form.password) ||
       !passwordsMatch() ||
-      form.department_id === 0
+      form.department_id === 0 ||
+      !form.checkbox
     );
   };
 
@@ -428,6 +434,24 @@ const Registration = () => {
                   </Col>
                 </Row>
 
+                <Row className="w-100">
+                  <Col className="d-flex justify-content-center align-items-center mb-3">
+                    <Form.Check
+                      className="me-2"
+                      name="checkbox"
+                      checked={form.checkbox}
+                      onChange={handleChange}
+                      type="checkbox"
+                      id="dataCheckbox"
+                    />
+                    <span className="me-1">I have read and understand the</span>
+                    <span className={styles.boldText} onClick={openModal}>
+                      Data Privacy Notice
+                    </span>
+                    .
+                  </Col>
+                </Row>
+
                 <Row>
                   <Col className="text-center">
                     <BtnPrimary
@@ -466,6 +490,8 @@ const Registration = () => {
             </Card.Body>
           )}
         </Card>
+
+        <DataPrivacyModal show={showModal} onHide={closeModal} />
       </Container>
     </div>
   );

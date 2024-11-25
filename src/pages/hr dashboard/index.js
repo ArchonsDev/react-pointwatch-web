@@ -13,7 +13,7 @@ import BtnPrimary from "../../common/buttons/BtnPrimary";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import styles from "./style.module.css";
 
-const HRDashboard = () => {
+const PointsOverviewDashboard = () => {
   const token = Cookies.get("userToken");
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
@@ -90,7 +90,8 @@ const HRDashboard = () => {
 
   const fetchClearanceStatus = (employee, term) => {
     const termStatus = employee?.clearances?.find(
-      (clearance) => clearance?.term?.id === term && !clearance.is_deleted
+      (clearance) =>
+        clearance?.term?.id === parseInt(term, 10) && !clearance.is_deleted
     );
 
     let isCleared = false;
@@ -205,7 +206,7 @@ const HRDashboard = () => {
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      if (user?.is_admin) navigate("/dashboard");
+      if (user?.is_head) navigate("/dashboard");
       else if (!user?.is_staff && !user?.is_superuser) navigate("/swtd");
       else {
         setLoading(true);
@@ -374,7 +375,7 @@ const HRDashboard = () => {
               value={selectedTerm}
               className={styles.deptDropdown}
               onChange={(e) => {
-                setSelectedTerm(e.target.value.id);
+                setSelectedTerm(e.target.value);
               }}
               disabled={!selectedDepartment}>
               <option value="0" disabled>
@@ -519,4 +520,4 @@ const HRDashboard = () => {
   );
 };
 
-export default HRDashboard;
+export default PointsOverviewDashboard;

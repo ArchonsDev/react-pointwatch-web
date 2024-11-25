@@ -178,9 +178,10 @@ const SWTDDashboard = () => {
     if (selectedTerm) {
       fetchTermPoints(selectedTerm);
       const termData = user?.clearances?.find(
-        (clearance) => clearance.term.id === selectedTerm.id
+        (clearance) =>
+          clearance.term.id === selectedTerm.id && !clearance.is_deleted
       );
-      if (termData) setTermClearance(termData.is_deleted ? false : true);
+      if (termData) setTermClearance(true);
       else setTermClearance(false);
       const termCounts = userSWTDs?.reduce(
         (counts, swtd) => {
