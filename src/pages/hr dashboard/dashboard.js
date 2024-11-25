@@ -3,6 +3,8 @@ import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { Row, Col, Container, DropdownButton, Dropdown, Spinner } from "react-bootstrap"; /* prettier-ignore */
 import { getTerms, getAllDepartments } from "../../api/admin"; /* prettier-ignore */
+import { getAllMembers } from "../../api/department";
+
 import PercentCard from "../../components/PercentCard";
 import { Histogram } from "../../components/Histogram";
 import { PieChart } from "../../components/Pie";
@@ -19,16 +21,10 @@ const HRDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [departments, setDepartments] = useState([]);
   const [levels, setLevels] = useState([]);
-  const [selectedLevel, setSelectedLevel] = useState(null); // State for selected level
-  const [histogramData, setHistogramData] = useState([]); // Data for histogram
-  const [adminSupportData] = useState([
-    { label: "Admin", value: 30 },
-    { label: "Support", value: 70 },
-  ]);
-
-  // New states for pie chart dropdown and clearance data
-  const [selectedAdminDept, setSelectedAdminDept] = useState(null); // Selected department for pie chart
-  const [clearanceData, setClearanceData] = useState([]); // Data for clearance status (granted or not)
+  const [selectedLevel, setSelectedLevel] = useState(null);
+  const [histogramData, setHistogramData] = useState([]);
+  const [selectedAdminDept, setSelectedAdminDept] = useState(null);
+  const [clearanceData, setClearanceData] = useState([]);
 
   const excludedLevels = [
     "ELEMENTARY DEPARTMENT",
@@ -55,7 +51,6 @@ const HRDashboard = () => {
         setSemesterTerm(currentTerms.SEMESTER);
         setSchoolTerm(currentTerms["ACADEMIC YEAR"]);
         setMidTerm(currentTerms["MIDYEAR/SUMMER"]);
-        setLoading(false);
       },
       (error) => {
         console.error(error.message);
@@ -78,11 +73,10 @@ const HRDashboard = () => {
         ];
         setLevels(uniqueLevels);
 
-        // Filter departments for ADMIN & ACADEMIC SUPPORT OFFICES
         const adminDept = response.departments.filter(
           (dept) => dept.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
         );
-        // Set the first department as the default selected department for the pie chart
+
         if (adminDept.length > 0) setSelectedAdminDept(adminDept[0]);
       },
       (error) => {
@@ -91,12 +85,33 @@ const HRDashboard = () => {
     );
   };
 
-  // Handle the change in department selection for the pie chart
+  const fetchMembers = (dept) => {
+    getAllMembers(
+      {
+        id: dept.id,
+        token: token,
+      },
+      (response) => {
+        if (response.data.members?.length > 0) {
+          dept.members = dept.members
+            ? [...dept.members, ...response.data.members]
+            : [...response.data.members];
+        } else {
+          dept.members = [];
+        }
+
+        setLoading(false);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  };
+
   const handleAdminDeptSelect = (dept) => {
     setSelectedAdminDept(dept);
 
     if (dept.employees && Array.isArray(dept.employees)) {
-      // Fetch the clearance data for the selected department (assuming clearance data is available)
       const clearance = dept.employees.reduce(
         (acc, employee) => {
           if (employee.clearanceGranted) {
@@ -125,11 +140,26 @@ const HRDashboard = () => {
         { label: "Not Granted", value: notGrantedPercent },
       ]);
     } else {
-      // Handle the case where employees data is missing
       console.error("Employees data is missing for the selected department.");
-      setClearanceData([]); // Clear any previous data
+      setClearanceData([]);
     }
   };
+
+  const handleLevelSelect = (level) => {
+    setSelectedLevel(level);
+    const filteredDepartments = departments.filter(
+      (dept) => dept.level === level
+    );
+    console.log(filteredDepartments);
+    setHistogramData(filteredDepartments);
+  };
+
+  useEffect(() => {
+    if (levels.length > 0 && !selectedLevel) {
+      setSelectedLevel(levels[0]);
+      handleLevelSelect(levels[0]);
+    }
+  }, [levels]);
 
   useEffect(() => {
     if (!user) setLoading(true);
@@ -138,8 +168,8 @@ const HRDashboard = () => {
       else if (!user?.is_staff && !user?.is_superuser) navigate("/swtd");
       else {
         setLoading(true);
-        const fetchData = async () => {
-          await fetchDepartments();
+        const fetchData = () => {
+          fetchDepartments();
           fetchTerms();
         };
         fetchData();
@@ -147,27 +177,12 @@ const HRDashboard = () => {
     }
   }, [user, navigate]);
 
-  // New useEffect to set the default selected level
   useEffect(() => {
-    if (levels.length > 0 && !selectedLevel) {
-      // Set default selected level as the first item in the levels array
-      setSelectedLevel(levels[0]);
-      handleLevelSelect(levels[0]); // Populate histogram for the default level
-    }
-  }, [levels]); // Run whenever levels change
-
-  const handleLevelSelect = (level) => {
-    setSelectedLevel(level);
-
-    const filteredDepartments = departments
-      .filter((dept) => dept.level === level)
-      .map((dept) => ({
-        label: dept.name,
-        value: dept.value || 0,
-      }));
-
-    setHistogramData(filteredDepartments);
-  };
+    if (departments)
+      departments?.forEach((dept) => {
+        fetchMembers(dept);
+      });
+  }, [departments]);
 
   if (loading)
     return (
@@ -241,14 +256,7 @@ const HRDashboard = () => {
 
       <Row className="w-100">
         <Col md={8}>
-          {histogramData.length > 0 ? (
-            <Histogram
-              data={histogramData.map((item) => item.value)}
-              labels={histogramData.map((item) => item.label)}
-            />
-          ) : (
-            <p>No data available for the selected level.</p>
-          )}
+          <Histogram departments={histogramData} term={semesterTerm} />
         </Col>
 
         {/* Pie Section */}

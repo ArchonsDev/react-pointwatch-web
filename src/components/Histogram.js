@@ -1,4 +1,4 @@
-import React from "react";
+import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   BarElement,
@@ -7,33 +7,35 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { createHistogramData } from "./Data";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-export const Histogram = ({ data, labels }) => {
-  const chartData = {
-    labels: labels,
-    datasets: [
-      {
-        label: "Departments",
-        data: data,
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderColor: "rgba(75, 192, 192, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
-
+export const Histogram = ({ departments, term }) => {
+  const chartData = createHistogramData(departments, term);
+  const maxDataValue = departments.reduce((total, department) => {
+    return total + (department?.members?.length || 0);
+  }, 0);
+  const yAxisMax = maxDataValue + 3;
   const options = {
-    responsive: true,
-    maintainAspectRatio: false,
     scales: {
-      x: {
-        beginAtZero: true,
-      },
       y: {
         beginAtZero: true,
+        min: 0,
+        max: yAxisMax,
+        ticks: {
+          stepSize: 1,
+        },
+        title: {
+          display: true,
+          text: "Number of Employees",
+        },
+      },
+      x: {
+        title: {
+          display: true,
+          text: "Departments",
+        },
       },
     },
   };
