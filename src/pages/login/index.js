@@ -434,7 +434,7 @@ const Login = () => {
             <span className={styles.line2}>welcome!</span>
           </Row>
 
-          <Form>
+          <Form onSubmit={handleSubmit}>
             <Row>
               <Form.Group className="mb-3" controlId="inputEmail">
                 <InputGroup hasValidation>
@@ -510,7 +510,6 @@ const Login = () => {
                     <Row className="ps-lg-0 pe-lg-0 ps-md-3 pe-md-3 ps-3 pe-3">
                       <BtnPrimary
                         type="submit"
-                        onClick={handleSubmit}
                         disabled={
                           isEmpty(form.email) || isEmpty(form.password)
                         }>

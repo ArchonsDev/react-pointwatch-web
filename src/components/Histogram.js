@@ -38,7 +38,7 @@ export const Histogram = ({ departments, term }) => {
       },
     },
 
-    barThickness: 45,
+    barThickness: 20,
   };
 
   return <Bar data={chartData} options={options} />;

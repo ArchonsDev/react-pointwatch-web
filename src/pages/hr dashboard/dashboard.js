@@ -259,7 +259,7 @@ const HRDashboard = () => {
       <Row className={`${styles.deptDropdown} w-100 mb-3`}>
         <Col md={7}>
           <Row className={`w-100 mb-3`}>
-            <Col className="text-end" md={8}>
+            <Col md={8}>
               <InputGroup>
                 <InputGroup.Text className={styles.iconBox}>
                   <i

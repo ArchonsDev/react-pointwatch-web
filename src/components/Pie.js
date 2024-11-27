@@ -17,6 +17,7 @@ export const PieChart = ({ label, data }) => {
   };
 
   const options = {
+    showToolTip: true,
     plugins: {
       legend: {
         position: "top",

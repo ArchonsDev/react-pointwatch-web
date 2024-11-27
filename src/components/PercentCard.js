@@ -3,9 +3,8 @@ import { Card } from "react-bootstrap"; /* prettier-ignore */
 import styles from "./styles.module.css";
 
 const PercentCard = ({ departments, level, term, title }) => {
-  const dept = departments.find((dept) => dept.level === level);
+  const dept = departments.find((dept) => dept.level.startsWith(level));
   const total = dept?.members?.length || 0;
-
   const clearedMembers =
     dept?.members?.reduce((clearedCount, member) => {
       const termStatus = member?.clearances?.find(
