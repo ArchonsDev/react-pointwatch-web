@@ -36,8 +36,11 @@ export const createBarData = (swtd, term) => {
 export const createHistogramData = (departments, term) => {
   const clearedData = [];
   const nonClearedData = [];
+  const clearedPercentageData = [];
+  const nonClearedPercentageData = [];
 
   departments.forEach((department) => {
+    const totalMembers = department?.members?.length || 0;
     const clearedMembers =
       department?.members?.reduce((clearedCount, member) => {
         const termStatus = member?.clearances?.find(
@@ -47,10 +50,20 @@ export const createHistogramData = (departments, term) => {
         return termStatus ? clearedCount + 1 : clearedCount;
       }, 0) || 0;
 
-    const nonClearedMembers = department?.members?.length - clearedMembers || 0;
+    const nonClearedMembers = totalMembers - clearedMembers;
 
     clearedData.push(clearedMembers);
     nonClearedData.push(nonClearedMembers);
+
+    const clearedPercentage = totalMembers
+      ? ((clearedMembers / totalMembers) * 100).toFixed(2)
+      : 0;
+    const nonClearedPercentage = totalMembers
+      ? ((nonClearedMembers / totalMembers) * 100).toFixed(2)
+      : 0;
+
+    clearedPercentageData.push(clearedPercentage);
+    nonClearedPercentageData.push(nonClearedPercentage);
   });
 
   return {
@@ -58,14 +71,14 @@ export const createHistogramData = (departments, term) => {
     datasets: [
       {
         label: "Cleared Employees",
-        data: clearedData,
+        data: clearedPercentageData,
         borderColor: "#9D084A",
         borderWidth: 1,
         backgroundColor: "#9D084A",
       },
       {
         label: "Non-Cleared Employees",
-        data: nonClearedData,
+        data: nonClearedPercentageData,
         borderColor: "#180018",
         borderWidth: 1,
         backgroundColor: "#180018",

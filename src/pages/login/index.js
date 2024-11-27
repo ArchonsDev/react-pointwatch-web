@@ -85,7 +85,7 @@ const Login = () => {
 
         const roles = {
           1: "/dashboard",
-          2: "/hr",
+          2: "/hr-dashboard",
           3: "/admin",
         };
         const userAccessLevel = userData.access_level;

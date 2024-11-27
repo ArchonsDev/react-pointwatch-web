@@ -66,6 +66,11 @@
   cursor: pointer;
 }
 
+.graphBackground {
+  background-color: white;
+  border-radius: 3px;
+}
+
 .pageNum {
   --bs-pagination-active-bg: #9d084a !important;
   --bs-pagination-bg: #180018 !important;

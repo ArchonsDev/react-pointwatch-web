@@ -10,8 +10,8 @@ export const PieChart = ({ label, data }) => {
       {
         label: label,
         data: Object.values(data),
-        backgroundColor: ["#FF6384", "#36A2EB"],
-        hoverBackgroundColor: ["#FF6384", "#36A2EB"],
+        backgroundColor: ["#9D084A", "#180018"],
+        hoverBackgroundColor: ["#9D084A", "#180018"],
       },
     ],
   };
@@ -29,9 +29,10 @@ export const PieChart = ({ label, data }) => {
         },
       },
     },
+    maintainAspectRatio: false,
   };
 
-  return <Pie data={pieData} options={options} />;
+  return <Pie data={pieData} options={options} height={350} width={350} />;
 };
 
 {

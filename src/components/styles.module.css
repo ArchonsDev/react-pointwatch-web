@@ -4,6 +4,11 @@
   justify-content: space-between;
 }
 
+.percentHeader {
+  background-color: #9d084a !important;
+  color: white !important;
+}
+
 .header {
   text-align: center;
   font-family: "Poppins-SemiBold";

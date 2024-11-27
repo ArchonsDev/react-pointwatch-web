@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, DropdownButton, Dropdown, Spinner } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Spinner, Form } from "react-bootstrap"; /* prettier-ignore */
 import { getTerms, getAllDepartments } from "../../api/admin"; /* prettier-ignore */
 import { getAllMembers } from "../../api/department";
 
@@ -9,6 +9,8 @@ import PercentCard from "../../components/PercentCard";
 import { Histogram } from "../../components/Histogram";
 import { PieChart } from "../../components/Pie";
 import SessionUserContext from "../../contexts/SessionUserContext";
+import BtnPrimary from "../../common/buttons/BtnPrimary";
+
 import styles from "./style.module.css";
 
 const HRDashboard = () => {
@@ -21,14 +23,15 @@ const HRDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [departments, setDepartments] = useState([]);
   const [levels, setLevels] = useState([]);
-  const [selectedLevel, setSelectedLevel] = useState(null);
+  const [offices, setOffices] = useState([]);
+  const [selectedLevel, setSelectedLevel] = useState("");
   const [histogramData, setHistogramData] = useState([]);
-  const [selectedAdminDept, setSelectedAdminDept] = useState(null);
-  const [clearanceData, setClearanceData] = useState([]);
+  const [selectedAdminDept, setSelectedAdminDept] = useState("");
+  const [departmentsFetched, setDepartmentsFetched] = useState(false);
 
   // Pie Chart
   const [adminOfficeMembers, setAdminOfficeMembers] = useState([]);
-  const [pieChartData, setPieChartData] = useState(null)
+  const [pieChartData, setPieChartData] = useState(null);
 
   const excludedLevels = [
     "ELEMENTARY DEPARTMENT",
@@ -76,12 +79,6 @@ const HRDashboard = () => {
           ),
         ];
         setLevels(uniqueLevels);
-
-        const adminDept = response.departments.filter(
-          (dept) => dept.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
-        );
-
-        if (adminDept.length > 0) setSelectedAdminDept(adminDept[0]);
       },
       (error) => {
         console.error(error.message);
@@ -90,72 +87,61 @@ const HRDashboard = () => {
   };
 
   const fetchMembers = (dept) => {
-    getAllMembers(
-      {
-        id: dept.id,
-        token: token,
-      },
-      (response) => {
-        if (response.data.members?.length > 0) {
-          dept.members = dept.members
-            ? [...dept.members, ...response.data.members]
-            : [...response.data.members];
-        } else {
-          dept.members = [];
-        }
-
-        setLoading(false);
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
+    return new Promise((resolve, reject) => {
+      getAllMembers(
+        {
+          id: dept.id,
+          token: token,
+        },
+        (response) => {
+          if (response.data.members?.length > 0) {
+            dept.members = dept.members
+              ? [...dept.members, ...response.data.members]
+              : [...response.data.members];
+          } else dept.members = [];
+          resolve(dept);
+        },
+        (error) => reject(error)
+      );
+    });
   };
 
   const handleAdminDeptSelect = async (department) => {
     setSelectedAdminDept(department);
-
-    await getAllMembers({ token: token, id: department.id }, (r) => {
-      console.log(r.data.members.length);
-      if (r.data.members.length === 0) setPieChartData(null);
-      else setAdminOfficeMembers(r.data.members);
-    });
+    const dept = departments.find((d) => d.id === parseInt(department, 10));
+    if (dept.members.length === 0) setPieChartData(null);
+    else setAdminOfficeMembers(dept.members);
   };
 
   useEffect(() => {
-    if (adminOfficeMembers.length == 0) return;
-
+    if (adminOfficeMembers.length === 0) return;
     const compute = async () => {
-      const clearedCount = adminOfficeMembers.filter((emp) => (
-        emp.clearances.some((clearance) => clearance.term.id === schoolTerm.id)
-      )).length;
+      const clearedCount = adminOfficeMembers.filter((emp) =>
+        emp.clearances.some(
+          (clearance) =>
+            clearance.term.id === schoolTerm.id && !clearance.is_deleted
+        )
+      ).length;
 
-      const percentCleared = Math.round((clearedCount / adminOfficeMembers.length) * 10000) / 100;
+      const percentCleared =
+        Math.round((clearedCount / adminOfficeMembers.length) * 10000) / 100;
 
       setPieChartData({
-        "Cleared %": percentCleared,
-        "Not Cleared": 100 - percentCleared,
+        "Cleared Employees": percentCleared,
+        "Non Cleared Employees": 100 - percentCleared,
       });
     };
 
     compute();
-  }, [adminOfficeMembers])
+  }, [adminOfficeMembers]);
 
   const handleLevelSelect = (level) => {
     setSelectedLevel(level);
     const filteredDepartments = departments.filter(
       (dept) => dept.level === level
     );
-    console.log(filteredDepartments);
     setHistogramData(filteredDepartments);
   };
-
-  useEffect(() => {
-    if (levels.length > 0 && !selectedLevel) {
-      setSelectedLevel(levels[0]);
-      handleLevelSelect(levels[0]);
-    }
-  }, [levels]);
 
   useEffect(() => {
     if (!user) setLoading(true);
@@ -174,11 +160,32 @@ const HRDashboard = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    if (departments)
-      departments?.forEach((dept) => {
-        fetchMembers(dept);
-      });
-  }, [departments]);
+    const fetchAllMembers = async () => {
+      const departmentsWithMembers = await Promise.all(
+        departments.map(fetchMembers)
+      );
+      setLoading(false);
+      setDepartments(departmentsWithMembers);
+      const adminDept = departmentsWithMembers.filter(
+        (dept) => dept.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
+      );
+      setOffices(adminDept);
+      setSelectedAdminDept(adminDept[0].id);
+      handleAdminDeptSelect(adminDept[0].id);
+    };
+
+    if (departments?.length && !departmentsFetched) {
+      fetchAllMembers();
+      setDepartmentsFetched(true);
+    }
+  }, [departments, departmentsFetched]);
+
+  useEffect(() => {
+    if (!loading) {
+      setSelectedLevel(levels[0]);
+      handleLevelSelect(levels[0]);
+    }
+  }, [loading]);
 
   if (loading)
     return (
@@ -196,13 +203,20 @@ const HRDashboard = () => {
       </Row>
     );
 
+  console.log();
+
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center">
       <Row className="w-100 mb-3">
         <Col>
-          <h3 className={`${styles.label} d-flex align-items-center`}>
-            Dashboard
+          <h3 className={`${styles.pageTitle} d-flex align-items-center`}>
+            Departmental Dashboard
           </h3>
+        </Col>
+        <Col className="text-end">
+          <BtnPrimary onClick={() => navigate("/hr")}>
+            Points Overview
+          </BtnPrimary>
         </Col>
       </Row>
 
@@ -230,65 +244,78 @@ const HRDashboard = () => {
             departments={departments}
             level="SENIOR HIGH SCHOOL"
             title="Senior High School Department"
-            term={semesterTerm}
+            term={semesterTerm ? semesterTerm : midTerm}
           />
         </Col>
       </Row>
 
+      <Row className="w-100">
+        <Col>
+          <hr className="w-100" />
+        </Col>
+      </Row>
+
       {/* Histogram Section */}
-      <Row className="w-100 mb-3">
-        <Col md={8}>
-          <Row className="w-100 mb-3">
-            <Col>
-              <DropdownButton
-                title={selectedLevel || levels[0] || "Loading..."}
-                onSelect={handleLevelSelect}>
-                {levels.map((level) => (
-                  <Dropdown.Item key={level} eventKey={level}>
-                    {level}
-                  </Dropdown.Item>
-                ))}
-              </DropdownButton>
+      <Row className={`${styles.deptDropdown} w-100 mb-3`}>
+        <Col md={7}>
+          <Row className={`w-100 mb-3`}>
+            <Col className="text-end" md={8}>
+              <InputGroup>
+                <InputGroup.Text className={styles.iconBox}>
+                  <i
+                    className={`${styles.formIcon} fa-solid fa-landmark fa-lg`}></i>
+                </InputGroup.Text>
+                <Form.Select
+                  value={selectedLevel}
+                  onChange={(e) => handleLevelSelect(e.target.value)}>
+                  {levels.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </Form.Select>
+              </InputGroup>
             </Col>
           </Row>
 
-          <Row className="w-100">
-              <Col>
-                <Histogram departments={histogramData} term={semesterTerm} />
-              </Col>
+          <Row className="px-0 w-100">
+            <Col className={styles.graphBackground}>
+              <Histogram
+                departments={histogramData}
+                term={semesterTerm ? semesterTerm : midTerm}
+              />
+            </Col>
           </Row>
         </Col>
 
-        <Col md={4}>
+        <Col md={5}>
           <Row className="w-100 mb-3">
-            <Col>
-              <DropdownButton
-              title={
-                selectedAdminDept ? selectedAdminDept.name : "Select Department"
-              }
-              onSelect={(deptName) =>
-                handleAdminDeptSelect(
-                  departments.find((dept) => dept.name === deptName)
-                )
-              }>
-              {departments
-                .filter(
-                  (dept) => dept.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
-                )
-                .map((dept) => (
-                  <Dropdown.Item key={dept.name} eventKey={dept.name}>
-                    {dept.name}
-                  </Dropdown.Item>
-                ))}
-              </DropdownButton>
+            <Col className="text-start">
+              <InputGroup>
+                <InputGroup.Text className={styles.iconBox}>
+                  <i
+                    className={`${styles.formIcon} fa-solid fa-book fa-lg`}></i>
+                </InputGroup.Text>
+                <Form.Select
+                  value={selectedAdminDept}
+                  onChange={(e) => handleAdminDeptSelect(e.target.value)}>
+                  {offices.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </InputGroup>
             </Col>
           </Row>
-          <Row className="w-100">
+          <Row className={`${styles.graphBackground} w-100`}>
             <Col>
               {pieChartData ? (
                 <PieChart label={"Pie Chart"} data={pieChartData} />
               ) : (
-                <p>No clearance data available for the selected department.</p>
+                <span className={`d-flex align-items-center`}>
+                  No clearance data available for the selected office.
+                </span>
               )}
             </Col>
           </Row>

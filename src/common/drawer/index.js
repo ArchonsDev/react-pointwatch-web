@@ -122,23 +122,6 @@ const Drawer = () => {
                   {(user?.is_staff || user?.is_superuser) && (
                     <Nav.Link
                       className={`mx-3 my-1 p-3 ${
-                        location.pathname === "/hr"
-                          ? styles.active
-                          : styles.navItem
-                      }`}
-                      onClick={(e) => {
-                        navigate("/hr");
-                        handleClose();
-                      }}>
-                      <i
-                        className={`fa-solid fa-list-check fa-lg ${styles.drawerIcon}`}></i>
-                      <span className="px-2">Points Overview</span>
-                    </Nav.Link>
-                  )}
-
-                  {(user?.is_staff || user?.is_superuser) && (
-                    <Nav.Link
-                      className={`mx-3 my-1 p-3 ${
                         location.pathname === "hr-dashboard"
                           ? styles.active
                           : styles.navItem
@@ -150,6 +133,23 @@ const Drawer = () => {
                       <i
                         className={`fa-solid fa-square-poll-vertical fa-lg ${styles.drawerIcon}`}></i>
                       <span className="px-2">Dashboard</span>
+                    </Nav.Link>
+                  )}
+
+                  {(user?.is_staff || user?.is_superuser) && (
+                    <Nav.Link
+                      className={`mx-3 my-1 p-3 ${
+                        location.pathname === "/hr"
+                          ? styles.active
+                          : styles.navItem
+                      }`}
+                      onClick={(e) => {
+                        navigate("/hr");
+                        handleClose();
+                      }}>
+                      <i
+                        className={`fa-solid fa-list-check fa-lg ${styles.drawerIcon}`}></i>
+                      <span className="px-2">Points Overview</span>
                     </Nav.Link>
                   )}
 
@@ -204,7 +204,7 @@ const Drawer = () => {
                   </Nav.Link>
                 </Nav>
               </div>
-              <Row className="w-100 p-3 flex-column">
+              {/* <Row className="w-100 p-3 flex-column">
                 <Col className={`${styles.name}`}>
                   {user?.firstname} {user?.lastname}
                 </Col>
@@ -213,7 +213,7 @@ const Drawer = () => {
                     ? user?.department?.name
                     : "No department set."}
                 </Col>
-              </Row>
+              </Row> */}
               {/* Logout */}
               <Nav.Item className={styles.logout}>
                 <Nav.Link

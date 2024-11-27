@@ -1,5 +1,6 @@
 import React from "react";
 import { Card } from "react-bootstrap"; /* prettier-ignore */
+import styles from "./styles.module.css";
 
 const PercentCard = ({ departments, level, term, title }) => {
   const dept = departments.find((dept) => dept.level === level);
@@ -18,11 +19,21 @@ const PercentCard = ({ departments, level, term, title }) => {
 
   return (
     <Card>
-      <Card.Body>
-        <Card.Title>{title}</Card.Title>
-        <Card.Text>
+      <Card.Header
+        className={`${styles.percentHeader} text-center`}
+        style={{ fontFamily: "Poppins-SemiBold" }}>
+        {title}
+      </Card.Header>
+      <Card.Body className="text-center">
+        <Card.Title style={{ fontFamily: "Poppins-SemiBold" }}>
+          {percentage}%
+        </Card.Title>
+        <Card.Text style={{ fontFamily: "Poppins-Regular" }}>
+          <span style={{ fontFamily: "Poppins-Medium" }}>
+            Cleared Employees
+          </span>
+          <br />
           {term?.name}
-          <br />({percentage}%) Cleared Employees
         </Card.Text>
       </Card.Body>
     </Card>

@@ -6,6 +6,8 @@ import {
   LinearScale,
   Tooltip,
   Legend,
+  plugins,
+  Ticks,
 } from "chart.js";
 import { createHistogramData } from "./Data";
 
@@ -13,31 +15,30 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 export const Histogram = ({ departments, term }) => {
   const chartData = createHistogramData(departments, term);
-  const maxDataValue = departments.reduce((total, department) => {
-    return total + (department?.members?.length || 0);
-  }, 0);
-  const yAxisMax = maxDataValue + 3;
+
   const options = {
+    indexAxis: "y",
     scales: {
-      y: {
+      x: {
         beginAtZero: true,
         min: 0,
-        max: yAxisMax,
-        ticks: {
-          stepSize: 1,
-        },
+        max: 100,
+        stacked: true,
         title: {
           display: true,
-          text: "Number of Employees",
+          text: "% of Employees",
         },
       },
-      x: {
+      y: {
+        stacked: true,
         title: {
           display: true,
           text: "Departments",
         },
       },
     },
+
+    barThickness: 45,
   };
 
   return <Bar data={chartData} options={options} />;
