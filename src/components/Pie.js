@@ -3,13 +3,13 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export const PieChart = ({ swtd, term }) => {
+export const PieChart = ({ label, data }) => {
   const pieData = {
-    labels: swtd.map((item) => item.label),
+    labels: Object.keys(data),
     datasets: [
       {
-        label: `Distribution for ${term?.name || "Term"}`,
-        data: swtd.map((item) => item.value),
+        label: label,
+        data: Object.values(data),
         backgroundColor: ["#FF6384", "#36A2EB"],
         hoverBackgroundColor: ["#FF6384", "#36A2EB"],
       },
@@ -24,7 +24,7 @@ export const PieChart = ({ swtd, term }) => {
       tooltip: {
         callbacks: {
           label: function (context) {
-            return `${context.label}: ${context.raw}`;
+            return `${context.label}: ${context.raw}%`;
           },
         },
       },

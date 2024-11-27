@@ -26,6 +26,10 @@ const HRDashboard = () => {
   const [selectedAdminDept, setSelectedAdminDept] = useState(null);
   const [clearanceData, setClearanceData] = useState([]);
 
+  // Pie Chart
+  const [adminOfficeMembers, setAdminOfficeMembers] = useState([]);
+  const [pieChartData, setPieChartData] = useState(null)
+
   const excludedLevels = [
     "ELEMENTARY DEPARTMENT",
     "JUNIOR HIGH SCHOOL DEPARTMENT",
@@ -108,42 +112,34 @@ const HRDashboard = () => {
     );
   };
 
-  const handleAdminDeptSelect = (dept) => {
-    setSelectedAdminDept(dept);
+  const handleAdminDeptSelect = async (department) => {
+    setSelectedAdminDept(department);
 
-    if (dept.employees && Array.isArray(dept.employees)) {
-      const clearance = dept.employees.reduce(
-        (acc, employee) => {
-          if (employee.clearanceGranted) {
-            acc.granted++;
-          } else {
-            acc.notGranted++;
-          }
-          return acc;
-        },
-        { granted: 0, notGranted: 0 }
-      );
-
-      // Calculate percentages
-      const totalEmployees = clearance.granted + clearance.notGranted;
-      const grantedPercent = (
-        (clearance.granted / totalEmployees) *
-        100
-      ).toFixed(2);
-      const notGrantedPercent = (
-        (clearance.notGranted / totalEmployees) *
-        100
-      ).toFixed(2);
-
-      setClearanceData([
-        { label: "Granted", value: grantedPercent },
-        { label: "Not Granted", value: notGrantedPercent },
-      ]);
-    } else {
-      console.error("Employees data is missing for the selected department.");
-      setClearanceData([]);
-    }
+    await getAllMembers({ token: token, id: department.id }, (r) => {
+      console.log(r.data.members.length);
+      if (r.data.members.length === 0) setPieChartData(null);
+      else setAdminOfficeMembers(r.data.members);
+    });
   };
+
+  useEffect(() => {
+    if (adminOfficeMembers.length == 0) return;
+
+    const compute = async () => {
+      const clearedCount = adminOfficeMembers.filter((emp) => (
+        emp.clearances.some((clearance) => clearance.term.id === schoolTerm.id)
+      )).length;
+
+      const percentCleared = Math.round((clearedCount / adminOfficeMembers.length) * 10000) / 100;
+
+      setPieChartData({
+        "Cleared %": percentCleared,
+        "Not Cleared": 100 - percentCleared,
+      });
+    };
+
+    compute();
+  }, [adminOfficeMembers])
 
   const handleLevelSelect = (level) => {
     setSelectedLevel(level);
@@ -210,7 +206,7 @@ const HRDashboard = () => {
         </Col>
       </Row>
 
-      <Row className="w-100">
+      <Row className="w-100 mb-3">
         <Col lg={4}>
           <PercentCard
             departments={departments}
@@ -241,53 +237,61 @@ const HRDashboard = () => {
 
       {/* Histogram Section */}
       <Row className="w-100 mb-3">
-        <Col>
-          <DropdownButton
-            title={selectedLevel || levels[0] || "Loading..."}
-            onSelect={handleLevelSelect}>
-            {levels.map((level) => (
-              <Dropdown.Item key={level} eventKey={level}>
-                {level}
-              </Dropdown.Item>
-            ))}
-          </DropdownButton>
-        </Col>
-      </Row>
-
-      <Row className="w-100">
         <Col md={8}>
-          <Histogram departments={histogramData} term={semesterTerm} />
+          <Row className="w-100 mb-3">
+            <Col>
+              <DropdownButton
+                title={selectedLevel || levels[0] || "Loading..."}
+                onSelect={handleLevelSelect}>
+                {levels.map((level) => (
+                  <Dropdown.Item key={level} eventKey={level}>
+                    {level}
+                  </Dropdown.Item>
+                ))}
+              </DropdownButton>
+            </Col>
+          </Row>
+
+          <Row className="w-100">
+              <Col>
+                <Histogram departments={histogramData} term={semesterTerm} />
+              </Col>
+          </Row>
         </Col>
 
-        {/* Pie Section */}
         <Col md={4}>
-          {/* Admin & Academic Support Offices Department Dropdown */}
-          <DropdownButton
-            title={
-              selectedAdminDept ? selectedAdminDept.name : "Select Department"
-            }
-            onSelect={(deptName) =>
-              handleAdminDeptSelect(
-                departments.find((dept) => dept.name === deptName)
-              )
-            }>
-            {departments
-              .filter(
-                (dept) => dept.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
-              )
-              .map((dept) => (
-                <Dropdown.Item key={dept.name} eventKey={dept.name}>
-                  {dept.name}
-                </Dropdown.Item>
-              ))}
-          </DropdownButton>
-
-          {/* Pie Chart for Clearance Data */}
-          {clearanceData.length > 0 ? (
-            <PieChart swtd={clearanceData} term={schoolTerm} />
-          ) : (
-            <p>No clearance data available for the selected department.</p>
-          )}
+          <Row className="w-100 mb-3">
+            <Col>
+              <DropdownButton
+              title={
+                selectedAdminDept ? selectedAdminDept.name : "Select Department"
+              }
+              onSelect={(deptName) =>
+                handleAdminDeptSelect(
+                  departments.find((dept) => dept.name === deptName)
+                )
+              }>
+              {departments
+                .filter(
+                  (dept) => dept.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
+                )
+                .map((dept) => (
+                  <Dropdown.Item key={dept.name} eventKey={dept.name}>
+                    {dept.name}
+                  </Dropdown.Item>
+                ))}
+              </DropdownButton>
+            </Col>
+          </Row>
+          <Row className="w-100">
+            <Col>
+              {pieChartData ? (
+                <PieChart label={"Pie Chart"} data={pieChartData} />
+              ) : (
+                <p>No clearance data available for the selected department.</p>
+              )}
+            </Col>
+          </Row>
         </Col>
       </Row>
     </Container>
