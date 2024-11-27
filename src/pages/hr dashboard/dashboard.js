@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Container, InputGroup, Spinner, Form } from "react-bootstrap"; /* prettier-ignore */
+import { Row, Col, Container, InputGroup, Spinner, Form, DropdownButton, Dropdown } from "react-bootstrap"; /* prettier-ignore */
 import { getTerms, getAllDepartments } from "../../api/admin"; /* prettier-ignore */
 import { getAllMembers } from "../../api/department";
 
@@ -9,6 +9,7 @@ import PercentCard from "../../components/PercentCard";
 import { Histogram } from "../../components/Histogram";
 import { PieChart } from "../../components/Pie";
 import SessionUserContext from "../../contexts/SessionUserContext";
+import types from "../../data/types.json";
 import BtnPrimary from "../../common/buttons/BtnPrimary";
 
 import styles from "./style.module.css";
@@ -17,6 +18,8 @@ const HRDashboard = () => {
   const token = Cookies.get("userToken");
   const { user } = useContext(SessionUserContext);
   const navigate = useNavigate();
+  const [terms, setTerms] = useState([]);
+  const [selectedTerm, setSelectedTerm] = useState(null);
   const [semesterTerm, setSemesterTerm] = useState(null);
   const [schoolTerm, setSchoolTerm] = useState(null);
   const [midTerm, setMidTerm] = useState(null);
@@ -44,13 +47,13 @@ const HRDashboard = () => {
     getTerms(
       { token },
       (response) => {
-        const terms = response.terms;
+        setTerms(response.terms);
         const currentTerms = {
           SEMESTER: null,
           "ACADEMIC YEAR": null,
           "MIDYEAR/SUMMER": null,
         };
-        terms.forEach((term) => {
+        response.terms.forEach((term) => {
           if (term.is_ongoing && currentTerms.hasOwnProperty(term.type))
             currentTerms[term.type] = term;
         });
@@ -143,6 +146,23 @@ const HRDashboard = () => {
     setHistogramData(filteredDepartments);
   };
 
+  const handleTermSelect = (id) => {
+    const selected = terms.find((term) => term.id === parseInt(id, 10));
+    setSelectedTerm(selected);
+    const type = types.type.find((type) => selected.type === type);
+    switch (type) {
+      case types.type[0]:
+        setSemesterTerm(selected);
+        break;
+      case types.type[1]:
+        setMidTerm(selected);
+        break;
+      default:
+        setSchoolTerm(selected);
+        break;
+    }
+  };
+
   useEffect(() => {
     if (!user) setLoading(true);
     else {
@@ -203,11 +223,9 @@ const HRDashboard = () => {
       </Row>
     );
 
-  console.log();
-
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center">
-      <Row className="w-100 mb-3">
+      <Row className="w-100 mb-1">
         <Col>
           <h3 className={`${styles.pageTitle} d-flex align-items-center`}>
             Departmental Dashboard
@@ -219,6 +237,20 @@ const HRDashboard = () => {
           </BtnPrimary>
         </Col>
       </Row>
+
+      {/* <Row className="w-100 mb-3">
+        <Col className="text-end">
+          <DropdownButton
+            title={selectedTerm?.name || terms[0]?.name || "Loading..."}
+            onSelect={handleTermSelect}>
+            {terms.map((term) => (
+              <Dropdown.Item key={term.id} eventKey={term.id}>
+                {term.name}
+              </Dropdown.Item>
+            ))}
+          </DropdownButton>
+        </Col>
+      </Row> */}
 
       <Row className="w-100 mb-3">
         <Col lg={4}>

@@ -446,7 +446,7 @@ const Registration = () => {
                     />
                     <span className="me-1">I have read and understand the</span>
                     <span className={styles.boldText} onClick={openModal}>
-                      Data Privacy Notice
+                      Privacy Notice
                     </span>
                     .
                   </Col>
