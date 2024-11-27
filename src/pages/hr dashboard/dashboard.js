@@ -10,179 +10,86 @@ import { Histogram } from "../../components/Histogram";
 import { PieChart } from "../../components/Pie";
 import SessionUserContext from "../../contexts/SessionUserContext";
 import styles from "./style.module.css";
+import { all } from "axios";
+
+const computeClearingData = (members, term) => {
+  const percentCleared = Math.round((members.filter((member) => member.clearances.some((clearance) => clearance.term_id === term.id)).length / members.length) * 10000) / 100;
+  const percentNotCleared = 100 - percentCleared;
+
+  return { percentCleared, percentNotCleared };
+};
 
 const HRDashboard = () => {
   const token = Cookies.get("userToken");
-  const { user } = useContext(SessionUserContext);
+  const { user } = useContext(SessionUserContext);  
   const navigate = useNavigate();
-  const [semesterTerm, setSemesterTerm] = useState(null);
-  const [schoolTerm, setSchoolTerm] = useState(null);
-  const [midTerm, setMidTerm] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [departments, setDepartments] = useState([]);
+
+  const [loading, setLoading] = useState(false);
+
+  // Pre-requisites
+  const [terms, setTerms] = useState([]);
+  const [activeBEDTerm, setActiveBEDTerm] = useState(null);
+  const [activeCollegeTerm, setActiveCollegeTerm] = useState(null);
+  const [activeAdminTerm, setActiveAdminTerm] = useState(null);
+  const [academicDepartments, setAcademicDepartments] = useState([]);
+  const [nonAcademicDepartments, setNonAcademicDepartments] = useState([]);
   const [levels, setLevels] = useState([]);
   const [selectedLevel, setSelectedLevel] = useState(null);
-  const [histogramData, setHistogramData] = useState([]);
-  const [selectedAdminDept, setSelectedAdminDept] = useState(null);
-  const [clearanceData, setClearanceData] = useState([]);
+  const [colleges, setColleges] = useState([]);
 
-  const excludedLevels = [
-    "ELEMENTARY DEPARTMENT",
-    "JUNIOR HIGH SCHOOL DEPARTMENT",
-    "SENIOR HIGH SCHOOL DEPARTMENT",
-    "ADMIN & ACADEMIC SUPPORT OFFICES",
-  ];
+  // Chart/card data states
+  const [elemCardData, setElemCardData] = useState({});
+  const [JHSCardData, setJHSCardData] = useState({});
+  const [SHSCardData, setSHSCardData] = useState({});
+  const [academicDepartmentChartData, setAcademicDepartmentChartData] = useState({});
+  const [nonAcademicDepartmentChartData, setnonAcademicDepartmentChartData] = useState({});
 
-  const fetchTerms = () => {
-    getTerms(
-      { token },
-      (response) => {
-        const terms = response.terms;
-        const currentTerms = {
-          SEMESTER: null,
-          "ACADEMIC YEAR": null,
-          "MIDYEAR/SUMMER": null,
-        };
-        terms.forEach((term) => {
-          if (term.is_ongoing && currentTerms.hasOwnProperty(term.type))
-            currentTerms[term.type] = term;
-        });
-
-        setSemesterTerm(currentTerms.SEMESTER);
-        setSchoolTerm(currentTerms["ACADEMIC YEAR"]);
-        setMidTerm(currentTerms["MIDYEAR/SUMMER"]);
-      },
-      (error) => {
-        console.error(error.message);
-        setLoading(false);
-      }
-    );
-  };
-
-  const fetchDepartments = () => {
-    getAllDepartments(
-      { token },
-      (response) => {
-        setDepartments(response.departments);
-        const uniqueLevels = [
-          ...new Set(
-            response.departments
-              .map((dept) => dept.level)
-              .filter((level) => !excludedLevels.includes(level))
-          ),
-        ];
-        setLevels(uniqueLevels);
-
-        const adminDept = response.departments.filter(
-          (dept) => dept.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
-        );
-
-        if (adminDept.length > 0) setSelectedAdminDept(adminDept[0]);
-      },
-      (error) => {
-        console.error(error.message);
-      }
-    );
-  };
-
-  const fetchMembers = (dept) => {
-    getAllMembers(
-      {
-        id: dept.id,
-        token: token,
-      },
-      (response) => {
-        if (response.data.members?.length > 0) {
-          dept.members = dept.members
-            ? [...dept.members, ...response.data.members]
-            : [...response.data.members];
-        } else {
-          dept.members = [];
-        }
-
-        setLoading(false);
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
-  };
-
-  const handleAdminDeptSelect = (dept) => {
-    setSelectedAdminDept(dept);
-
-    if (dept.employees && Array.isArray(dept.employees)) {
-      const clearance = dept.employees.reduce(
-        (acc, employee) => {
-          if (employee.clearanceGranted) {
-            acc.granted++;
-          } else {
-            acc.notGranted++;
-          }
-          return acc;
-        },
-        { granted: 0, notGranted: 0 }
-      );
-
-      // Calculate percentages
-      const totalEmployees = clearance.granted + clearance.notGranted;
-      const grantedPercent = (
-        (clearance.granted / totalEmployees) *
-        100
-      ).toFixed(2);
-      const notGrantedPercent = (
-        (clearance.notGranted / totalEmployees) *
-        100
-      ).toFixed(2);
-
-      setClearanceData([
-        { label: "Granted", value: grantedPercent },
-        { label: "Not Granted", value: notGrantedPercent },
+  useEffect(() => {
+    const onLoad = async () => {
+      // Fetch terms & departments
+      const [allTerms, allDepartments] = await Promise.all([
+        getTerms({ token: token }, (response) => response.terms),
+        getAllDepartments({ token: token }, (response) => response.departments)
       ]);
-    } else {
-      console.error("Employees data is missing for the selected department.");
-      setClearanceData([]);
-    }
-  };
 
-  const handleLevelSelect = (level) => {
-    setSelectedLevel(level);
-    const filteredDepartments = departments.filter(
-      (dept) => dept.level === level
-    );
-    console.log(filteredDepartments);
-    setHistogramData(filteredDepartments);
-  };
+      // Assign to states
+      setTerms(allTerms);
 
+      const ongoingAcademicYearTerm = allTerms.find(term => term.type === "ACADEMIC YEAR" && term.is_ongoing);
+      const ongoingSemesterTerm = allTerms.find(term => term.type === "SEMESTER" && term.is_ongoing);
+      const ongoingMidyearterm = allTerms.find(term => term.type === "MIDYEAR" && term.is_ongoing);
+      
+      setActiveBEDTerm(ongoingAcademicYearTerm ? ongoingAcademicYearTerm : ongoingAcademicYearTerm);
+      setActiveAdminTerm(ongoingAcademicYearTerm ? ongoingAcademicYearTerm : ongoingMidyearterm);
+      setActiveCollegeTerm(ongoingSemesterTerm ? ongoingSemesterTerm : ongoingMidyearterm);
+
+      setAcademicDepartments(allDepartments.filter((e) => e.level !== "ADMIN & SUPPORT OFFICES"));
+      setNonAcademicDepartments(allDepartments.filter((e) => e.level === "ADMIN & SUPPORT OFFICES"));
+
+      setColleges([...new Set(allDepartments.filter((e) => e.level.startswith("COLLEGE")).map(e => e.level))]);
+    };
+
+    setLoading(true);
+    onLoad();
+    setLoading(false);
+  }, []);
+
+  //  TODO: Move this to a handle function
   useEffect(() => {
-    if (levels.length > 0 && !selectedLevel) {
-      setSelectedLevel(levels[0]);
-      handleLevelSelect(levels[0]);
-    }
-  }, [levels]);
+    const onActiveBEDTermChange = async () => {
+      const [elemDepartmentMembers, JHSDepartmentMembers, SHSDepartmentMembers] = await Promise.all([
+        getAllMembers( { token: token, id: academicDepartments.find(department => department.level === "ELEMENTARY") }, (response) => response.members),
+        getAllMembers( { token: token, id: academicDepartments.find(department => department.level === "JUNIOR HIGH SCHOOL") }, (response) => response.members),
+        getAllMembers( { token: token, id: academicDepartments.find(department => department.level === "SENIOR HIGH SCHOOL") }, (response) => response.members)
+      ]);
 
-  useEffect(() => {
-    if (!user) setLoading(true);
-    else {
-      if (user?.is_admin) navigate("/dashboard");
-      else if (!user?.is_staff && !user?.is_superuser) navigate("/swtd");
-      else {
-        setLoading(true);
-        const fetchData = () => {
-          fetchDepartments();
-          fetchTerms();
-        };
-        fetchData();
-      }
-    }
-  }, [user, navigate]);
+      setElemCardData(computeClearingData(elemDepartmentMembers, activeBEDTerm));
+      setJHSCardData(computeClearingData(JHSDepartmentMembers, activeBEDTerm));
+      setSHSCardData(computeClearingData(SHSDepartmentMembers, activeBEDTerm));
+    };
 
-  useEffect(() => {
-    if (departments)
-      departments?.forEach((dept) => {
-        fetchMembers(dept);
-      });
-  }, [departments]);
+    onActiveBEDTermChange();
+  }, [activeBEDTerm]);
 
   if (loading)
     return (
@@ -205,7 +112,7 @@ const HRDashboard = () => {
       <Row className="w-100 mb-3">
         <Col>
           <h3 className={`${styles.label} d-flex align-items-center`}>
-            Dashboard
+            Department Summary
           </h3>
         </Col>
       </Row>
@@ -213,34 +120,45 @@ const HRDashboard = () => {
       <Row className="w-100">
         <Col lg={4}>
           <PercentCard
-            departments={departments}
+            departments={academicDepartments}
             level="ELEMENTARY"
             title="Elementary Department"
-            term={schoolTerm}
+            term={activeBEDTerm}
           />
         </Col>
 
         <Col lg={4}>
           <PercentCard
-            departments={departments}
+            departments={academicDepartments}
             level="JUNIOR HIGH SCHOOL"
             title="Junior High School Department"
-            term={schoolTerm}
+            term={activeBEDTerm}
           />
         </Col>
 
         <Col lg={4}>
           <PercentCard
-            departments={departments}
+            departments={academicDepartments}
             level="SENIOR HIGH SCHOOL"
             title="Senior High School Department"
-            term={semesterTerm}
+            term={activeBEDTerm}
           />
         </Col>
       </Row>
 
       {/* Histogram Section */}
       <Row className="w-100 mb-3">
+      <Col>
+          <DropdownButton
+            title={selectedLevel || colleges[0] || "Loading..."}
+            onSelect={setSelectedLevel()}>
+            {colleges.map((level) => (
+              <Dropdown.Item key={level} eventKey={level}>
+                {level}
+              </Dropdown.Item>
+            ))}
+          </DropdownButton>
+        </Col>
         <Col>
           <DropdownButton
             title={selectedLevel || levels[0] || "Loading..."}
@@ -283,8 +201,8 @@ const HRDashboard = () => {
           </DropdownButton>
 
           {/* Pie Chart for Clearance Data */}
-          {clearanceData.length > 0 ? (
-            <PieChart swtd={clearanceData} term={schoolTerm} />
+          {[].length > 0 ? (
+            <PieChart title={`Distribution for ${term ? term.name : 'this term'}`} data={adminChartData} />
           ) : (
             <p>No clearance data available for the selected department.</p>
           )}
