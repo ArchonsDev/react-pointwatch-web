@@ -67,10 +67,12 @@ const StaffPromotion = () => {
     });
   };
 
+  const privilegedUsers = employees.filter(e => e.is_staff === true).sort((a, b) => a.lastname.localeCompare(b.lastname));
+
   // For pagination
   const filteredEmployees = searchQuery
     ? handleSearchFilter(employees, searchQuery)
-    : [];
+    : privilegedUsers;
   const totalRecords = filteredEmployees?.length;
   const totalPages = totalRecords
     ? Math.ceil(totalRecords / recordsPerPage)
