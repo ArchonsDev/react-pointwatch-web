@@ -336,10 +336,10 @@ const Academic = ({ departments, terms, faculty }) => {
                 <ListGroup className="w-100" variant="flush">
                   <ListGroup.Item className={styles.tableHeader}>
                     <Row>
-                      <Col lg={1} md={1} xs={2}>
+                      <Col lg={2} md={2} xs={2}>
                         ID
                       </Col>
-                      <Col lg={7} md={7} xs={5}>
+                      <Col lg={6} md={6} xs={5}>
                         Name
                       </Col>
                       <Col className="text-center" lg={2} md={1} xs={2}>
@@ -352,13 +352,22 @@ const Academic = ({ departments, terms, faculty }) => {
                   </ListGroup.Item>
                 </ListGroup>
                 <ListGroup className={`${styles.searchBar} w-100`}>
-                  {currentRecords.map((member) => (
+                  {currentRecords.length === 0 ?
+                    <ListGroup.Item>
+                      <Row>
+                        <Col xs={12} className="d-flex justify-content-center">
+                          No records to show.
+                        </Col>
+                      </Row>
+                    </ListGroup.Item>
+                  :
+                    currentRecords.map((member) => (
                     <ListGroup.Item key={member?.id}>
                       <Row>
-                        <Col lg={1} md={1} xs={2}>
-                          {member?.id}
+                        <Col lg={2} md={2} xs={2}>
+                          {member?.employee_id}
                         </Col>
-                        <Col lg={7} md={7} xs={5}>
+                        <Col lg={6} md={6} xs={5}>
                           {member.firstname} {member.lastname}
                         </Col>
                         <Col className="text-center" lg={2} md={1} xs={2}>
