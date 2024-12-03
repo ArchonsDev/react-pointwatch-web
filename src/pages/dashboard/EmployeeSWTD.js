@@ -378,7 +378,7 @@ const EmployeeSWTD = () => {
         </Col>
 
         <Col className={`${styles.employeeDetails} mb-3`} xl={4} lg={3} md={6}>
-          <div className={`${styles.userStat} mb-1`}>User Points</div>
+          <div className={`${styles.userStat} mb-1`}>Employee Points</div>
           <div>
             <i className="fa-solid fa-circle-check fa-lg me-2"></i>Current
             Points:{" "}

@@ -160,7 +160,7 @@ const SWTDDashboard = () => {
   );
 
   useEffect(() => {
-    if (user) {
+    if (user && user?.department !== null) {
       setDepartmentTypes({
         ...departmentTypes,
         semester: user?.department?.use_schoolyear === false ? true : false,
@@ -220,7 +220,13 @@ const SWTDDashboard = () => {
                 selectedTerm?.is_ongoing === true ? "success" : "secondary"
               }
               size="sm"
-              title={selectedTerm?.name}>
+              title={selectedTerm ? selectedTerm?.name : "All Terms"}>
+              <Dropdown.Item
+                onClick={() => {
+                  setSelectedTerm("");
+                }}>
+                All Terms
+              </Dropdown.Item>
               {terms &&
                 terms.map((term) => (
                   <Dropdown.Item
@@ -344,31 +350,36 @@ const SWTDDashboard = () => {
               </ListGroup.Item>
             </ListGroup>
             <ListGroup>
-              {currentRecords.reverse().map((item) => (
-                <ListGroup.Item
-                  key={item.id}
-                  className={styles.tableBody}
-                  onClick={() => handleViewSWTD(item.id)}>
-                  <Row>
-                    <Col lg={5} md={5} xs={isMobile ? 6 : 4}>
-                      {truncateTitle(item.title)}
-                    </Col>
-                    {!isMobile && (
-                      <Col lg={4} md={4}>
-                        {truncateTitle(item.category)}
+              {currentRecords
+                .filter(
+                  (item) => !selectedTerm || item.term?.id === selectedTerm?.id
+                )
+                .reverse()
+                .map((item) => (
+                  <ListGroup.Item
+                    key={item.id}
+                    className={styles.tableBody}
+                    onClick={() => handleViewSWTD(item.id)}>
+                    <Row>
+                      <Col lg={5} md={5} xs={isMobile ? 6 : 4}>
+                        {truncateTitle(item.title)}
                       </Col>
-                    )}
-                    <Col lg={2} md={2} xs={isMobile ? 4 : 2}>
-                      {item.validation_status === "REJECTED"
-                        ? "FOR REVISION"
-                        : item.validation_status}
-                    </Col>
-                    <Col className="text-center" lg={1} md={1} xs={2}>
-                      {item.points}
-                    </Col>
-                  </Row>
-                </ListGroup.Item>
-              ))}
+                      {!isMobile && (
+                        <Col lg={4} md={4}>
+                          {truncateTitle(item.category)}
+                        </Col>
+                      )}
+                      <Col lg={2} md={2} xs={isMobile ? 4 : 2}>
+                        {item.validation_status === "REJECTED"
+                          ? "FOR REVISION"
+                          : item.validation_status}
+                      </Col>
+                      <Col className="text-center" lg={1} md={1} xs={2}>
+                        {item.points}
+                      </Col>
+                    </Row>
+                  </ListGroup.Item>
+                ))}
             </ListGroup>
           </Row>
           <Row className="w-100 mb-3">

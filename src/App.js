@@ -15,8 +15,7 @@ import Dashboard from "./pages/dashboard";
 import EmployeeSWTD from "./pages/dashboard/EmployeeSWTD";
 import ViewSWTD from "./pages/dashboard/ViewSWTD";
 import DisplaySWTD from "./pages/employee dashboard/DisplaySWTD";
-import HRDashboard from "./pages/hr dashboard/dashboard";
-import PointsOverviewDashboard from "./pages/hr dashboard";
+import DepartmentalDashboard from "./pages/hr dashboard";
 import Admin from "./pages/admin";
 import Settings from "./pages/settings";
 import Drawer from "./common/drawer";
@@ -163,29 +162,11 @@ const App = () => {
               path="/admin"
               element={token ? <Admin /> : <Navigate to="/login" />}
             />
+
             <Route
               path="/hr"
               element={
-                token ? (
-                  <HRContextProvider>
-                    <PointsOverviewDashboard />
-                  </HRContextProvider>
-                ) : (
-                  <Navigate to="/login" />
-                )
-              }
-            />
-
-            <Route
-              path="/hr-dashboard"
-              element={
-                token ? (
-                  <HRContextProvider>
-                    <HRDashboard />
-                  </HRContextProvider>
-                ) : (
-                  <Navigate to="/login" />
-                )
+                token ? <DepartmentalDashboard /> : <Navigate to="/login" />
               }
             />
           </Routes>

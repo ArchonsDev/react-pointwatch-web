@@ -175,26 +175,29 @@ const SWTDDashboard = () => {
   }, [departmentTypes.semester, departmentTypes.midyear, departmentTypes.academic]); /* prettier-ignore */
 
   useEffect(() => {
+    const counts = { pending: 0, rejected: 0 };
     if (selectedTerm) {
       fetchTermPoints(selectedTerm);
       const termData = user?.clearances?.find(
         (clearance) =>
-          clearance.term.id === selectedTerm.id && !clearance.is_deleted
+          clearance.term.id === selectedTerm?.id && !clearance.is_deleted
       );
+
       if (termData) setTermClearance(true);
       else setTermClearance(false);
-      const termCounts = userSWTDs?.reduce(
-        (counts, swtd) => {
-          if (swtd.term?.id === selectedTerm.id) {
-            counts[swtd.validation_status.toLowerCase()]++;
-          }
-          return counts;
-        },
-        { pending: 0, rejected: 0 }
-      );
-      setPendingSWTDCount(termCounts?.pending);
-      setRejectedSWTDCount(termCounts?.rejected);
+
+      userSWTDs?.forEach((swtd) => {
+        if (swtd.term?.id === selectedTerm?.id) {
+          counts[swtd.validation_status?.toLowerCase()]++;
+        }
+      });
+    } else {
+      userSWTDs?.forEach((swtd) => {
+        counts[swtd.validation_status?.toLowerCase()]++;
+      });
     }
+    setPendingSWTDCount(counts?.pending);
+    setRejectedSWTDCount(counts?.rejected);
   }, [selectedTerm, userSWTDs]);
 
   if (loading)
@@ -251,7 +254,10 @@ const SWTDDashboard = () => {
                 selectedTerm?.is_ongoing === true ? "success" : "secondary"
               }
               size="sm"
-              title={selectedTerm?.name}>
+              title={selectedTerm ? selectedTerm.name : "View All"}>
+              <Dropdown.Item onClick={() => setSelectedTerm("")}>
+                All Terms
+              </Dropdown.Item>
               {terms &&
                 terms.map((term) => (
                   <Dropdown.Item
@@ -276,7 +282,7 @@ const SWTDDashboard = () => {
           </span>
         </Col>
 
-        {selectedTerm !== null && (
+        {selectedTerm && (
           <Col className="d-flex align-items-center mb-3" md="auto">
             <i className="fa-solid fa-user-check fa-lg me-2"></i>Status:
             <span
@@ -371,35 +377,41 @@ const SWTDDashboard = () => {
         </Col>
 
         {/* POINTS */}
-        <Col className={styles.termPoints}>
-          <span className="mb-2">Term Pts:</span>
-          <span
-            className={`${styles.validPoints} ${
-              termPoints?.valid_points < termPoints?.required_points
-                ? "text-danger"
-                : "text-success"
-            }`}>
-            {userSWTDs
-              ?.filter(
-                (swtd) =>
-                  swtd.term?.id === selectedTerm?.id &&
-                  swtd?.validation_status === "APPROVED"
-              )
-              .reduce((total, swtd) => total + swtd.points, 0)}
-          </span>
-        </Col>
-        <Col className={styles.termPoints}>
-          <span className="mb-2">Required Pts:</span>
-          <span className={`${styles.validPoints} `}>
-            {selectedTerm?.type === "SEMESTER" ||
-            selectedTerm?.type === "ACADEMIC YEAR"
-              ? user?.department?.required_points || "0"
-              : selectedTerm?.type === "MIDYEAR/SUMMER"
-              ? user?.department?.midyear_points || "0"
-              : "0"}
-          </span>
-        </Col>
-        <Col className={styles.termPoints}>
+        {selectedTerm && (
+          <>
+            <Col className={styles.termPoints}>
+              <span className="mb-2">Term Pts:</span>
+              <span
+                className={`${styles.validPoints} ${
+                  termPoints?.valid_points < termPoints?.required_points
+                    ? "text-danger"
+                    : "text-success"
+                }`}>
+                {userSWTDs
+                  ?.filter(
+                    (swtd) =>
+                      swtd.term?.id === selectedTerm?.id &&
+                      swtd?.validation_status === "APPROVED"
+                  )
+                  .reduce((total, swtd) => total + swtd.points, 0)}
+              </span>
+            </Col>
+
+            <Col className={styles.termPoints}>
+              <span className="mb-2">Required Pts:</span>
+              <span className={`${styles.validPoints} `}>
+                {selectedTerm?.type === "SEMESTER" ||
+                selectedTerm?.type === "ACADEMIC YEAR"
+                  ? user?.department?.required_points || "0"
+                  : selectedTerm?.type === "MIDYEAR/SUMMER"
+                  ? user?.department?.midyear_points || "0"
+                  : "0"}
+              </span>
+            </Col>
+          </>
+        )}
+        <Col
+          className={`text-${!selectedTerm ? "end" : ""} ${styles.termPoints}`}>
           <span className="mb-2">Excess Pts:</span>
           <span className={`${styles.validPoints} `}>
             {user?.point_balance}
@@ -446,14 +458,23 @@ const SWTDDashboard = () => {
 
       {userSWTDs?.length !== 0 && (
         <>
-          <Row className="w-100 mb-3">
+          <Row className="w-100 mb-2">
             <hr />
           </Row>
           <Row className="w-100 mb-3">
-            <Col>
+            <Col className={styles.formLabel}>
               <h3 className={`${styles.label} d-flex align-items-center`}>
-                Recent SWTDs
+                My SWTD submissions
               </h3>
+              <span className={styles.userStat} style={{ color: "#9d084a" }}>
+                {
+                  userSWTDs?.filter(
+                    (item) =>
+                      !selectedTerm || item.term?.id === selectedTerm?.id
+                  ).length
+                }
+              </span>{" "}
+              Total SWTDs for {selectedTerm ? selectedTerm.name : "All Terms"}
             </Col>
             <Col className="text-end">
               <BtnSecondary onClick={() => navigate("/swtd/all")}>
@@ -484,7 +505,10 @@ const SWTDDashboard = () => {
             </ListGroup>
             <ListGroup>
               {userSWTDs
-                ?.slice(-5)
+                ?.filter(
+                  (item) => !selectedTerm || item.term?.id === selectedTerm?.id
+                )
+                .slice(-5)
                 .reverse()
                 .map((item) => (
                   <ListGroup.Item

@@ -43,7 +43,7 @@ const Dashboard = () => {
   const clearedUsersPercentage = (
     (validUsers / departmentUsers.length) *
     100
-  ).toFixed(2);
+  ).toFixed(0);
 
   const handleResize = () => {
     setIsMobile(window.innerWidth <= 762);
@@ -210,14 +210,14 @@ const Dashboard = () => {
 
         return matchesQuery;
       })
-      .sort((a, b) => {
-        const countStatusA = a.swtds?.filter(
+      .filter((stat) => {
+        if (!status) return true;
+
+        const countStatus = stat.swtds?.filter(
           (item) => item.validation_status === status
         ).length;
-        const countStatusB = b.swtds?.filter(
-          (item) => item.validation_status === status
-        ).length;
-        return countStatusB - countStatusA;
+
+        return countStatus > 0;
       });
   };
 
@@ -488,14 +488,16 @@ const Dashboard = () => {
                   onChange={(e) => {
                     setSelectedStatus(e.target.value);
                   }}>
-                  <option value="">Sort by...</option>
-                  {status.status.map((status, index) => (
-                    <option key={index} value={status}>
-                      {status === "REJECTED"
-                        ? "SWTDs FOR REVISION"
-                        : `${status} SWTDs`}
-                    </option>
-                  ))}
+                  <option value="">All Statuses</option>
+                  {status.status
+                    .filter((s) => s !== "APPROVED")
+                    .map((status, index) => (
+                      <option key={index} value={status}>
+                        {status === "REJECTED"
+                          ? "SWTDs FOR REVISION"
+                          : `${status} SWTDs`}
+                      </option>
+                    ))}
                 </Form.Select>
               </InputGroup>
             </Col>
@@ -513,7 +515,9 @@ const Dashboard = () => {
           {currentRecords.length === 0 ? (
             <span
               className={`${styles.msg} d-flex justify-content-center align-items-center mt-3 mb-3 w-100`}>
-              No employees found.
+              {departmentUsers.length === 0
+                ? "No employees found."
+                : "No records found."}
             </span>
           ) : (
             <>
@@ -527,12 +531,19 @@ const Dashboard = () => {
                       <Col lg={4} md={2}>
                         Name
                       </Col>
+
                       <Col className="text-center" lg={2} md={2}>
-                        Pending SWTDs
+                        {!selectedStatus || selectedStatus === "PENDING"
+                          ? "Pending SWTDs"
+                          : ""}
                       </Col>
+
                       <Col className="text-center" lg={2} md={3}>
-                        SWTDs For Revision
+                        {!selectedStatus || selectedStatus === "REJECTED"
+                          ? "SWTDs For Revision"
+                          : ""}
                       </Col>
+
                       <Col className="text-center" lg={1} md={1}>
                         Points
                       </Col>
@@ -562,6 +573,7 @@ const Dashboard = () => {
                         )}
                         {item.firstname} {item.lastname}
                       </Col>
+
                       <Col
                         className="mb-lg-0 mb-md-0 mb-1 text-lg-center text-md-center"
                         lg={2}
@@ -571,12 +583,14 @@ const Dashboard = () => {
                             Pending SWTDs:{" "}
                           </span>
                         )}
-                        {
-                          item.swtds?.filter(
-                            (swtd) => swtd.validation_status === "PENDING"
-                          ).length
-                        }
+
+                        {!selectedStatus || selectedStatus === "PENDING"
+                          ? item.swtds?.filter(
+                              (swtd) => swtd.validation_status === "PENDING"
+                            ).length
+                          : ""}
                       </Col>
+
                       <Col
                         className="mb-lg-0 mb-md-0 mb-1 text-lg-center text-md-center"
                         lg={2}
@@ -586,11 +600,11 @@ const Dashboard = () => {
                             SWTDs for Revision:{" "}
                           </span>
                         )}
-                        {
-                          item.swtds?.filter(
-                            (swtd) => swtd.validation_status === "REJECTED"
-                          ).length
-                        }
+                        {!selectedStatus || selectedStatus === "REJECTED"
+                          ? item.swtds?.filter(
+                              (swtd) => swtd.validation_status === "REJECTED"
+                            ).length
+                          : ""}
                       </Col>
                       <Col
                         className="mb-lg-0 mb-md-0 mb-1 text-lg-center text-md-center"

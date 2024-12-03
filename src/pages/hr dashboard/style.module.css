@@ -20,6 +20,10 @@
   background-color: #180018 !important;
 }
 
+.card {
+  height: 100vh !important;
+}
+
 .userStatus {
   font-family: "Poppins-Medium";
 }
@@ -45,8 +49,8 @@
 }
 
 .msg {
-  font-family: "Poppins-SemiBold";
-  color: #9d084a;
+  font-family: "Poppins-SemiBold" !important;
+  color: #9d084a !important;
 }
 
 .semibold {
@@ -69,6 +73,18 @@
 .graphBackground {
   background-color: white;
   border-radius: 3px;
+}
+
+.activeTab {
+  font-family: "Poppins-Bold";
+  color: #f5e3e0 !important;
+  background-color: #9d084a !important;
+}
+
+.inactiveTab {
+  font-family: "Poppins-SemiBold";
+  color: #f5e3e0 !important;
+  background-color: #180018 !important;
 }
 
 .pageNum {

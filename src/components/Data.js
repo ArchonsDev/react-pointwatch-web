@@ -2,7 +2,9 @@ import categories from "../data/categories.json";
 
 export const createBarData = (swtd, term) => {
   const categoriesArr = categories.categories;
-  const filteredSWTDs = swtd?.filter((item) => item.term?.id === term?.id);
+  const filteredSWTDs = term
+    ? swtd?.filter((item) => item.term?.id === term?.id)
+    : swtd;
   const data = categoriesArr.map((category) => {
     return filteredSWTDs.filter((item) => item.category === category.name)
       .length;
@@ -13,7 +15,7 @@ export const createBarData = (swtd, term) => {
     labels,
     datasets: [
       {
-        label: `SWTDs submitted per category`,
+        label: `Category`,
         data,
         borderColor: "#180018",
         borderWidth: 1,
