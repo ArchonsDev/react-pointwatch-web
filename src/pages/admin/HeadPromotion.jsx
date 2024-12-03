@@ -89,7 +89,7 @@ const HeadPromotion = () => {
   // For pagination
   const filteredEmployees = searchQuery
     ? handleSearchFilter(employees, searchQuery)
-    : employees;
+    : [];
   const totalRecords = filteredEmployees?.length;
   const totalPages = totalRecords
     ? Math.ceil(totalRecords / recordsPerPage)
@@ -142,110 +142,108 @@ const HeadPromotion = () => {
           </Row>
         ) : (
           <>
-            {!currentRecords ? (
-              <Row className="d-flex justify-content-center align-items-center mt-3 mb-3 w-100">
-                <span className={`${styles.table} `}>No employees found.</span>
-              </Row>
-            ) : (
-              <>
-                <Table
-                  className={styles.table}
-                  striped
-                  bordered
-                  hover
-                  responsive>
-                  <thead>
+            <Table
+              className={styles.table}
+              striped
+              bordered
+              hover
+              responsive>
+              <thead>
+                <tr>
+                  <th className="col-1">ID No.</th>
+                  <th className="col-2">Name</th>
+                  <th className="col-2">Department</th>
+                  <th className="col-1 text-center">Role</th>
+                  <th className="col-1 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentRecords.length === 0 ?
                     <tr>
-                      <th className="col-1">ID No.</th>
-                      <th className="col-2">Name</th>
-                      <th className="col-2">Department</th>
-                      <th className="col-1 text-center">Role</th>
-                      <th className="col-1 text-center">Action</th>
+                      <td colSpan={5}>
+                        <span className="d-flex justify-content-center">No employees to show. Start by searching for employees in the search bar.</span>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {currentRecords
-                      ?.sort((a, b) => b.is_head - a.is_head)
-                      ?.map((item) => (
-                        <tr key={item.id}>
-                          <td
-                            className={`${
-                              item.employee_id ? "" : "text-danger"
-                            }`}>
-                            {item.employee_id ? item.employee_id : "No ID"}
-                          </td>
-                          <td>
-                            {item.lastname}, {item.firstname}
-                          </td>
-                          <td className={item.department ? "" : "text-danger"}>
-                            {item.department
-                              ? item.department.name
-                              : "No department set."}
-                          </td>
-                          <td className="text-center">
+                  :
+                  currentRecords?.sort((a, b) => b.is_head - a.is_head)
+                  ?.map((item) => (
+                    <tr key={item.id}>
+                      <td
+                        className={`${
+                          item.employee_id ? "" : "text-danger"
+                        }`}>
+                        {item.employee_id ? item.employee_id : "No ID"}
+                      </td>
+                      <td>
+                        {item.lastname}, {item.firstname}
+                      </td>
+                      <td className={item.department ? "" : "text-danger"}>
+                        {item.department
+                          ? item.department.name
+                          : "No department set."}
+                      </td>
+                      <td className="text-center">
+                        {item.is_head ? (
+                          <Badge bg="success">Head/Chair</Badge>
+                        ) : (
+                          <Badge bg="secondary">Employee</Badge>
+                        )}
+                      </td>
+                      <td className="text-center">
+                        {item.department ? (
+                          <>
                             {item.is_head ? (
-                              <Badge bg="success">Head/Chair</Badge>
+                              <BtnSecondary
+                                disabled={disable}
+                                onClick={() =>
+                                  revokeHead(item.department.id)
+                                }>
+                                <i
+                                  className={`fa-solid fa-circle-arrow-down fa-lg me-2`}></i>
+                                DEMOTE
+                              </BtnSecondary>
                             ) : (
-                              <Badge bg="secondary">Employee</Badge>
+                              <BtnPrimary
+                                disabled={disable}
+                                onClick={() =>
+                                  grantHead(item.department.id, item.id)
+                                }>
+                                <i
+                                  className={`fa-solid fa-circle-arrow-up fa-lg me-2`}></i>
+                                PROMOTE
+                              </BtnPrimary>
                             )}
-                          </td>
-                          <td className="text-center">
-                            {item.department ? (
-                              <>
-                                {item.is_head ? (
-                                  <BtnSecondary
-                                    disabled={disable}
-                                    onClick={() =>
-                                      revokeHead(item.department.id)
-                                    }>
-                                    <i
-                                      className={`fa-solid fa-circle-arrow-down fa-lg me-2`}></i>
-                                    DEMOTE
-                                  </BtnSecondary>
-                                ) : (
-                                  <BtnPrimary
-                                    disabled={disable}
-                                    onClick={() =>
-                                      grantHead(item.department.id, item.id)
-                                    }>
-                                    <i
-                                      className={`fa-solid fa-circle-arrow-up fa-lg me-2`}></i>
-                                    PROMOTE
-                                  </BtnPrimary>
-                                )}
-                              </>
-                            ) : (
-                              <div className={styles.icon}>
-                                <OverlayTrigger
-                                  placement="right"
-                                  overlay={
-                                    <Tooltip
-                                      id="button-tooltip-1"
-                                      className={styles.table}>
-                                      Department is required.
-                                    </Tooltip>
-                                  }>
-                                  <i
-                                    className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>
-                                </OverlayTrigger>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </Table>
-                <Row className="w-100 mb-3">
-                  <Col className="d-flex justify-content-center">
-                    <PaginationComponent
-                      totalPages={totalPages}
-                      currentPage={currentPage}
-                      handlePageChange={handlePageChange}
-                    />
-                  </Col>
-                </Row>
-              </>
-            )}
+                          </>
+                        ) : (
+                          <div className={styles.icon}>
+                            <OverlayTrigger
+                              placement="right"
+                              overlay={
+                                <Tooltip
+                                  id="button-tooltip-1"
+                                  className={styles.table}>
+                                  Department is required.
+                                </Tooltip>
+                              }>
+                              <i
+                                className={`fa-solid fa-ban fa-xl text-danger me-2`}></i>
+                            </OverlayTrigger>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </Table>
+            <Row className="w-100 mb-3">
+              <Col className="d-flex justify-content-center">
+                <PaginationComponent
+                  totalPages={totalPages}
+                  currentPage={currentPage}
+                  handlePageChange={handlePageChange}
+                />
+              </Col>
+            </Row>
           </>
         )}
       </Row>
