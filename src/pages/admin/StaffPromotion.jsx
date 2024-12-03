@@ -70,7 +70,7 @@ const StaffPromotion = () => {
   // For pagination
   const filteredEmployees = searchQuery
     ? handleSearchFilter(employees, searchQuery)
-    : employees;
+    : [];
   const totalRecords = filteredEmployees?.length;
   const totalPages = totalRecords
     ? Math.ceil(totalRecords / recordsPerPage)
@@ -137,8 +137,14 @@ const StaffPromotion = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentRecords
-                    .sort((a, b) => b.is_staff - a.is_staff)
+                  {currentRecords.length === 0 ?
+                    <tr>
+                      <td colSpan={5}>
+                      <span className="d-flex justify-content-center">No employees to show. Start by searching for employees in the search bar.</span>
+                      </td>
+                    </tr>
+                    :
+                    currentRecords.sort((a, b) => b.is_staff - a.is_staff)
                     .map((item) => (
                       <tr key={item.id}>
                         <td
