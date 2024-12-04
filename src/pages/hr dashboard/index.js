@@ -24,7 +24,7 @@ const DepartmentalDashboard = () => {
   const [employees, setEmployees] = useState([]);
 
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("acad");
+  const [activeTab, setActiveTab] = useState("overall");
 
   const handleSelectTab = (selectedTab) => {
     setActiveTab(selectedTab);
