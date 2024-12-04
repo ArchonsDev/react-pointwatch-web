@@ -216,7 +216,7 @@
                         <Form.Control
                           type="search"
                           name="searchQuery"
-                          placeholder="Search by firstname or lastname..."
+                          placeholder="Search by Department name..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                         />
