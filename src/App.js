@@ -169,6 +169,10 @@ const App = () => {
                 token ? <DepartmentalDashboard /> : <Navigate to="/login" />
               }
             />
+             <Route
+              path="*"
+              element={<Navigate to="/login" />}
+            />
           </Routes>
         </SessionUserContext.Provider>
       </div>

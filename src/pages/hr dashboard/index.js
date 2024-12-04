@@ -7,6 +7,7 @@ import { getTerms, getAllDepartments, getAllUsers } from "../../api/admin"; /* p
 
 import Academic from "./academic";
 import Nonacademic from "./nonacademic";
+import Overall from "./overall";
 
 import SessionUserContext from "../../contexts/SessionUserContext";
 import styles from "./style.module.css";
@@ -89,6 +90,14 @@ const DepartmentalDashboard = () => {
 
   const renderActiveView = () => {
     switch (activeTab) {
+      case "overall":
+        return (
+          <Overall
+            departments={[...academicDepartments, ...nonAcademicDepartments]}
+            terms={terms}
+            faculty={employees}
+          />
+        )
       case "acad":
         return (
           <Academic
@@ -145,6 +154,15 @@ const DepartmentalDashboard = () => {
 
       <Row className="w-100">
         <Nav variant="tabs" defaultActiveKey="acad" onSelect={handleSelectTab}>
+          <Nav.Item>
+            <Nav.Link
+              eventKey="overall"
+              className={`${styles.navHeader} ${
+                activeTab === "overall" ? styles.activeTab : styles.inactiveTab
+              } me-2`}>
+              Overall
+            </Nav.Link>
+          </Nav.Item>
           <Nav.Item>
             <Nav.Link
               eventKey="acad"
