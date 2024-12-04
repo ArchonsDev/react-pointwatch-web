@@ -17,8 +17,6 @@
     // Page State
     const [isLoading, setIsLoading] = useState(false);
 
-    const [members, setMembers] = useState(faculty);
-    const [selectedDepartment, setSelectedDepartment] = useState(-1);
     const [selectedTerm, setSelectedTerm] = useState(-1);
     const [pieChartData, setPieChartData] = useState(null);
 
@@ -29,24 +27,6 @@
 
     const [deps, setDeps] = useState([]);
     const [selectedLevel, setSelectedLevel] = useState("");
-
-    const handlePrint = () => {
-      exportPointsOverview(
-        {
-          id: selectedDepartment,
-          term_id: selectedTerm,
-          token: token,
-        },
-        (response) => {
-          const blob = new Blob([response.data], { type: "application/pdf" });
-          const blobURL = URL.createObjectURL(blob);
-          window.open(blobURL, "_blank");
-        },
-        (error) => {
-          console.log(error);
-        }
-      );
-    };
 
     useEffect(() => {   
       const init = async () => {
@@ -83,11 +63,11 @@
 
             setDeps(departments_.sort((a, b) => -1 * (a.percent_cleared - b.percent_cleared)));
 
-            const overallMemberCount = departments_
+            const overallMemberCount = departments_.filter(d => selectedLevel === "" ? true : d.level === selectedLevel)
             .map(d => d.members.length)
             .reduce((acc, value) => acc + value, 0);
           
-            const overAllClearedCount = departments_
+            const overAllClearedCount = departments_.filter(d => selectedLevel === "" ? true : d.level === selectedLevel)
               .map(d => d.members.filter(m => m.clearances?.some(c => c.term.id === t.id)).length)
               .reduce((acc, value) => acc + value, 0);
             
@@ -106,7 +86,7 @@
       setIsLoading(true);
       init();
       setIsLoading(false);
-    }, [selectedTerm]);
+    }, [selectedTerm, selectedLevel]);
 
     const handleFilter = (departments, query) => {
       return departments.filter((d) => d.name.toLowerCase().includes(query.toLowerCase()) || d.name.toLowerCase().includes(query.toLowerCase()));
@@ -189,15 +169,6 @@
                           {clearedTotal}
                         </span>
                       </div>
-
-                      <BtnSecondary
-                        onClick={handlePrint}
-                        disabled={
-                          selectedDepartment === -1 || selectedTerm === -1
-                        }>
-                        <i className="fa-solid fa-file-arrow-down fa-lg me-2"></i>{" "}
-                        Export
-                      </BtnSecondary>
                     </Col>
                   </Row>
                 )}
