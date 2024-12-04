@@ -97,7 +97,7 @@ const DepartmentalDashboard = () => {
             terms={terms}
             faculty={employees}
           />
-        )
+        );
       case "acad":
         return (
           <Academic

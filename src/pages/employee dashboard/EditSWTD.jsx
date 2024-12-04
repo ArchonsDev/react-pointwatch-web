@@ -135,13 +135,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     );
   };
 
-  const setMinDate = (category, term) => {
-    if (category.startsWith("Degree")) return undefined;
-    return term?.start;
-  };
-
-  const setMaxDate = (category, term) => {
-    if (category.startsWith("Degree")) return undefined;
+  const setMaxDate = (term) => {
     if (term?.ongoing) return new Date().toISOString().slice(0, 10);
     return term?.end;
   };
@@ -270,6 +264,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     } else {
       setForm((prevForm) => ({
         ...prevForm,
+        points: 0,
       }));
     }
   }, [form.category, form.total_hours]);
@@ -321,6 +316,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
           <Row className="mb-2">
             <Col className={`p-1 ${styles.categoryLabel}`}>
               <span className="ms-1">GENERAL INFORMATION</span>
+              <span className="text-danger">*</span>
             </Col>
           </Row>
 
@@ -420,6 +416,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
           <Row className="mb-2">
             <Col className={`p-1 ${styles.categoryLabel}`} md="4">
               <span className="ms-1">DURATION & POINTS</span>
+              <span className="text-danger">*</span>
             </Col>
           </Row>
 
@@ -434,8 +431,8 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                 <Form.Control
                   type="date"
                   name="start_date"
-                  min={setMinDate(form?.category, selectedTerm)}
-                  max={setMaxDate(form?.category, selectedTerm)}
+                  min={selectedTerm?.start}
+                  max={setMaxDate(selectedTerm)}
                   className={styles.formBox}
                   onChange={handleChange}
                   value={form.start_date}
@@ -458,7 +455,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   type="date"
                   name="end_date"
                   min={form?.start_date}
-                  max={setMaxDate(form?.category, selectedTerm)}
+                  max={setMaxDate(selectedTerm)}
                   className={styles.formBox}
                   onChange={handleChange}
                   value={form.end_date}
@@ -476,7 +473,6 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
             </Col>
 
             {/* HOURS */}
-
             <Col md="2">
               <FloatingLabel
                 controlId={`floatingInputTotalHours`}
@@ -510,8 +506,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   name="points"
                   onChange={handleChange}
                   value={form.points}
-                  disabled={loading}
-                  readOnly={!form?.category.startsWith("Degree")}
+                  disabled
                 />
                 <Form.Text>Calculated automatically.</Form.Text>
               </FloatingLabel>
@@ -520,7 +515,10 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
 
           {/* DOCUMENTATION */}
           <Row className="w-100 mb-1">
-            <span className={styles.categoryLabel}>DOCUMENTATION</span>
+            <Col>
+              <span className={styles.categoryLabel}>DOCUMENTATION</span>
+              <span className="text-danger">*</span>
+            </Col>
           </Row>
 
           {/* TAKEAWAYS */}

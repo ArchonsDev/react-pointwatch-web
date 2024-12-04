@@ -50,7 +50,9 @@ const EditTermModal = ({ show, onHide, data, editSuccess }) => {
     }
 
     if (!isEmpty(form.end_date)) {
-      const [year, month, day] = form.end_date.split("-");
+      const dateObj = new Date(form.end_date);
+      dateObj.setDate(dateObj.getDate() + 1);
+      const [year, month, day] = dateObj.toISOString().split("T")[0].split("-");
       form.end_date = `${month}-${day}-${year}`;
     }
 

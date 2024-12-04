@@ -233,11 +233,9 @@ const Login = () => {
         password: password,
       },
       (r) => {
-        console.log("Login successful.");
         isLoginSuccess = true;
       },
       (e) => {
-        console.log("Login failed.");
         error = e;
       }
     );
@@ -255,12 +253,9 @@ const Login = () => {
           password: password,
         },
         (r) => {
-          console.log("Registration success");
           isRegistrationSuccess = true;
         },
         (e) => {
-          console.log("Registration failed");
-          console.log(e);
           error = e;
         }
       );
@@ -406,7 +401,9 @@ const Login = () => {
                   <Container>
                     <Row>
                       <Col className="text-end">
-                        <BtnPrimary onClick={handleSendEmail}>
+                        <BtnPrimary
+                          onClick={handleSendEmail}
+                          disabled={isEmpty(email)}>
                           Submit
                         </BtnPrimary>
                       </Col>

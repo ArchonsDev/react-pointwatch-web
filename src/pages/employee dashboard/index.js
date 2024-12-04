@@ -451,7 +451,7 @@ const SWTDDashboard = () => {
         ) : (
           <Col className={`${styles.employeeDetails} text-center`}>
             <hr className="mb-4" />
-            <h5>No statistics to show yet.</h5>
+            <h5>No statistics to show yet—please submit your SWTD(s).</h5>
           </Col>
         )}
       </Row>
@@ -461,11 +461,23 @@ const SWTDDashboard = () => {
           <Row className="w-100 mb-2">
             <hr />
           </Row>
-          <Row className="w-100 mb-3">
+          <Row className="w-100 mb-1">
             <Col className={styles.formLabel}>
-              <h3 className={`${styles.label} d-flex align-items-center`}>
+              <h3 className={`${styles.label} d-flex align-items-center mb-0`}>
                 My SWTD submissions
               </h3>
+            </Col>
+            <Col className="text-end">
+              <BtnSecondary onClick={() => navigate("/swtd/all")}>
+                View All
+              </BtnSecondary>
+            </Col>
+          </Row>
+          <Row className={`${styles.employeeDetails} w-100 mb-3`}>
+            <Col className="text-muted">
+              See all SWTDs by clicking on <strong>View All</strong>
+            </Col>
+            <Col className={`${styles.formLabel} text-end`}>
               <span className={styles.userStat} style={{ color: "#9d084a" }}>
                 {
                   userSWTDs?.filter(
@@ -475,11 +487,6 @@ const SWTDDashboard = () => {
                 }
               </span>{" "}
               Total SWTDs for {selectedTerm ? selectedTerm.name : "All Terms"}
-            </Col>
-            <Col className="text-end">
-              <BtnSecondary onClick={() => navigate("/swtd/all")}>
-                View All
-              </BtnSecondary>
             </Col>
           </Row>
           <Row className="w-100 mb-3">

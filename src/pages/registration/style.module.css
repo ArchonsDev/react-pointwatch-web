@@ -41,6 +41,10 @@
   font-family: "Poppins-Regular" !important;
 }
 
+.semibold {
+  font-family: "Poppins-SemiBold" !important;
+}
+
 .image {
   margin-right: 10px;
 }

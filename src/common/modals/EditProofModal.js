@@ -19,6 +19,7 @@ const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
   const [isProofInvalid, setIsProofInvalid] = useState(false);
 
   const handleProof = (e) => {
+    const maxFileSize = 5 * 1024 * 1024;
     const selectedFiles = Array.from(e.target.files);
     const allowedTypes = [
       "application/pdf",
@@ -27,8 +28,8 @@ const EditProofModal = ({ show, onHide, editSuccess, editError }) => {
       "image/jpg",
     ];
 
-    const validFiles = selectedFiles.filter((file) =>
-      allowedTypes.includes(file.type)
+    const validFiles = selectedFiles.filter(
+      (file) => allowedTypes.includes(file.type) && file.size <= maxFileSize
     );
     if (validFiles.length > 0) {
       setFiles(validFiles);

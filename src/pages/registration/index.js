@@ -183,6 +183,9 @@ const Registration = () => {
                   <span className={styles.brand}>PointWatch</span>
                 </Col>
               </Row>
+              <Row className={`${styles.form} text-danger w-100 mb-3`}>
+                <Col className="text-center">All fields are required.</Col>
+              </Row>
               <Form className={styles.form} noValidate>
                 {/* Row 1: Email & ID Number */}
                 <Row>
@@ -383,6 +386,7 @@ const Registration = () => {
                             }`}
                             onClick={() => setShowPassword(!showPassword)}></i>
                         </InputGroup.Text>
+
                         {!isEmpty(form.password) &&
                           !isValidPassword(form.password) && (
                             <Form.Control.Feedback type="invalid">
@@ -391,6 +395,13 @@ const Registration = () => {
                             </Form.Control.Feedback>
                           )}
                       </InputGroup>
+                      <Form.Text>
+                        Special characters allowed:{" "}
+                        <span
+                          className={
+                            styles.semibold
+                          }>{`[!@#$%^&*(),.?":{}|<>]`}</span>
+                      </Form.Text>
                     </Form.Group>
                   </Col>
                 </Row>

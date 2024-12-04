@@ -49,7 +49,6 @@ const SWTDDashboard = () => {
       },
       (response) => {
         setUserSWTDs(response.swtd_forms);
-        setLoading(false);
       },
       (error) => {
         if (error.response && error.response.data) {
@@ -84,6 +83,7 @@ const SWTDDashboard = () => {
 
         setTerms(filteredTerms);
         setSelectedTerm(ongoingTerm || filteredTerms[0]);
+        setLoading(false);
       },
       (error) => {
         console.log(error.message);
