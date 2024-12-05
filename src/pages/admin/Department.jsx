@@ -388,7 +388,10 @@ const Department = () => {
           </Col>
           <Col>
             {types.type.map((item, index) => {
-              const isDisabled = disable && !termCheckbox[termMapping[item]];
+              const isDisabled =
+                (disable && !termCheckbox[termMapping[item]]) ||
+                (item === "SEMESTER" && termCheckbox.academic) ||
+                (item === "ACADEMIC YEAR" && termCheckbox.semester);
               return (
                 <Form.Check
                   key={index}
