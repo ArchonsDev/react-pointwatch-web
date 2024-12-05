@@ -270,7 +270,7 @@ const Academic = ({ departments, terms, faculty }) => {
                       onChange={(e) =>
                         setStatusFilter(parseInt(e.target.value, 10))
                       }>
-                      <option value={-1}>Filter by status</option>
+                      <option value={-1}>All Statuses</option>
                       <option value={1}>CLEARED</option>
                       <option value={0}>NOT CLEARED</option>
                     </Form.Select>

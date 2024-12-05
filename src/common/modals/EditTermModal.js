@@ -54,6 +54,7 @@ const EditTermModal = ({ show, onHide, data, editSuccess }) => {
       dateObj.setDate(dateObj.getDate() + 1);
       const [year, month, day] = dateObj.toISOString().split("T")[0].split("-");
       form.end_date = `${month}-${day}-${year}`;
+      console.log(form.end_date);
     }
 
     updateTerm(
