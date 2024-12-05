@@ -97,7 +97,7 @@ const Academic = ({ departments, terms, faculty }) => {
     }
 
     const filteredMembers = members.filter(
-      (member) => member.department.id === selectedDepartment
+      (member) => member?.department?.id === selectedDepartment
     );
 
     if (filteredMembers.length === 0) {
@@ -352,7 +352,7 @@ const Academic = ({ departments, terms, faculty }) => {
                   </ListGroup.Item>
                 </ListGroup>
                 <ListGroup className={`${styles.searchBar} w-100`}>
-                  {currentRecords.length === 0 ?
+                  {currentRecords.length === 0 ? (
                     <ListGroup.Item>
                       <Row>
                         <Col xs={12} className="d-flex justify-content-center">
@@ -360,33 +360,34 @@ const Academic = ({ departments, terms, faculty }) => {
                         </Col>
                       </Row>
                     </ListGroup.Item>
-                  :
+                  ) : (
                     currentRecords.map((member) => (
-                    <ListGroup.Item key={member?.id}>
-                      <Row>
-                        <Col lg={2} md={2} xs={2}>
-                          {member?.employee_id}
-                        </Col>
-                        <Col lg={6} md={6} xs={5}>
-                          {member.firstname} {member.lastname}
-                        </Col>
-                        <Col className="text-center" lg={2} md={1} xs={2}>
-                          {member.points?.valid_points}
-                        </Col>
-                        <Col className="text-center" lg={2} md={2} xs={3}>
-                          {member.clearances?.find(
-                            (clear) =>
-                              clear.term?.id === selectedTerm &&
-                              !clear.is_deleted
-                          ) ? (
-                            <span className="text-success">CLEARED</span>
-                          ) : (
-                            <span className="text-danger">NOT CLEARED</span>
-                          )}
-                        </Col>
-                      </Row>
-                    </ListGroup.Item>
-                  ))}
+                      <ListGroup.Item key={member?.id}>
+                        <Row>
+                          <Col lg={2} md={2} xs={2}>
+                            {member?.employee_id}
+                          </Col>
+                          <Col lg={6} md={6} xs={5}>
+                            {member.firstname} {member.lastname}
+                          </Col>
+                          <Col className="text-center" lg={2} md={1} xs={2}>
+                            {member.points?.valid_points}
+                          </Col>
+                          <Col className="text-center" lg={2} md={2} xs={3}>
+                            {member.clearances?.find(
+                              (clear) =>
+                                clear.term?.id === selectedTerm &&
+                                !clear.is_deleted
+                            ) ? (
+                              <span className="text-success">CLEARED</span>
+                            ) : (
+                              <span className="text-danger">NOT CLEARED</span>
+                            )}
+                          </Col>
+                        </Row>
+                      </ListGroup.Item>
+                    ))
+                  )}
                 </ListGroup>
 
                 {currentRecords.length !== 0 && (
