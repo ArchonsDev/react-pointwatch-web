@@ -156,6 +156,15 @@ const EditTermModal = ({ show, onHide, data, editSuccess }) => {
     }
   }, [data]);
 
+  useEffect(() => {
+    if (!termCheckbox.midyear) {
+      setForm((prevForm) => ({
+        ...prevForm,
+        midyear_points: 0,
+      }));
+    }
+  }, [termCheckbox.midyear]);
+
   return (
     <>
       <Modal
@@ -275,7 +284,9 @@ const EditTermModal = ({ show, onHide, data, editSuccess }) => {
               <Col className={styles.comment}>
                 {types.type.map((item, index) => {
                   const isDisabled =
-                    disable && !termCheckbox[termMapping[item]];
+                    (disable && !termCheckbox[termMapping[item]]) ||
+                    (item === "SEMESTER" && termCheckbox.academic) ||
+                    (item === "ACADEMIC YEAR" && termCheckbox.semester);
                   return (
                     <Form.Check
                       key={index}
