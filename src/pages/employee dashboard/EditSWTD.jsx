@@ -140,8 +140,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
     return term?.end;
   };
 
-  const validateDates = (date, category, term) => {
-    if (category.startsWith("Degree")) return isEmpty(date);
+  const validateDates = (date, term) => {
     return isEmpty(date) && isValidSWTDDate(date, term);
   };
 
@@ -202,6 +201,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
       form.total_hours <= 0 ||
       validateDates(form.start_date, form.category, selectedTerm) ||
       validateDates(form.end_date, form.category, selectedTerm) ||
+      form.start_date > form.end_date ||
       invalidTerm
     );
   };
@@ -432,7 +432,7 @@ const EditSWTD = ({ cancelEditing, updateSWTD, updateSuccess }) => {
                   type="date"
                   name="start_date"
                   min={selectedTerm?.start}
-                  max={setMaxDate(selectedTerm)}
+                  max={form.end_date ? form.end_date : setMaxDate(selectedTerm)}
                   className={styles.formBox}
                   onChange={handleChange}
                   value={form.start_date}

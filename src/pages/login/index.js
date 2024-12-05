@@ -268,11 +268,9 @@ const Login = () => {
           password: password,
         },
         (r) => {
-          console.log("Login successful.");
           isLoginSuccess = true;
         },
         (e) => {
-          console.log("Login failed.");
           error = e;
         }
       );
