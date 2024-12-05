@@ -15,7 +15,7 @@ const Nonacademic = ({ departments, terms, faculty }) => {
 
   //Filter employees
   const filterMembers = faculty.filter(
-    (f) => f.department.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
+    (f) => f?.department?.level === "ADMIN & ACADEMIC SUPPORT OFFICES"
   );
   const [members, setMembers] = useState(filterMembers);
   const [selectedDepartment, setSelectedDepartment] = useState(-1);
