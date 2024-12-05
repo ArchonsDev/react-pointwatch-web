@@ -78,8 +78,7 @@ const App = () => {
     "/swtd/form": "Add a New Record",
     "/swtd/all": "SWTD Submissions",
     "/admin": "System Management",
-    "/hr": "Points Overview",
-    "/hr-dashboard": "Dashboard",
+    "/hr": "Departmental Dashboard",
   };
 
   document.title = tabNames[location.pathname] || "PointWatch";
@@ -155,10 +154,7 @@ const App = () => {
                 token ? <DepartmentalDashboard /> : <Navigate to="/login" />
               }
             />
-            <Route
-              path="/register"
-              element={<Register />}
-            />
+            <Route path="/register" element={<Register />} />
             <Route path="/reset" element={<ResetPassword />} />
             <Route path="/authorized" element={<Authorized />} />
             <Route
@@ -171,10 +167,7 @@ const App = () => {
                 token ? <Navigate to="/swtd" /> : <Navigate to="/login" />
               }
             />
-            <Route
-              path="*"
-              element={<Navigate to="/login" />}
-            />
+            <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </SessionUserContext.Provider>
       </div>
