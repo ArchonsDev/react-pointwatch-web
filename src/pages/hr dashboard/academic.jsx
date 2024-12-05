@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Form, Row, Col, ListGroup, InputGroup } from "react-bootstrap";
 import Cookies from "js-cookie";
 
@@ -12,6 +13,7 @@ import styles from "./style.module.css";
 
 const Academic = ({ departments, terms, faculty }) => {
   const token = Cookies.get("userToken");
+  const navigate = useNavigate();
 
   //Get all unique levels
   const levels = [
@@ -362,7 +364,10 @@ const Academic = ({ departments, terms, faculty }) => {
                     </ListGroup.Item>
                   ) : (
                     currentRecords.map((member) => (
-                      <ListGroup.Item key={member?.id}>
+                      <ListGroup.Item
+                        className={styles.tableBody}
+                        key={member?.id}
+                        onClick={() => navigate(`/dashboard/${member.id}`)}>
                         <Row>
                           <Col lg={2} md={2} xs={2}>
                             {member?.employee_id}

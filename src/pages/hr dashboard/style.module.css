@@ -70,6 +70,10 @@
   cursor: pointer;
 }
 
+.tableBody:hover {
+  background-color: rgb(232, 232, 232);
+}
+
 .graphBackground {
   background-color: white;
   border-radius: 3px;
