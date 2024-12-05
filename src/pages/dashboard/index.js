@@ -248,9 +248,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) setLoading(true);
     else {
-      if (user?.is_staff) navigate("/hr");
-      else if (user?.is_superuser) navigate("/admin");
-      else if (!user?.is_head) navigate("/swtd");
+      if (!user?.is_head) navigate("/swtd");
       else if (user?.department) {
         setLoading(true);
         setDepartmentTypes({
