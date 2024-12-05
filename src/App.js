@@ -117,30 +117,25 @@ const App = () => {
           {showDrawer && <Drawer />}
           <Routes>
             <Route
-              path="/"
-              element={
-                token ? <Navigate to="/swtd" /> : <Navigate to="/login" />
-              }
+              path="/swtd/all/:swtd_id"
+              element={token ? <SWTDDetails /> : <Navigate to="/login" />}
             />
             <Route
-              path="/login"
-              element={token ? <Navigate to="/swtd" /> : <Login />}
+              path="/dashboard/:id/:swtd_id"
+              element={token ? <ViewSWTD /> : <Navigate to="/login" />}
             />
-            <Route path="/register" element={<Register />} />
-            <Route path="/reset" element={<ResetPassword />} />
-            <Route path="/authorized" element={<Authorized />} />
+            <Route
+              path="/dashboard/:id"
+              element={token ? <EmployeeSWTD /> : <Navigate to="/login" />}
+            />
             <Route path="/swtd/all" element={<DisplaySWTD />} />
-            <Route
-              path="/swtd"
-              element={token ? <SWTDDashboard /> : <Navigate to="/login" />}
-            />
             <Route
               path="/swtd/form"
               element={token ? <AddSWTD /> : <Navigate to="/login" />}
             />
             <Route
-              path="/swtd/all/:swtd_id"
-              element={token ? <SWTDDetails /> : <Navigate to="/login" />}
+              path="/swtd"
+              element={token ? <SWTDDashboard /> : <Navigate to="/login" />}
             />
             <Route
               path="/settings"
@@ -151,25 +146,32 @@ const App = () => {
               element={token ? <Dashboard /> : <Navigate to="/login" />}
             />
             <Route
-              path="/dashboard/:id"
-              element={token ? <EmployeeSWTD /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/dashboard/:id/:swtd_id"
-              element={token ? <ViewSWTD /> : <Navigate to="/login" />}
-            />
-            <Route
               path="/admin"
               element={token ? <Admin /> : <Navigate to="/login" />}
             />
-
             <Route
               path="/hr"
               element={
                 token ? <DepartmentalDashboard /> : <Navigate to="/login" />
               }
             />
-             <Route
+            <Route
+              path="/register"
+              element={<Register />}
+            />
+            <Route path="/reset" element={<ResetPassword />} />
+            <Route path="/authorized" element={<Authorized />} />
+            <Route
+              path="/login"
+              element={token ? <Navigate to="/swtd" /> : <Login />}
+            />
+            <Route
+              path="/"
+              element={
+                token ? <Navigate to="/swtd" /> : <Navigate to="/login" />
+              }
+            />
+            <Route
               path="*"
               element={<Navigate to="/login" />}
             />

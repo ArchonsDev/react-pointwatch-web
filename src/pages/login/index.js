@@ -182,7 +182,6 @@ const Login = () => {
   };
 
   const handleMSLogin = async () => {
-    setIsLoading(true);
     setIsClicked(true);
     const loginRequest = {
       scopes: ["User.Read"], // Scopes needed to access the user profile
@@ -227,6 +226,7 @@ const Login = () => {
     var isLoginSuccess = false;
     var error = null;
 
+    setIsLoading(true);
     await login(
       {
         email: email,
@@ -262,6 +262,7 @@ const Login = () => {
     }
 
     if (isRegistrationSuccess) {
+      setIsLoading(true);
       await login(
         {
           email: email,
