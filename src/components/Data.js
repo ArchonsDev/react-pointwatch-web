@@ -2,7 +2,9 @@ import categories from "../data/categories.json";
 
 export const createBarData = (swtd, term) => {
   const categoriesArr = categories.categories;
-  const filteredSWTDs = swtd?.filter((item) => item.term?.id === term?.id);
+  const filteredSWTDs = term
+    ? swtd?.filter((item) => item.term?.id === term?.id)
+    : swtd;
   const data = categoriesArr.map((category) => {
     return filteredSWTDs.filter((item) => item.category === category.name)
       .length;
@@ -13,7 +15,7 @@ export const createBarData = (swtd, term) => {
     labels,
     datasets: [
       {
-        label: `SWTDs submitted per category`,
+        label: `Category`,
         data,
         borderColor: "#180018",
         borderWidth: 1,
@@ -33,33 +35,55 @@ export const createBarData = (swtd, term) => {
   };
 };
 
-export const createPieData = (swtd, term) => {
-  const categoriesArr = categories.categories;
-  const filteredSWTDs = swtd?.filter((item) => item.term.id === term?.id);
-  const data = categoriesArr.map((category) => {
-    return filteredSWTDs.filter((item) => item.category === category.name)
-      .length;
+export const createHistogramData = (departments, term) => {
+  const clearedData = [];
+  const nonClearedData = [];
+  const clearedPercentageData = [];
+  const nonClearedPercentageData = [];
+
+  departments.forEach((department) => {
+    const totalMembers = department?.members?.length || 0;
+    const clearedMembers =
+      department?.members?.reduce((clearedCount, member) => {
+        const termStatus = member?.clearances?.find(
+          (clearance) =>
+            clearance?.term?.id === term.id && !clearance.is_deleted
+        );
+        return termStatus ? clearedCount + 1 : clearedCount;
+      }, 0) || 0;
+
+    const nonClearedMembers = totalMembers - clearedMembers;
+
+    clearedData.push(clearedMembers);
+    nonClearedData.push(nonClearedMembers);
+
+    const clearedPercentage = totalMembers
+      ? ((clearedMembers / totalMembers) * 100).toFixed(2)
+      : 0;
+    const nonClearedPercentage = totalMembers
+      ? ((nonClearedMembers / totalMembers) * 100).toFixed(2)
+      : 0;
+
+    clearedPercentageData.push(clearedPercentage);
+    nonClearedPercentageData.push(nonClearedPercentage);
   });
 
-  const labels = categoriesArr.map((category) => category.id);
   return {
-    labels,
+    labels: departments.map((department) => department.name),
     datasets: [
       {
-        label: `SWTDs submitted`,
-        data,
-        backgroundColor: [
-          "#9D084A",
-          "#A92761",
-          "#B64677",
-          "#C2658E",
-          "#CE84A5",
-          "#DAA2BB",
-          "#E7C1D2",
-          "#F3E0E8",
-          "#FFFFFF",
-        ],
-        hoverOffset: 4,
+        label: "Cleared Employees",
+        data: clearedPercentageData,
+        borderColor: "#9D084A",
+        borderWidth: 1,
+        backgroundColor: "#9D084A",
+      },
+      {
+        label: "Non-Cleared Employees",
+        data: nonClearedPercentageData,
+        borderColor: "#180018",
+        borderWidth: 1,
+        backgroundColor: "#180018",
       },
     ],
   };

@@ -119,6 +119,23 @@ const Drawer = () => {
                     </Nav.Link>
                   )}
 
+                  {/* {(user?.is_staff || user?.is_superuser) && (
+                    <Nav.Link
+                      className={`mx-3 my-1 p-3 ${
+                        location.pathname === "hr-dashboard"
+                          ? styles.active
+                          : styles.navItem
+                      }`}
+                      onClick={(e) => {
+                        navigate("hr-dashboard");
+                        handleClose();
+                      }}>
+                      <i
+                        className={`fa-solid fa-square-poll-vertical fa-lg ${styles.drawerIcon}`}></i>
+                      <span className="px-2">Dashboard</span>
+                    </Nav.Link>
+                  )} */}
+
                   {(user?.is_staff || user?.is_superuser) && (
                     <Nav.Link
                       className={`mx-3 my-1 p-3 ${
@@ -131,8 +148,8 @@ const Drawer = () => {
                         handleClose();
                       }}>
                       <i
-                        className={`fa-solid fa-list-check fa-lg ${styles.drawerIcon}`}></i>
-                      <span className="px-2">Points Overview</span>
+                        className={`fa-solid fa-square-poll-vertical fa-lg ${styles.drawerIcon}`}></i>
+                      <span className="px-2">Dashboard</span>
                     </Nav.Link>
                   )}
 
@@ -188,14 +205,15 @@ const Drawer = () => {
                 </Nav>
               </div>
               <Row className="w-100 p-3 flex-column">
+                <Col className={`${styles.detail}`}>Currently logged in:</Col>
                 <Col className={`${styles.name}`}>
                   {user?.firstname} {user?.lastname}
                 </Col>
-                <Col className={`${styles.detail}`}>
+                {/* <Col className={`${styles.detail}`}>
                   {user?.department
                     ? user?.department?.name
                     : "No department set."}
-                </Col>
+                </Col> */}
               </Row>
               {/* Logout */}
               <Nav.Item className={styles.logout}>

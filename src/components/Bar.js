@@ -40,7 +40,7 @@ export const BarGraph = ({ swtd, term }) => {
       x: {
         title: {
           display: true,
-          text: "Category ID",
+          text: "SWTDs submitted per category",
         },
       },
     },

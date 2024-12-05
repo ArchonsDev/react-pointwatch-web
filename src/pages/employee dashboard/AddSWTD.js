@@ -85,13 +85,8 @@ const AddSWTD = () => {
     textarea.style.height = "auto";
     textarea.style.height = `${textarea.scrollHeight}px`;
 
-    if (e.target.name === "category" && e.target.value.startsWith("Degree")) {
-      setForm({
-        ...form,
-        [e.target.name]: e.target.value,
-      });
-    } else if (e.target.name === "term_id") {
-      const selectedTermId = parseInt(e.target.value);
+    if (e.target.name === "term_id") {
+      const selectedTermId = parseInt(e.target.value, 10);
       const term = terms.find((term) => term.id === selectedTermId);
 
       if (term) {
@@ -105,10 +100,12 @@ const AddSWTD = () => {
         });
 
         const status = user?.clearances.find(
-          (clearance) => clearance.term.id === selectedTermId
+          (clearance) =>
+            clearance.term.id === selectedTermId && !clearance.is_deleted
         );
 
-        setInvalidTerm(status?.is_deleted ? false : true);
+        if (status) setInvalidTerm(true);
+        else setInvalidTerm(false);
       }
 
       setForm({
@@ -126,6 +123,7 @@ const AddSWTD = () => {
   };
 
   const handleProof = (e) => {
+    const maxFileSize = 5 * 1024 * 1024;
     const files = Array.from(e.target.files);
     const allowedTypes = [
       "application/pdf",
@@ -134,7 +132,10 @@ const AddSWTD = () => {
       "image/jpg",
     ];
 
-    const validFiles = files.filter((file) => allowedTypes.includes(file.type));
+    const validFiles = files.filter(
+      (file) => allowedTypes.includes(file.type) && file.size <= maxFileSize
+    );
+
     if (validFiles.length > 0) {
       setForm({
         ...form,
@@ -148,14 +149,22 @@ const AddSWTD = () => {
   };
 
   const invalidFields = () => {
-    const requiredFields = ["title", "venue", "category", "benefits"];
+    const requiredFields = [
+      "title",
+      "venue",
+      "category",
+      "benefits",
+      "start_date",
+      "end_date",
+    ];
     return (
       requiredFields.some((field) => isEmpty(form[field])) ||
       form.term_id === 0 ||
       !form.files ||
-      form.points <= 0 ||
+      form.total_hours <= 0 ||
       validateDates(form.start_date, form.category, selectedTerm) ||
       validateDates(form.end_date, form.category, selectedTerm) ||
+      form.start_date > form.end_date ||
       invalidTerm
     );
   };
@@ -242,19 +251,12 @@ const AddSWTD = () => {
     );
   };
 
-  const setMinDate = (category, term) => {
-    if (category.startsWith("Degree")) return undefined;
-    return term?.start;
-  };
-
-  const setMaxDate = (category, term) => {
-    if (category.startsWith("Degree")) return undefined;
+  const setMaxDate = (term) => {
     if (term?.ongoing) return new Date().toISOString().slice(0, 10);
     return term?.end;
   };
 
-  const validateDates = (date, category, term) => {
-    if (category.startsWith("Degree")) return isEmpty(date);
+  const validateDates = (date, term) => {
     return isEmpty(date) && isValidSWTDDate(date, term);
   };
 
@@ -291,6 +293,7 @@ const AddSWTD = () => {
     } else {
       setForm((prevForm) => ({
         ...prevForm,
+        points: 0,
       }));
     }
   }, [form.category, form.total_hours]);
@@ -298,9 +301,10 @@ const AddSWTD = () => {
   useEffect(() => {
     if (selectedTerm) {
       const status = user?.clearances?.find(
-        (clearance) => clearance.term.id === selectedTerm.id
+        (clearance) =>
+          clearance.term.id === selectedTerm.id && !clearance.is_deleted
       );
-      if (status) setInvalidTerm(status?.is_deleted ? false : true);
+      if (status) setInvalidTerm(true);
       else setInvalidTerm(false);
     }
   }, [selectedTerm]);
@@ -309,7 +313,7 @@ const AddSWTD = () => {
     <Container
       className={`${styles.container} d-flex flex-column justify-content-center align-items-center`}>
       {/* View Terms Modal */}
-      <Modal show={showModal} onHide={closeModal} size="lg" centered>
+      <Modal show={showModal} onHide={closeModal} size="lg" centered scrollable>
         <Modal.Header closeButton>
           <Modal.Title className={styles.formLabel}>
             Required Points & Compliance Schedule
@@ -358,6 +362,7 @@ const AddSWTD = () => {
             <Row className="mb-2">
               <Col className={`p-1 ${styles.categoryLabel}`}>
                 <span className="ms-1">GENERAL INFORMATION</span>
+                <span className="text-danger">*</span>
               </Col>
             </Row>
 
@@ -458,6 +463,7 @@ const AddSWTD = () => {
             <Row className="mb-2">
               <Col className={`p-1 ${styles.categoryLabel}`} md="4">
                 <span className="ms-1">DURATION & POINTS</span>
+                <span className="text-danger">*</span>
               </Col>
             </Row>
 
@@ -472,8 +478,10 @@ const AddSWTD = () => {
                   <Form.Control
                     type="date"
                     name="start_date"
-                    min={setMinDate(form?.category, selectedTerm)}
-                    max={setMaxDate(form?.category, selectedTerm)}
+                    min={selectedTerm?.start}
+                    max={
+                      form.end_date ? form.end_date : setMaxDate(selectedTerm)
+                    }
                     className={styles.formBox}
                     onChange={handleChange}
                     value={form.start_date}
@@ -482,7 +490,7 @@ const AddSWTD = () => {
                       form?.category,
                       selectedTerm
                     )}
-                    disabled={form.term_id === 0 || loading}
+                    disabled={isEmpty(form?.category) || loading}
                   />
                 </FloatingLabel>
               </Col>
@@ -496,7 +504,7 @@ const AddSWTD = () => {
                     type="date"
                     name="end_date"
                     min={form?.start_date}
-                    max={setMaxDate(form?.category, selectedTerm)}
+                    max={setMaxDate(selectedTerm)}
                     className={styles.formBox}
                     onChange={handleChange}
                     value={form.end_date}
@@ -530,7 +538,12 @@ const AddSWTD = () => {
                     min={0}
                     onChange={handleChange}
                     value={form.total_hours}
-                    disabled={loading}
+                    disabled={
+                      loading ||
+                      isEmpty(form.start_date) ||
+                      isEmpty(form.end_date)
+                    }
+                    isInvalid={form?.total_hours === 0}
                   />
                 </FloatingLabel>
               </Col>
@@ -557,7 +570,10 @@ const AddSWTD = () => {
 
             {/* DOCUMENTATION */}
             <Row className="w-100 mb-1">
-              <span className={styles.categoryLabel}>DOCUMENTATION</span>
+              <Col>
+                <span className={styles.categoryLabel}>DOCUMENTATION</span>
+                <span className="text-danger">*</span>
+              </Col>
             </Row>
 
             {/* PROOF */}
@@ -600,7 +616,10 @@ const AddSWTD = () => {
                   name="benefits"
                   ref={textareaRef}
                   className={styles.formBox}
-                  style={{ wordWrap: "break-word", overflow: "hidden" }}
+                  style={{
+                    wordWrap: "break-word",
+                    overflow: "hidden",
+                  }}
                   onChange={handleChange}
                   value={form.benefits}
                   maxLength={2000}

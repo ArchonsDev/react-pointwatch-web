@@ -42,7 +42,7 @@ const Categories = () => {
             <td>
               0.5 points
               <br />1 point
-              <br />4 points
+              <br />2 points
             </td>
           </tr>
           <tr>
