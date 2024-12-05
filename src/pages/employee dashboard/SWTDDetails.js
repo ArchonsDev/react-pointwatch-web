@@ -194,7 +194,7 @@ const SWTDDetails = () => {
 
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center">
-      <Row className="w-100 mb-2">
+      <Row className="w-100 mb-1">
         <Col xl={9} lg={6} md={6} xs={12}>
           <h3 className={styles.label}>
             <i
@@ -239,7 +239,14 @@ const SWTDDetails = () => {
           message={"This action is irreversible."}
         />
       </Row>
-
+      {!isEditing && (
+        <Row className={`${styles.cardBody} w-100 mb-2`}>
+          <Col className="text-start text-muted">
+            Change proof by clicking on the <strong>View</strong> button where
+            more options are available.
+          </Col>
+        </Row>
+      )}
       <Card className="mb-3 w-100">
         <Card.Header className={styles.cardHeader}>
           <Row>
@@ -397,7 +404,7 @@ const SWTDDetails = () => {
                     ref={textareaRef}
                     className={styles.formBox}
                     value={swtd?.benefits}
-                    style={{ overflow: "hidden" }}
+                    style={{ wordWrap: "break-word", overflow: "hidden" }}
                     readOnly
                   />
                 </Col>
@@ -410,7 +417,8 @@ const SWTDDetails = () => {
         show={showProofModal}
         onHide={handleCloseProofModal}
         size="xl"
-        centered>
+        centered
+        scrollable>
         <Modal.Header closeButton></Modal.Header>
         <Modal.Body className="d-flex justify-content-center align-items-center">
           {!swtdProof ? (
