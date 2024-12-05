@@ -78,7 +78,7 @@ const Nonacademic = ({ departments, terms, faculty }) => {
     }
 
     const filteredMembers = members.filter(
-      (member) => member.department.id === selectedDepartment
+      (member) => member?.department?.id === selectedDepartment
     );
 
     if (filteredMembers.length === 0) {
@@ -92,7 +92,7 @@ const Nonacademic = ({ departments, terms, faculty }) => {
       const clearedCount = filteredMembers.filter((emp) =>
         emp.clearances.some(
           (clearance) =>
-            clearance.term.id === selectedTerm && !clearance.is_deleted
+            clearance?.term?.id === selectedTerm && !clearance.is_deleted
         )
       ).length;
       const percentCleared =
@@ -113,14 +113,15 @@ const Nonacademic = ({ departments, terms, faculty }) => {
         employee.firstname.toLowerCase().includes(query.toLowerCase()) ||
         employee.lastname.toLowerCase().includes(query.toLowerCase());
 
-      const matchesDept = dept !== -1 ? employee.department?.id === dept : true;
+      const matchesDept =
+        dept !== -1 ? employee?.department?.id === dept : true;
       const matchesStatus =
         statusFilter === 1
-          ? employee.clearances.some(
+          ? employee?.clearances.some(
               (clearance) => clearance.term.id === term && !clearance.is_deleted
             )
           : statusFilter === 0
-          ? !employee.clearances.some(
+          ? !employee?.clearances.some(
               (clearance) => clearance.term.id === term && !clearance.is_deleted
             )
           : true;
@@ -308,41 +309,42 @@ const Nonacademic = ({ departments, terms, faculty }) => {
                   </ListGroup.Item>
                 </ListGroup>
                 <ListGroup className={`${styles.searchBar} w-100`}>
-                  {currentRecords.length === 0 ?
-                  <ListGroup.Item>
-                    <Row>
-                      <Col xs={12} className="d-flex justify-content-center">
-                        No records to show.
-                      </Col>
-                    </Row>
-                  </ListGroup.Item>
-                  :
-                  currentRecords.map((member) => (
-                    <ListGroup.Item key={member?.id}>
+                  {currentRecords.length === 0 ? (
+                    <ListGroup.Item>
                       <Row>
-                        <Col lg={2} md={1} xs={2}>
-                          {member?.employee_id}
-                        </Col>
-                        <Col lg={6} md={7} xs={5}>
-                          {member.firstname} {member.lastname}
-                        </Col>
-                        <Col className="text-center" lg={2} md={1} xs={2}>
-                          0
-                        </Col>
-                        <Col className="text-center" lg={2} md={2} xs={3}>
-                          {member.clearances?.find(
-                            (clear) =>
-                              clear.term?.id === selectedTerm &&
-                              !clear.is_deleted
-                          ) ? (
-                            <span className="text-success">CLEARED</span>
-                          ) : (
-                            <span className="text-danger">NOT CLEARED</span>
-                          )}
+                        <Col xs={12} className="d-flex justify-content-center">
+                          No records to show.
                         </Col>
                       </Row>
                     </ListGroup.Item>
-                  ))}
+                  ) : (
+                    currentRecords.map((member) => (
+                      <ListGroup.Item key={member?.id}>
+                        <Row>
+                          <Col lg={2} md={1} xs={2}>
+                            {member?.employee_id}
+                          </Col>
+                          <Col lg={6} md={7} xs={5}>
+                            {member.firstname} {member.lastname}
+                          </Col>
+                          <Col className="text-center" lg={2} md={1} xs={2}>
+                            0
+                          </Col>
+                          <Col className="text-center" lg={2} md={2} xs={3}>
+                            {member.clearances?.find(
+                              (clear) =>
+                                clear.term?.id === selectedTerm &&
+                                !clear.is_deleted
+                            ) ? (
+                              <span className="text-success">CLEARED</span>
+                            ) : (
+                              <span className="text-danger">NOT CLEARED</span>
+                            )}
+                          </Col>
+                        </Row>
+                      </ListGroup.Item>
+                    ))
+                  )}
                 </ListGroup>
 
                 {currentRecords.length !== 0 && (
