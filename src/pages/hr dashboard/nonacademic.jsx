@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Form, Row, Col, ListGroup, InputGroup } from "react-bootstrap";
@@ -7,12 +7,14 @@ import Cookies from "js-cookie";
 import { userPoints } from "../../api/user";
 import { exportPointsOverview } from "../../api/export";
 
+import SessionUserContext from "../../contexts/SessionUserContext";
 import { PieChart } from "../../components/Pie";
 import BtnSecondary from "../../common/buttons/BtnSecondary";
 import PaginationComponent from "../../components/Paging";
 import styles from "./style.module.css";
 
 const Nonacademic = ({ departments, terms, faculty }) => {
+  const { user } = useContext(SessionUserContext);
   const token = Cookies.get("userToken");
   const navigate = useNavigate();
 
@@ -321,35 +323,37 @@ const Nonacademic = ({ departments, terms, faculty }) => {
                       </Row>
                     </ListGroup.Item>
                   ) : (
-                    currentRecords.map((member) => (
-                      <ListGroup.Item
-                        className={styles.tableBody}
-                        key={member?.id}
-                        onClick={() => navigate(`/dashboard/${member.id}`)}>
-                        <Row>
-                          <Col lg={2} md={1} xs={2}>
-                            {member?.employee_id}
-                          </Col>
-                          <Col lg={6} md={7} xs={5}>
-                            {member.firstname} {member.lastname}
-                          </Col>
-                          <Col className="text-center" lg={2} md={1} xs={2}>
-                            0
-                          </Col>
-                          <Col className="text-center" lg={2} md={2} xs={3}>
-                            {member.clearances?.find(
-                              (clear) =>
-                                clear.term?.id === selectedTerm &&
-                                !clear.is_deleted
-                            ) ? (
-                              <span className="text-success">CLEARED</span>
-                            ) : (
-                              <span className="text-danger">NOT CLEARED</span>
-                            )}
-                          </Col>
-                        </Row>
-                      </ListGroup.Item>
-                    ))
+                    currentRecords
+                      .filter((member) => member?.id !== user?.id)
+                      .map((member) => (
+                        <ListGroup.Item
+                          className={styles.tableBody}
+                          key={member?.id}
+                          onClick={() => navigate(`/dashboard/${member.id}`)}>
+                          <Row>
+                            <Col lg={2} md={1} xs={2}>
+                              {member?.employee_id}
+                            </Col>
+                            <Col lg={6} md={7} xs={5}>
+                              {member.firstname} {member.lastname}
+                            </Col>
+                            <Col className="text-center" lg={2} md={1} xs={2}>
+                              0
+                            </Col>
+                            <Col className="text-center" lg={2} md={2} xs={3}>
+                              {member.clearances?.find(
+                                (clear) =>
+                                  clear.term?.id === selectedTerm &&
+                                  !clear.is_deleted
+                              ) ? (
+                                <span className="text-success">CLEARED</span>
+                              ) : (
+                                <span className="text-danger">NOT CLEARED</span>
+                              )}
+                            </Col>
+                          </Row>
+                        </ListGroup.Item>
+                      ))
                   )}
                 </ListGroup>
 
